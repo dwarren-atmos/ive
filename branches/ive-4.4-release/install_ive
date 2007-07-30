@@ -1,0 +1,102 @@
+#!/bin/csh -f
+# $Id: install_ive,v 1.4 1997/08/19 16:19:09 warren Exp $
+# $Log: install_ive,v $
+# Revision 1.4  1997/08/19 16:19:09  warren
+# Check in the version fixed for the real binary release.
+#
+# Revision 1.3  1997/07/30 21:23:59  davidive
+# Build the ive command based on based on the directory the script is in.
+#
+# Revision 1.2  1997/07/30 18:57:02  harry
+# More changes.
+#
+# Revision 1.1  1997/07/28 23:10:37  harry
+# Script to properly set up IVE environment variables.
+#
+#
+set defdir="/usr/local"
+set defbin="/usr/local/bin"
+#
+echo "Welcome to IVE (Interactive Visualization Environment)"
+echo "Brought to you by the Department of Atmospheric Sciences"
+echo "           at the University of Washington"
+#
+sleep 2
+set startdir=`pwd`
+getdir:
+echo "In what directory would you like to place the IVE command ? (/usr/local/bin)"
+set bindir=$<
+if ($bindir == "")set direct=$defbin
+cd $bindir
+set bindir=`pwd`
+cd $startdir
+#
+echo "Place the IVE command in $bindir? (y/n)"
+set answ=$<
+if ($answ != "y" && $answ != "Y" && $answ != "yes" && $answ != "YES" && \
+        $answ != "yes") goto getdir
+#
+echo "Working..."
+set loc=`echo "$0" | sed -e s/install_ive//`
+if($loc != "") then
+        cd $loc
+endif
+ 
+set where=`pwd`
+#
+echo " "
+echo " "
+echo "I think the IVE distribution is in: $where"
+echo "Is this correct (Y/N)? [may need to be changes if using an automounter]"
+set answ=$<
+if ($answ == "y" && $answ == "Y" && $answ == "yes" && $answ == "YES" && \
+        $answ == "yes") goto OK
+
+getwhere:
+echo " "
+echo " "
+echo "What is the correct path to the IVE distribution ?"
+set where=$<
+
+echo " "
+echo " "
+echo "Is $where the correct path to the IVE distribution? (Y/N)"
+set answ=$<
+if ($answ != "y" && $answ != "Y" && $answ != "yes" && $answ != "YES" && \
+        $answ != "yes") goto getwhere
+
+OK:
+#
+#
+/bin/rm -f $bindir/ive
+touch $bindir/ive
+/bin/echo "#\!/bin/csh" >$bindir/ive
+/bin/echo "# IVETRANS is the default directory for IVE transforms" >>$bindir/ive
+/bin/echo "setenv IVETRANS $where/" >>$bindir/ive
+/bin/echo "# IVECTB is the directory for user color tables" >>$bindir/ive
+/bin/echo "setenv IVECTB $where/ctb/" >>$bindir/ive
+/bin/echo "# IVECTBLIB is the directory containing the built-in color tables" >>$bindir/ive
+/bin/echo "setenv IVECTBLIB $where/ctb/" >>$bindir/ive
+/bin/echo "# IVEHELPDIR is the directory with the help files" >>$bindir/ive
+/bin/echo "setenv IVEHELPDIR $where/help/" >>$bindir/ive
+/bin/echo "# IVEPSDIR is the directory containing support files for postscript printing" >>$bindir/ive
+/bin/echo "setenv IVEPSDIR $where/lib/" >>$bindir/ive
+/bin/echo "# UDUNITS_PATH is the data file for udunits" >>$bindir/ive
+/bin/echo "setenv UDUNITS_PATH $where/lib/udunits.dat" >>$bindir/ive
+/bin/echo "# XGKDFontDir is the directory with the xgks fonts" >>$bindir/ive
+/bin/echo "setenv XGKSFontDir $where/xgksfonts" >>$bindir/ive
+/bin/echo "# XUSERFILESEARCHPATH is a list of directories with app-defaults files for X" >>$bindir/ive
+/bin/echo "setenv XUSERFILESEARCHPATH $where/lib/%N:/usr/lib/X11/app-defaults/%N" >>$bindir/ive
+/bin/echo "# execute the real IVE binary"
+/bin/echo "exec $where/bin/ive" >>$bindir/ive
+chmod 755 $bindir/ive
+#
+echo "Some environment variables you might want to set are:"
+echo "IVETRANSFILE      -       What transform file to load at startup"
+echo "IVEDAT            -       The directory with your data files"
+echo "IVEHELPBROWSER    -       netscape or Mosaic"
+#
+echo "Thank you for using IVE"
+
+
+

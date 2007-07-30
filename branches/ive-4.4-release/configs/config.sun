@@ -1,0 +1,59 @@
+# $Id: config.sun,v 1.21 2002/12/24 21:28:53 harry Exp $
+# SUN Config File
+# $Log: config.sun,v $
+# Revision 1.21  2002/12/24 21:28:53  harry
+# Use NCARG_ROOT environment variable in build.
+#
+# Revision 1.20  2001/04/05 15:48:22  harryive
+# Add -stackvar, remove SunOS4 support, use Motif 1.2 library.
+#
+# Revision 1.19  2001/03/29 21:45:33  harryive
+# Fix change to NCAR version 4.1.
+#
+# Revision 1.18  2001/03/29 18:55:02  warren
+# Switched to use ncarg4.1
+#
+# Revision 1.17  2001/03/13 21:41:33  harry
+# Use /usr/dt and /usr/openwin includes.
+#
+# Revision 1.16  2001/01/23 23:29:27  warren
+# iAdded gl libs to sun config
+#
+# Revision 1.15  2000/01/21 00:08:08  warren
+# Fixed to work with current solaris (no -lucb)
+#
+# Revision 1.14  1998/12/28 21:41:28  harry
+# Update Solaris library list.
+#
+# Revision 1.13  1998/06/03 17:53:01  harry
+# Move NO_PROTO to config.sun.  Fix config.alpha to remove lm_sqrt.
+#
+#
+RANLIB=ranlib
+CC= cc -Xt
+ACC=cc -Xa
+LIBS = 	-L/usr/dt/lib -L/usr/openwin/lib -L${NCARG_ROOT}/lib/ \
+	-L/opt/local/lib \
+	-Bstatic -lncarg -lncarg_c -Bdynamic -lphigs \
+	/usr/dt/lib/libXm.so.3 \
+	-Bstatic  -lxgks -Bdynamic -lGL -lGLU -lXt -lX11 -lsocket \
+        -Bstatic -lnetcdf -ludunits -ludport -Bdynamic -lm \
+        -ldl -lF77 -lM77 -lV77 -lsunmath -lm -lgen -lnsl -lc
+LDOPT = -O 
+LDSTUFF = ${LDOPT}
+DEC = -I/usr/dt/include -I/usr/openwin/include -I/usr/include \
+	-I/opt/local/include \
+	-D SOLARIS -DLIBDIR=\\\"/opt/local/lib/ive/\\\"
+FDEC =  -DLIBDIR=\\'/opt/local/lib/ive/\\' -stackvar
+ALPHA =
+
+
+
+
+
+
+
+
+
+
+
