@@ -354,8 +354,8 @@ static char ident[] = "$Id: add_credits.c,v 1.87 2007-07-30 22:28:42 warren Exp 
 
 #define TFONT "*times-bold-r*24*"	/* Font for "IVE" */
 #define VFONT "*times-bold-r*18*"	/* Font for version number (bold) */
-#define FONT "*times-medium-r*14*"	/* Font for normal text */
-#define IFONT "*times-medium-i*14*"	/* Font for italic text */
+#define FONT "*times-medium-r*18*"	/* Font for normal text */
+#define IFONT "*times-medium-i*18*"	/* Font for italic text */
 #define TFCOLOR "green4"		/* Color for "IVE" */
 #define TBCOLOR "PaleGreen"		/* Background color for "IVE" */
 #define DEFAULT_FONT "9x15"		/* Font to use if others not found */
