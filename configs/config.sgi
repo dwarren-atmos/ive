@@ -1,0 +1,30 @@
+# $Id: config.sgi,v 1.2 1997/04/11 18:47:12 warren Exp $
+# SGI Config File
+# $Log: config.sgi,v $
+# Revision 1.2  1997/04/11 18:47:12  warren
+# Modifications to support latest OS rev (6.4)
+#
+# Revision 1.1  1996/10/23 15:48:50  harry
+# Config file for SGI IRIX - Initial checkin.
+#
+#
+RANLIB=echo
+BROWSER='-DBROWSER=\"netscape\"'
+COPT = -O 
+ACC= cc
+CC = cc
+DEC = -I/user3/edmon/udunits-1.10.8/include -I/user3/edmon/include \
+	-I/usr/local/include -DIRIX
+FDEC = 
+LIBS = -L/usr/local/ncarg/lib -L/usr/local/lib -L/usr/lib \
+	-lncarg -lncarg_c -lXm \
+       -L/user3/edmon/lib -lxgks \
+       -lXt  -lX11 -lnetcdf -L/user3/edmon/udunits-1.10.8/lib -ludunits \
+       -lF77 -lU77 -lI77 -lisam -lm
+LDOPT = -O
+LDSTUFF = 
+ALPHA =
+version := ${shell /usr/bin/uname -r}
+ifeq (${version}, 6.4)
+RANLIB=/bin/echo
+endif

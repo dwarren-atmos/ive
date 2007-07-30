@@ -1,0 +1,29 @@
+# $Id: config.ult,v 1.8 1998/12/17 23:17:07 warren Exp $
+# Ultrix Config File
+# $Log: config.ult,v $
+# Revision 1.8  1998/12/17 23:17:07  warren
+# Cleanup of pointer casts to long instead of int, freeing XmStrings when no
+# longer in use, passing all args to sprinf's and making correctly casting NULLs
+#
+# Revision 1.7  1995/12/18 00:22:03  warren
+# increase olimit to 1500 for derivitive.c
+#
+# Revision 1.6  1995/08/25  21:51:37  harry
+# Get log information into this file.
+#
+#
+RANLIB=ranlib
+BROWSER='-DBROWSER=\"Mosaic\"'
+COPT = -O -Olimit 1500 -DNEED_USLEEP
+ACC= c89
+CC = c89
+DEC = -common -I/usr/include/mit
+FDEC = -align commons -assume recursive 
+ifeq(${CC},cc)  DEC = -Wf,-XNl4096 -I/usr/include/mit 
+LIBS = -L/usr/local/lib -lncarg -lncarg_loc -lphigs -lXm \
+       -lxgks \
+       -lXt  -lX11 -lnetcdf  -ludunits -ludport -lm \
+       -lUfor -lfor -lutil -li -lots -lm 
+LDOPT = -O
+LDSTUFF = -N ${LDOPT}
+ALPHA =

@@ -1,0 +1,210 @@
+.\" $Header: /home/disk/atmos/CVSROOT/ive/mnemosyne/mnemosyne.3,v 1.1.1.1 1993/04/07 19:41:29 harry Exp $
+.TH MNEMOSYNE 3
+.SH NAME
+mnemosyne: mnem_malloc mnem_free, mnem_realloc, mnem_calloc \- memory allocator
+with allocation tracing and statistics
+.SH SYNTAX
+.sp
+#include "mnemosyne.h"
+.nf
+.B mall_t mnem_malloc(size, lab, lin)
+.B unsigned size;
+.B char	*lab;
+.B int	lin;
+.PP
+.B mnem_free(ptr, lab, lin)
+.B mall_t ptr;
+.B char	*lab;
+.B int	lin;
+.PP
+.B mall_t mnem_realloc(ptr, size, lab, lin)
+.B mall_t ptr;
+.B unsigned size;
+.B char	*lab;
+.B int	lin;
+.PP
+.B mall_t mnem_calloc(nelem, elsize, lab, lin)
+.B unsigned nelem, elsize;
+.B char	*lab;
+.B int	lin;
+.fi
+.SH DESCRIPTION
+The
+.I mnemosyne
+library acts as a "wrapper" around the
+.IR malloc (3)
+family of memory allocation routines, and gathers statistics about
+where allocations occur in source code for later analysis.
+The include file
+.I mnemosyne.h
+contains C-preprocessor directives that "intercept" calls to
+.I malloc
+and redirect them to the equivalent
+.I mnemosyne
+function.
+As part of this process, additional data is passed the
+.I mnemosyne
+function, namely the line number where the allocation occurred,
+and the file in which it occurred.
+A typical application will never appear to directly call the
+.I mnemosyne
+functions, but will simply make calls to "malloc" which are intercepted.
+This approach has the advantage of simplicity and
+portability, with the disadvantage that it is incapable of
+checking dynamic memory use of library routines that cannot
+be recompiled with the "intercepted" routines.
+.PP
+.I mnemosyne
+is intended as a tool for helping to locate memory leaks and
+memory-profligate routines with a minimal amount of disturbance to
+source code.
+As such it can be fooled, but it still offers a great deal of
+flexibility for its purpose.
+.SH "HOW IT WORKS"
+.PP
+Whenever a data pointer is allocated or freed through the
+wrapper routines, the label (the name of the source code file)
+and line number at which the action occurred are searched for
+and possibly added to an internal symbol table.
+The symbol table is also written to a file named
+.I mnem.syms
+which is an ASCII list of active points in the source code.
+Each active pointer in memory (returned from
+.IR malloc ,
+.IR realloc ,
+or
+.IR calloc ,
+is associated with the symbol where its allocation occurred,
+and information about its size is stored in a packed binary
+database in a file named
+.IR mnem.dat .
+The pointer map is updated every time a pointer is allocated
+or deallocated, which is a performance loss, but ensures that
+the pointer map is current in case the program is terminated
+unexpectedly.
+It is these two files that
+.I mnemalyse
+reads to determine what allocated pointers were never deallocated properly.
+.PP
+Whenever a pointer is allocated, the symbol table entry for
+the line of code performing the allocation is updated with
+some possibly useful statistics about the number of allocations
+that occurred at that point in the code, average size, etc.
+This information can be dumped to the
+.I mnem.syms
+file with a call to
+.I mnem_writestats()
+otherwise the information is not included in the symbol file.
+An example of the symbol statistics resembles:
+.IP
+.nf
+#total allocations:9
+#total re-allocations:0
+#total frees:1
+#bad/dup frees:2
+#total allocated never freed:1066
+#average size of allocations:119.2
+#map#   calls   ave     line#   file
+0       1       922.0   19      mtest.c
+1       1       123.0   20      mtest.c
+2       7       4.0     27      mtest.c
+.fi
+.PP
+The internal symbol table management routines and pointer map
+management routines will cause a program using these functions
+to both consume more memory and run longer, but this should not
+pose a problem, since
+.I mnemosyne
+is a debugging aid, not a runtime support library.
+.SH "MNEMOSYNE FUNCTIONS"
+.PP
+Some functions are provided to allow manipulation of the recorder
+and statistics:
+.PP
+.B "int mnem_recording()"
+.br
+This function returns nonzero if the memory-allocation recorder
+is running.
+.PP
+.B "int mnem_setrecording(value)"
+.br
+.B "int value;"
+.br
+If the value provided is nonzero, the recorder is turned on. If it
+is zero, the recorder is turned off.
+.PP
+.B "void mnem_setlog(fp)"
+.br
+.B "FILE *fp;"
+.br
+Sets the runtime error log file pointer to the specified one. The
+default is the standard error. If a null pointer is given, runtime
+warning messages are discarded. 
+.PP
+.B "int mnem_writestats()"
+.br
+Causes the
+.I mnem.syms
+file to be re-written with extended and updated statistics information.
+This is not necessary for the memory-leak analyser
+.I mnemalyse
+to function, but it provides up-to-date information about number of
+allocation calls made, sizes, etc. The function returns nonzero in
+the event of an error.
+.SH DIAGNOSTICS
+The
+.I mnemosyne
+functions return what their counterpart in the
+.I malloc
+library return.
+.PP
+Additional diagnostics for detected exceptions may be written to
+the log file as they occur.
+Such exceptions include re-freeing an already freed pointer,
+a call to
+.I malloc
+returning a null pointer, and attempts to free data that was not
+known to be allocated.
+For example:
+.IP
+.nf
+malloc returned null pointer at "mtest.c" line:23 size:-9
+pointer freed that was never allocated "mtest.c" line:30
+pointer re-freed when already free "mtest.c" line:34 last allocated:
+"mtest.c" line:27
+.fi
+.PP
+Whenever an internal error occurrs, recording is turned off.
+This will throw some statistics into doubt.
+.SH RESTRICTIONS
+.PP
+Library routines that return allocated data to user programs
+(such as
+.IR scandir (3)
+will cause warnings and trouble when attempts are made to free the
+data through the "wrapper" routine.
+If someone wants to hack up a version of the
+.I malloc
+library that will cooperate with
+.I mnemosyne,
+feel free to.
+.PP
+One problem with using the C-preprocessor to "intercept" free() and
+malloc() calls is that forward declarations of these in your source
+code will cause syntax errors.
+This is unavoidable.
+Additionally,
+problems may result if structure elements are named "free" or "malloc",
+which is perfectly valid C, but the preprocessor can't cope.
+A frontend like C++'s
+.I cfront
+can be used, if such is available.
+.SH FILES
+.ta 25n
+mnem.syms	Source code line number map
+.br
+mnem.dat	Pointer allocation map
+.SH SEE ALSO
+.IR mnemalyse (1)
+.SH AUTHOR
+Marcus J. Ranum (mjr@decuac.dec.com)

@@ -1,0 +1,78 @@
+# $Id: config.Linux,v 1.2 2007-06-21 20:57:21 reinecke Exp $
+# ALPHA Config File
+# $Log: config.Linux,v $
+# Revision 1.2  2007-06-21 20:57:21  reinecke
+# *** empty log message ***
+#
+# Revision 1.1  2002/12/09 18:06:12  warren
+# *** empty log message ***
+#
+# Revision 1.33  2001/04/04 20:03:14  harryive
+# Fix library path for NCAR.
+#
+# Revision 1.32  2001/03/29 18:55:01  warren
+# Switched to use ncarg4.1
+#
+# Revision 1.31  2001/03/16 20:35:21  warren
+# Back to the old ncar
+#
+# Revision 1.30  2001/01/23 22:43:30  davidive
+# Added MESA libraries and arch generic
+#
+# Revision 1.29  2000/07/20 20:17:18  warren
+# back to -05
+#
+# Revision 1.28  2000/05/10 22:55:00  warren
+# Changed -O5 to -O4
+#
+# Revision 1.27  2000/04/07 20:57:52  warren
+# Added the missing endif
+#
+# Revision 1.26  2000/04/07 20:52:57  warren
+# added -assume gfullpath to alpha if -g used
+#
+# Revision 1.25  1999/12/22 00:32:14  warren
+# Fixed Dales crashing bug when changing from point slicer to normal. Also
+# have some ifdef linuxes in there in case we ever find a fortran compiler.
+#
+# Revision 1.24  1998/06/03 17:53:00  harry
+# Move NO_PROTO to config.sun.  Fix config.alpha to remove lm_sqrt.
+#
+#
+F77=ifc
+KF77=ifc
+ACC=cc
+CC=cc
+LD=ifc 
+RANLIB=ranlib
+FCPP =  
+#FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
+FDEC =   -w95 -cm -align -align -auto -C90 -u 
+
+DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE -I/usr/include \
+	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE \
+	-DLinux
+
+#DEC = -D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE -I/usr/include \
+#	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE -ffast-math \
+#	-fbranch-count-reg -fmove-all-movables \
+#	-funroll-loops -DLinux 	-Wchar-subscripts
+
+#Includes there to premempt float.h in udposix.
+
+ALPHA = -DLinux
+
+LIBS =  -C90 -posixlib -Vaxlib -L/usr/lib  -L/usr/local/lib/ \
+	-L${NCARG}/lib -L/opt/intel/compiler60/ia32/lib \
+	-L/usr/X11R6/lib -lncarg -lngmath -lncarg_c -lXm \
+	-lxgks  -ludunits -ludport -lm \
+	-lcprts -lirc \
+	-lGLU -lGL  -lnetcdf \
+	 -lXt -lXp -lXpm -lXext -lX11 \
+	-lSM -lICE  -lsvml -lpthread -ldl -lc -libcore
+
+COPT = -O
+FOPT = -O3
+LDOPT =   -O  
+LDSTUFF = ${LDOPT} 
+

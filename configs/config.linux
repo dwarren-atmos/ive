@@ -1,0 +1,109 @@
+# $Id: config.linux,v 1.8 2007-07-30 22:29:18 warren Exp $
+# ALPHA Config File
+# $Log: config.linux,v $
+# Revision 1.8  2007-07-30 22:29:18  warren
+# Setup for building with the version compiler and the newest ncar graphics
+#
+# Revision 1.7  2007-07-05 19:24:25  warren
+# nal commit of everything pre svn
+#
+# Revision 1.6  2007-06-21 20:57:21  reinecke
+# *** empty log message ***
+#
+# Revision 1.5  2006/08/23 16:53:06  warren
+# You need this to make the draw_point command work. Also added an optional scaling factor.
+#
+# Revision 1.4  2006/03/03 18:17:43  warren
+# Updated for version 9 compiler
+#
+# Revision 1.3  2005/09/06 20:22:03  warren
+# Move updates into current stream
+#
+# Revision 1.2.2.2  2005/09/06 17:51:39  warren
+# updated for latest compilres
+#
+# Revision 1.2.2.1  2005/08/12 17:27:32  warren
+# Corrections for new compilers
+#
+# Revision 1.2  2003/04/02 22:25:10  warren
+# don't plot iaia(0) as this is under the mountain
+#
+# Revision 1.1  2002/12/09 18:06:14  warren
+# *** empty log message ***
+#
+# Revision 1.33  2001/04/04 20:03:14  harryive
+# Fix library path for NCAR.
+#
+# Revision 1.32  2001/03/29 18:55:01  warren
+# Switched to use ncarg4.1
+#
+# Revision 1.31  2001/03/16 20:35:21  warren
+# Back to the old ncar
+#
+# Revision 1.30  2001/01/23 22:43:30  davidive
+# Added MESA libraries and arch generic
+#
+# Revision 1.29  2000/07/20 20:17:18  warren
+# back to -05
+#
+# Revision 1.28  2000/05/10 22:55:00  warren
+# Changed -O5 to -O4
+#
+# Revision 1.27  2000/04/07 20:57:52  warren
+# Added the missing endif
+#
+# Revision 1.26  2000/04/07 20:52:57  warren
+# added -assume gfullpath to alpha if -g used
+#
+# Revision 1.25  1999/12/22 00:32:14  warren
+# Fixed Dales crashing bug when changing from point slicer to normal. Also
+# have some ifdef linuxes in there in case we ever find a fortran compiler.
+#
+# Revision 1.24  1998/06/03 17:53:00  harry
+# Move NO_PROTO to config.sun.  Fix config.alpha to remove lm_sqrt.
+#
+#
+F77=ifort
+KF77=ifort
+ACC=icc
+CC=icc
+#LD=ifc 
+LD=ifort
+RANLIB=ranlib
+#NETCDF=/usr/local/netcdf-3.6.1
+FCPP =  
+#FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
+FDEC =   -w95 -cm -align -auto -u -ip -zero
+
+DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
+	-I/usr/include \
+	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE \
+	-DLinux
+
+#DEC = -D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE -I/usr/include \
+#	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE -ffast-math \
+#	-fbranch-count-reg -fmove-all-movables \
+#	-funroll-loops -DLinux 	-Wchar-subscripts
+
+#Includes there to premempt float.h in udposix.
+
+ALPHA = -DLinux
+
+#LIBS =       -threads -Vaxlib -L${NETCDF}/lib -L/usr/lib
+LIBS =       -threads -Vaxlib -L/usr/lib  \
+	-L${NCARG_ROOT}/lib  \
+	-L/usr/X11R6/lib -L/usr/lib/gcc-lib/i486-linux/3.3.5 \
+	-lncarg -lngmath -lncarg_c -lXm \
+	-lxgks-ifort -ludunits -ludport -lm \
+	-lirc \
+	-lGLU -lGL  -lnetcdf -Bdynamic \
+	-lXt -lXp -lXpm -lXext -lX11 \
+	-lSM -lICE  -lsvml -ldl -lc \
+	-lXm -lc -lifcore
+
+
+COPT = -O -w
+FOPT = -O 
+LDOPT =  -Wl,--export-dynamic -nofor_main -ip
+LDSTUFF = ${LDOPT} 
+
