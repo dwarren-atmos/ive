@@ -130,12 +130,11 @@ c
       endif
       call getlvar("defmap",defmap,ierror)
       call getlvar("exact_fit",exact_fit,ierror)
-c      write(6,*)'defmap,exact_fit', defmap, exact_fit
-      if (imap.eq.1 .and. .not. (defmap .and. exact_fit)) then
+c      if (imap.eq.1 .and. .not. (defmap .and. exact_fit)) then
          call vvseti('MAP', 4)
-      else
-         call vvseti('MAP', 0)
-      endif
+c      else
+c         call vvseti('MAP', 0)
+c      endif
 c      
 c     Set line color and width
 c
