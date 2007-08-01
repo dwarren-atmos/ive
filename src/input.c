@@ -54,46 +54,51 @@ FILE *input_stream = NULL;
 
 int
 input_(iflag)
-
-int *iflag;
-
+  
+     int *iflag;
+     
 {
-    char buf[1024], buf2[1024], **argv, **get_args();
-    int argc;
-
-    argv = get_args(&argc);
-    if (argc < 2 || argc > 3) {
-	sprintf(buf, "Command %s requires 1 or 2 values", argv[0]);
+  char buf[1024], buf2[1024], **argv, **get_args();
+  int argc;
+  
+  argv = get_args(&argc);
+  if (argc < 2 || argc > 3) {
+    sprintf(buf, "Command %s requires 1 or 2 values", argv[0]);
+    (void) make_help_widget_(buf);
+    return_args(1);
+  }
+  if (argc == 3 && strcmp(argv[1], "0") == 0 && strcmp(argv[2], "0") == 0) {
+    strcpy(buf, "~/.iverc");
+    strcpy(buf2, buf);
+    expand_path_(buf, 1024);
+    if ((input_stream = fopen(buf, "r")) == NULL) {
+      strcpy(buf, "~/.uwgaprc");
+      strcpy(buf2, buf);
+      expand_path_(buf, 1024);
+      if ((input_stream = fopen(buf, "r")) == NULL) return_args(0);
+    }
+  }
+  else {
+    if(!strncmp(argv[1],"-",1)){
+      input_stream = stdin;
+    }
+    else{
+      strcpy(buf, argv[1]);
+      strcpy(buf2, buf);
+      expand_path_(buf, 1024);
+      if ((input_stream = fopen(buf, "r")) == NULL) {
+	sprintf(buf, "Command %s cannot access file %s",
+		argv[0], argv[1]);
 	(void) make_help_widget_(buf);
 	return_args(1);
+      }
     }
-    if (argc == 3 && strcmp(argv[1], "0") == 0 && strcmp(argv[2], "0") == 0) {
-	strcpy(buf, "~/.iverc");
-	strcpy(buf2, buf);
-	expand_path_(buf, 1024);
-	if ((input_stream = fopen(buf, "r")) == NULL) {
-	    strcpy(buf, "~/.uwgaprc");
-	    strcpy(buf2, buf);
-	    expand_path_(buf, 1024);
-	    if ((input_stream = fopen(buf, "r")) == NULL) return_args(0);
-	}
-    }
-    else {
-	strcpy(buf, argv[1]);
-	strcpy(buf2, buf);
-	expand_path_(buf, 1024);
-	if ((input_stream = fopen(buf, "r")) == NULL) {
-	    sprintf(buf, "Command %s cannot access file %s",
-		    argv[0], argv[1]);
-	    (void) make_help_widget_(buf);
-	    return_args(1);
-	}
-    }
-    if (*iflag == 0)
-	set_file_box(input_widget.List, buf2, &input_widget.fsb);
-    if (argc == 3 && strcasecmp(argv[2], "debug") == 0) step_(&one);
-    else while(step_(&zero));
-    return_args(0);
+  }
+  if (*iflag == 0)
+    set_file_box(input_widget.List, buf2, &input_widget.fsb);
+  if (argc == 3 && strcasecmp(argv[2], "debug") == 0) step_(&one);
+  else while(step_(&zero));
+  return_args(0);
 }
 
 int
