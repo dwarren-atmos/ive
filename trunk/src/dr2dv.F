@@ -97,7 +97,7 @@ c
       integer       text_index, outnum, outsig, outpow
       real          u, v, vrl, vl, vr, vb, vt, ul, ur, ub, ut, lbs
       real          dmx, vmx, vmx2, rnn
-      logical       flag, veclock, defmap,exact_fit
+      logical       flag, veclock, mapflg, defmap, exact_fit
       character *(80) numlab
       dimension u(nu, nv), v(nu, nv)
 c Function declarations
@@ -130,11 +130,21 @@ c
       endif
       call getlvar("defmap",defmap,ierror)
       call getlvar("exact_fit",exact_fit,ierror)
+      call getlvar ('mapflg', mapflg, ierror)
+
 c      if (imap.eq.1 .and. .not. (defmap .and. exact_fit)) then
-         call vvseti('MAP', 4)
+c         call vvseti('MAP', 4)
 c      else
+c         print *,'call vvseti(MAP, 0)'
 c         call vvseti('MAP', 0)
 c      endif
+
+      if(mapflg) then
+         call vvseti('MAP', 4)
+      else
+         call vvseti('MAP', 3)
+      end if
+        
 c      
 c     Set line color and width
 c
