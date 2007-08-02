@@ -237,7 +237,7 @@ c            in(4)=0.
 c            call phys_2_index_trans(in, out, flag, 4, 1)
 c            call cpmpxy(1,out(1),out(2),data_x(i),data_y(i))
             call phys_2_lonlat_trans(data_x(i),data_y(i),rlon,rlat,1)
-            write(6,*) data_x(i),data_y(i),rlat,rlon
+            !write(6,*) data_x(i),data_y(i),rlat,rlon
             call MAPTRN(rlat,rlon,data_x(i),data_y(i))
          end do
       endif
@@ -283,20 +283,21 @@ c     get the stride
       endif
 
 c     Make sure step is not too big
+      print *,data_max,data_min,step
       if(step .gt. 0 .and. (data_max - data_min)/step.gt.20) then
          write(message,100) step,(data_max - data_min)/step
          call write_message
       endif
 
       num_depth=nint(abs((data_max - data_min)/step)) + 2
-      print *,data_min,data_max,num_depth
+c      print *,data_min,data_max,num_depth
 
       if (num_depth .lt. 2) num_depth = 2
 
 c     get mid value
-      print *,'TRAJ_VAL_SET',traj_val_set,traj_val
-      print *,'TRAJ_STEP_SET',traj_step_set,traj_step
-      print *,'SAVFLG',savflg
+c      print *,'TRAJ_VAL_SET',traj_val_set,traj_val
+c      print *,'TRAJ_STEP_SET',traj_step_set,traj_step
+c      print *,'SAVFLG',savflg
       
       if(traj_val_set) then
          tmidval = traj_val
@@ -335,7 +336,7 @@ c     Go 1 below data_min
          if(num_depth .gt. 2) then
             do i = 2, num_depth
                depth_levels(i)= depth_levels(i-1) + step
-               print *,'depth_levels',i,depth_levels(i)
+               !print *,'depth_levels',i,depth_levels(i)
             enddo
          endif
 
@@ -345,7 +346,7 @@ c     Go 1 below data_min
       enddo
          
       k=1
-      print *,'TRAJ_DEPTH',traj_depth
+      !print *,'TRAJ_DEPTH',traj_depth
       if(traj_depth .gt. 0) then
 
          do i=1,num_depth
@@ -399,9 +400,9 @@ c     Thanks to FORTRASH Arrays, we have gone one k beyond
 
       num_depth = k
       if(num_depth .gt. 0) then
-         write(6,*)'Min: ',data_min,' Max: ',data_max
-         write(6,*)'Using step size: ',step
-         write(6,*)'Numdepth: ',num_depth
+         write(6,*)'Min/Max traj values: ',data_min,'/',data_max
+         write(6,*)'Using colorbar step of: ',step
+         write(6,*)'Number of colors: ',num_depth
 c         write(6,*)'Levels: ',depth_levels
       else
          write(6,*)'Numdepth is 0 !!!!!!!!!!!'
@@ -643,8 +644,8 @@ c
       call cpsetr ('ORV -out-of-range value', 0.0)
 c     
 c     
- 100  format (1x 'The step size ',I5,' gives ',I5,' levels of which' 
-     &     ' only 20 will be displayed') 
+ 100  format (1x 'The colorbar step of ',F7.2,' gives ',F7.2,
+     &      ' colors. Only 20 will be displayed') 
       return
       end
       
