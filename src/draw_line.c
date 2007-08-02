@@ -85,12 +85,15 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
     (void)setlvar_("savflg", &yes, error, 6);
     (void)makseg_(&yes);
 /*    (void)curved_(x, y, &npts); */
+
     if(mapflg & !(defmap || exact_fit)){
+
       xt = (float *)malloc((sizeof(float))*((argc-1)/2));
       yt = (float *)malloc((sizeof(float))*((argc-1)/2));
       (void)phys_2_lonlat_trans_(x,y,xt,yt,&npts);
+
       for(i=0; i<npts;i++){
-	(void)maptrn_(yt+i,xt+i,x+i,y+i);
+		(void)maptrn_(yt+i,xt+i,x+i,y+i);
       }
     }
     drlineplt_(x, y, &npts, &yes, error, &minus_one, &minus_one);
@@ -107,6 +110,7 @@ void draw_line_map_(error)
     char *ptr, **argv, **get_args(), cmdstr[768];
     float *x, *y, *xt,*yt;
     int npts, i, argc, xaxis, yaxis, mapflg, ax[2], use_buttons, no=0, yes=1 ;
+	int defmap, exact_fit;
     double domain_intercept[4], domain_slope[4];
     float x1w, x2w, y1w, y2w; /*world coord*/
     float x3w, x4w, y3w, y4w; /*extras for 2 dimention line*/
@@ -125,6 +129,9 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
     
 
     (void)getlvar_("mapflg",&mapflg,error,6);
+    (void)getlvar_("defmap",&defmap,error,6);
+    (void)getlvar_("exact_fit",&exact_fit,error,9);
+
     if(!mapflg){
       (void)make_help_widget_("Not plotting on a map - usr draw_line instead");
       error=1;
@@ -143,6 +150,7 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
 
         xaxis = window_points_.xaxis;
         yaxis = window_points_.yaxis;
+
     i=0;
     npts=1;
     while (npts<argc){
@@ -152,10 +160,19 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
 	    npts++;
 	    i++;
     }
+
     npts = (argc-1)/2;
-    for(i=0; i<npts;i++){
-      (void)maptrn_(yt+i,xt+i,x+i,y+i);
-    }
+	printf("%d %d\n",defmap,exact_fit);
+    if(!(defmap || exact_fit)){
+      for(i=0; i<npts;i++){
+		(void)maptrn_(yt+i,xt+i,x+i,y+i);
+	  }
+	}
+    else{
+      (void)lonlat_2_phys_trans_(x,y,xt,yt,&npts);
+	}
+
+
     (void)setlvar_("savflg", &yes, error, 6);
     (void)makseg_(&yes);
     (void)drlineplt_(x, y, &npts, &yes, error, &minus_one, &minus_one);
