@@ -850,13 +850,14 @@ void mouse_traj(x, y)
     myy = (float)log10(myy);
   }	
   
-  if(mapflg && (!defmap || !exact_fit)){
+  //if(mapflg && (!defmap || !exact_fit)){
+  if(mapflg){
     i=1;
 //    printf("myx %f myy %f - post linlog\n",myx,myy);
     (void)maptri_(&myx,&myy,&lat,&lon);
 //   printf("lon %f lat %f - after maptri\n",lon,lat);
     (void)lonlat_2_phys_trans_(&xx, &yy, &lon, &lat, &i);
-//    printf("xx %f yy %f - after lonlat_2_phys\n",xx,yy);
+//   printf("xx %f yy %f - after lonlat_2_phys\n",xx,yy);
     myx=xx;
     myy=yy;
   }
@@ -874,7 +875,7 @@ void mouse_traj(x, y)
     (void)scale_(point+1,&i,domain_slope+1,domain_intercept+1,&spval);
     (void)scale_(point+2,&i,domain_slope+2,domain_intercept+2,&spval);
     (void)scale_(point+3,&i,domain_slope+3,domain_intercept+3,&spval);
-    sprintf(buff,"start_traj= %f, %f, %f, %f;type=TRAJECTORY", 
+    sprintf(buff,"type=TRAJECTORY;start_traj= %f, %f, %f, %f", 
 	    point[0], point[1], point[2], point[3]);
     printf("%s\n",buff);
   }
