@@ -162,7 +162,6 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
     }
 
     npts = (argc-1)/2;
-	printf("%d %d\n",defmap,exact_fit);
     if(!(defmap || exact_fit)){
       for(i=0; i<npts;i++){
 		(void)maptrn_(yt+i,xt+i,x+i,y+i);
