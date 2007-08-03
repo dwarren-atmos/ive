@@ -283,7 +283,6 @@ c     get the stride
       endif
 
 c     Make sure step is not too big
-      print *,data_max,data_min,step
       if(step .gt. 0 .and. (data_max - data_min)/step.gt.20) then
          write(message,100) step,(data_max - data_min)/step
          call write_message
@@ -644,6 +643,7 @@ c
       call cpsetr ('ORV -out-of-range value', 0.0)
 c     
 c     
+      print *, ' '
  100  format (1x 'The colorbar step of ',F7.2,' gives ',F7.2,
      &      ' colors. Only 20 will be displayed') 
       return

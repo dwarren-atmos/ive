@@ -37,6 +37,7 @@ void draw_point_(error)
     float x, y, xt,yt;
     Gpoint pt[1];
     int npts, i, argc, xaxis, yaxis, mapflg, ax[2], use_buttons, type, color, no=0, yes=1 ;
+	int defmap, exact_fit;
     double domain_intercept[4], domain_slope[4];
     float x1w, x2w, y1w, y2w; /*world coord*/
     float x3w, x4w, y3w, y4w; /*extras for 2 dimention line*/
@@ -60,6 +61,8 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     (void)getivar_("use_buttons", &use_buttons, error, 11);
     (void)getivar_("hicolor", &color, error, 7);
     (void)getlvar_("mapflg",&mapflg,error,6);
+    (void)getlvar_("defmap",&defmap,error,6);
+    (void)getlvar_("exact_fit",&exact_fit,error,9);
 
     xaxis = window_points_.xaxis;
     yaxis = window_points_.yaxis;
@@ -103,15 +106,12 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     (void)setlvar_("savflg", &yes, error, 6);
     (void)makseg_(&yes);
 
-    if(mapflg){
-      (void)phys_2_lonlat_trans_(&x,&y,&xt,&yt,&npts);
-      printf("Lon: %f, LAT: %f\n",xt,yt);
+    (void)phys_2_lonlat_trans_(&x,&y,&xt,&yt,&npts);
+    printf("Lon: %f, LAT: %f\n",xt,yt);
+
+    if(mapflg & !(defmap || exact_fit)){
       (void)maptrn_(&yt,&xt,&x,&y);
-    }
-    else{
-      (void)phys_2_lonlat_trans_(&x,&y,&xt,&yt,&npts);
-      printf("Lon: %f, LAT: %f\n",xt,yt);
-    }
+	}
 
     gsetmarkersize(scale);
     gsetmarkertype(type);
@@ -130,6 +130,7 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     float x, y, xt,yt;
     Gpoint pt[1];
     int npts, i, argc, xaxis, yaxis, mapflg, ax[2], use_buttons, type, color,no=0, yes=1 ;
+	int defmap, exact_fit;
 	float ireal, jreal;
     double domain_intercept[4], domain_slope[4];
     float x1w, x2w, y1w, y2w; /*world coord*/
@@ -159,6 +160,8 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     (void)getdarr_("domain_intercept", domain_intercept, &i, error,16);
     (void)getivar_("use_buttons", &use_buttons, error, 11);
     (void)getlvar_("mapflg",&mapflg,error,6);
+    (void)getlvar_("defmap",&defmap,error,6);
+    (void)getlvar_("exact_fit",&exact_fit,error,9);
     (void)getivar_("hicolor", &color, error, 7);
 
     xaxis = window_points_.xaxis;
@@ -195,12 +198,18 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     (void)setlvar_("savflg", &yes, error, 6);
     (void)makseg_(&yes);
 
-    (void)lonlat_2_phys_trans_(&x,&y,&xt,&yt,&npts);
+    if(!(defmap || exact_fit)){
+      (void)maptrn_(&yt,&xt,&x,&y);
+	}
+	else{
+      (void)lonlat_2_phys_trans_(&x,&y,&xt,&yt,&npts);
+	}
     (void)phys_2_index_trans_(&x,&ireal,&npts,&npts,&npts);
     (void)phys_2_index_trans_(&y,&jreal,&npts,&npts,&npts);
     printf("I: %6.2f, J: %6.2f\n",ireal,jreal);
 
-    (void)maptrn_(&yt,&xt,&x,&y);
+	printf("INPUT  (xt,yt): %f %f\n",xt,yt);
+	printf("OUTPUT (x ,y ): %f %f\n\n",x,y);
 
     gsetmarkersize(scale);
     gsetmarkertype(type);
