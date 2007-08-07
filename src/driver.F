@@ -1113,6 +1113,11 @@ c           Command resize
 c           Command ROTA.
             call setrot (error)
             if((iflag .eq. 0) .and. .not.error) call ui_update (ROT_UI)
+         elseif (keynum .eq. P_RUN_SUB) then
+c           Command RUN_SUB.
+            call run_sub_trans (error)
+            if((iflag .eq. 0) .and. .not.error) 
+     &           call ui_update (WINDOW_UI)
          elseif (keynum .eq. P_SAVE) then
 c           Command SAVE.
             call setsav (error) 
