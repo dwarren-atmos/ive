@@ -208,9 +208,6 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     (void)phys_2_index_trans_(&y,&jreal,&npts,&npts,&npts);
     printf("I: %6.2f, J: %6.2f\n",ireal,jreal);
 
-	printf("INPUT  (xt,yt): %f %f\n",xt,yt);
-	printf("OUTPUT (x ,y ): %f %f\n\n",x,y);
-
     gsetmarkersize(scale);
     gsetmarkertype(type);
     gsetmarkercolourind(color);
