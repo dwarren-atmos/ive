@@ -374,7 +374,7 @@ OBJS = 	add_to_list.o average.o catnull.o catof.o  \
 	maklineplt.o makpointplt.o makseg.o mapdrw_dl.o maxval.o \
 	mouse_slice.o movbl.o nblank.o  open_log.o opendat.o  output.o \
 	point_axis.o printr.o pslicer2d.o pslicer3d.o \
-	read_color.o readfld.o  redraw.o  \
+	read_color.o readfld.o  redraw.o  run_sub_trans.o \
 	restore_state.o  save_command.o save_plot_command.o save_state.o \
 	scale.o \
 	select_old.o  set2d.o \

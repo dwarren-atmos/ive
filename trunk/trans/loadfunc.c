@@ -250,6 +250,7 @@ static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" 
 #define DATA_SLICER_2D data_slicer_2d_
 #define DATA_SLICER_3D data_slicer_3d_
 #define CALC_FIELD calc_field_
+#define RUN_SUB run_sub_
 #define HEADING heading_
 #define FILE_COORD file_coordinate_
 #define MOVE_PARCEL move_parcel_
@@ -269,6 +270,7 @@ static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" 
 #define DATA_SLICER_2D (*data_slicer_2d)
 #define DATA_SLICER_3D (*data_slicer_3d)
 #define CALC_FIELD (*calc_field)
+#define RUN_SUB (*run_sub)
 #define HEADING (*heading)
 #define FILE_COORD (*file_coordinate)
 #define MOVE_PARCEL (*move_parcel)
@@ -282,7 +284,7 @@ int DEFAULT_MAP();
 int HEADING();
 float *DATA_SLICER_1D(), *DATA_SLICER_2D(), *DATA_SLICER_3D(), *CALC_FIELD();
 float *CALC_FIELD(), FILE_COORD();
-void  *MOVE_PARCEL(), *PHYSUV_2_LONLATUV_TRANS();
+void  *MOVE_PARCEL(), *PHYSUV_2_LONLATUV_TRANS(), *RUN_SUB();
 
 /* BEGIN INTERFACE ROUTINES AND DEFAULT TRANSFORMS */
 
@@ -1130,6 +1132,47 @@ char *name, *data_units, *data_display_units, *dim_names;
 		       data_units, data_display_units, dim_names,
 		       len1, len2, len3, len4));
 }
+}
+/*
+ * calc_field_ : This routine is used to calculate user-derived field.
+ * The return value of the routine is a pointer to the field values.
+ * NULL return => cannot calculate.
+ *
+ * Arguments:
+ *	name	char *		The name of the field to derive.
+ *	ndims	int *		Number of dimensions in field (output).
+ *	dims	int *		Number of points in the field in Fortran
+ *				order (x, y, z, t) (output).
+ *	stag	real *		Grid staggering per dimension (output).
+ *	min	real *		Physical space minimum per dimension (output).
+ *	max	real *		Physical space maximum per dimension (output).
+ *	missing	float *		Missing data value, zero => none (output).
+ *	data_units
+ *		char *		Units for field (output).
+ *	data_display_units
+ *		char *		Units to use to display field (output).
+ *	dim_names
+ *		char *		Names of the dimensions.
+ *	len1	int		Number of characters in name.
+ *	len2	int		Number of characters in data_units.
+ *	len3	int		Number of characters in data_display_units.
+ *	len4	int		Number of characters in dim_names.
+ */
+
+void 
+run_sub_(name, len)
+int len;
+char *name;
+{
+  if (EXISTS(run_sub)) {
+    return(RUN_SUB(name,  len));
+  }
+  else
+    {
+      char message[256];
+      snprintf(message,256,"run_sub: %s",name);
+      make_help_widget_(message);
+    }
 }
 
 /*
