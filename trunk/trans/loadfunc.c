@@ -1578,7 +1578,8 @@ nl[11].n_name = "data_slicer_2d_";
 nl[12].n_name = "data_slicer_3d_";
 nl[13].n_name = "file_coordinate_";
 nl[14].n_name = "move_parcel_";
-nl[15].n_name = "";
+nl[15].n_name = "run_sub_";
+nl[16].n_name = "";
     if(nlist(tmpfile,nl) != -1){
 	int i;
 	new_file = (int (*)())nl[0].n_value;
@@ -1596,6 +1597,7 @@ nl[15].n_name = "";
 	data_slicer_3d = (float (*)())nl[12].n_value;
 	file_coordinate = (float (*)())nl[13].n_value;
 	move_parcel = (void (*)())nl[14].n_value;
+	run_sub = (void (*)())nl[15].n_value;
 
     }
     if (unlink(tmpfile)){
@@ -1635,6 +1637,7 @@ load_func_(progname, objfile)
         heading = NULL;
 	file_coordinate = NULL;
 	move_parcel = NULL;
+                    run_sub= NULL;
     }
     if (strcasecmp(objfile, "default") == 0) return 0;
     if (check_obj(objfile, "sunos") < 0) return 2;
@@ -1722,6 +1725,12 @@ load_func_(progname, objfile)
         (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
+    if ((run_sub=(void(*)())dlsym(dlp, "_run_sub_"))
+	== NULL) {
+/*        (void) fputs(progname,stderr);
+        (void) fputs(": error run_sub procedure\n",stderr);
+        (void) fputs(dlerror(),stderr);*/
+    }
    return 0;
 }
 #endif /*sparc*/
@@ -1754,6 +1763,7 @@ load_func_(progname, objfile)
         heading = NULL;
 	file_coordinate = NULL;
 	move_parcel = NULL;
+	run_sub = NULL;
     }
     if (strcasecmp(objfile, "default") == 0) return 0;
     if (check_obj(objfile, 
@@ -1843,6 +1853,11 @@ load_func_(progname, objfile)
     if ((move_parcel=(void(*)())dlsym(dlp, "move_parcel_")) == NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
+        (void) fputs(dlerror(),stderr);*/
+    }
+    if ((run_sub=(void(*)())dlsym(dlp, "run_sub_parcel_")) == NULL) {
+/*        (void) fputs(progname,stderr);
+        (void) fputs(": error finding run_sub procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
    return 0;
