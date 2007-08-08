@@ -81,7 +81,7 @@ void set_traj_background_(int *error){
    argv = get_args(&argc);
    if (argc == 2){
      if(!strncasecmp(argv[1],"default",7)){
-       printf("Traj background is depth\n");
+       printf(" Trajectory background is depth\n");
        (void)setavar_("traj_background_field","default",error,21,7);
 	 if(*error){
 	   (void)make_help_widget_("An error occured while setting the variable traj_background_field\nplease report this to the Ive maintenance group.");
@@ -120,7 +120,7 @@ void set_traj_background_(int *error){
      return;
    }
    
-   printf("Traj background is %s\n",argv[1]);
+   printf(" Trajectory background is %s\n",argv[1]);
    (void)setavar_("traj_background_field",argv[1],error,21,strlen(argv[1]));
      if(*error){
        (void)make_help_widget_("An error occured while setting the variable traj_background_field\nplease report this to the Ive maintenance group.");

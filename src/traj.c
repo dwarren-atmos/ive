@@ -27,11 +27,11 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   (void)getavar_("traj_background_field",traj_background,&i,21,80);
   if(traj_background[0] != '\0' && traj_background[0] != ' '&&
      strncasecmp(traj_background,"depth",5)){
-    printf("traj_background should be %s\n",traj_background);
+    //printf("traj_background should be %s\n",traj_background);
     (void)get_pointer_(traj_background, &bgptr, &bx,&by,&bz,&bt,
 		       (int)strlen(traj_background));
     bg=1;
-    if(bgptr != NULL)printf("GOT IT!!!!!!!!!!%s\n",traj_background);
+    //if(bgptr != NULL)printf("GOT IT!!!!!!!!!!%s\n",traj_background);
   }
 
   /* start with 2*time steps points*/
@@ -69,7 +69,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   phys[1]=y_cord[0]=traj_start_.start[1];
   phys[2]=z_cord[0]=traj_start_.start[2];
   phys[3]=t_cord[0]=traj_start_.start[3];
-  printf("start_traj = %10.1f,%10.1f,%10.1f,%10.1f\n",phys[0]/1000,phys[1]/1000,phys[2]/1000,phys[3]/3600);
+//  printf("start_traj = %10.1f,%10.1f,%10.1f,%10.1f\n",phys[0]/1000,phys[1]/1000,phys[2]/1000,phys[3]/3600);
 
   num_pts=0;
   if(phys[3]>=traj_times_.trajbeg && phys[3]<=traj_times_.trajend)
@@ -257,7 +257,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
       i=16;
       (void)getrvar_("spval",&special,&error,5);
       need[0]=need[1]=need[2]=need[3]=1;
-      printf("num_pts %d\n",num_pts);
+      //printf("num_pts %d\n",num_pts);
       for (i=0; i<num_pts; i++){
 	pval[0]=x_cord[i];
 	pval[1]=y_cord[i];
