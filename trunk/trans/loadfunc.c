@@ -1855,7 +1855,7 @@ load_func_(progname, objfile)
         (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
-    if ((run_sub=(void(*)())dlsym(dlp, "run_sub_parcel_")) == NULL) {
+    if ((run_sub=(void(*)())dlsym(dlp, "run_sub_")) == NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error finding run_sub procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/

@@ -194,8 +194,8 @@ c
 
          if(traj_background_field(strbeg(traj_background_field):
      &        strend(traj_background_field)) .ne. 'depth') then
-            write(6,*)'Uhoh............. background is ',
-     &           traj_background_field
+c            write(6,*)'Uhoh............. background is ',
+c     &           traj_background_field
             dp3 = subslab
             depthvar=5
          endif
