@@ -175,7 +175,7 @@ c
       parameter ( ORVAL = 1.0e12 )
       integer, parameter :: max_levs=160
       integer         imap, linepat,axes,i,j,k,coval,colband(max_levs)
-      integer         flag(4), line_color, num_depth, mid_num
+      integer         flag(4), line_color, num_depth, mid_num,tmiddiff
       logical          movielabs
       real            lolim, uplim, depth_levels, tmplevs,PPI,min_depth
       real        data_min, data_max, step, r, tmidval
@@ -264,11 +264,12 @@ c
       data_min = data_depth(1)
       data_max = data_depth(1)
       do i=1,nf
-         if(data_depth(i) .gt. data_max)data_max = data_depth(i)
-         if(data_depth(i) .lt. data_min)data_min = data_depth(i)
+         if(data_depth(i) .gt. data_max) data_max = data_depth(i)
+         if(data_depth(i) .lt. data_min) data_min = data_depth(i)
       enddo
+      
 c     get the stride
-      if(traj_step .ne. 0.) then
+      if(traj_step .ne. 0.) then ! get the step size
          step = traj_step
       else
          step = (data_max - data_min)/20
@@ -282,22 +283,22 @@ c     get the stride
          endif
       endif
 
-c     Make sure step is not too big
+c     Warn if there are to many steps
       if(step .gt. 0 .and. (data_max - data_min)/step.gt.20) then
          write(message,100) step,(data_max - data_min)/step
          call write_message
       endif
 
       num_depth=nint(abs((data_max - data_min)/step)) + 2
-c      print *,data_min,data_max,num_depth
 
       if (num_depth .lt. 2) num_depth = 2
 
-c     get mid value
+c     print user set values
 c      print *,'TRAJ_VAL_SET',traj_val_set,traj_val
 c      print *,'TRAJ_STEP_SET',traj_step_set,traj_step
 c      print *,'SAVFLG',savflg
       
+c     get mid value
       if(traj_val_set) then
          tmidval = traj_val
       else
@@ -311,8 +312,8 @@ c      print *,'SAVFLG',savflg
 
 
 c     get the mid color entry
-      if (abs(traj_entry) .ge. min_traj_color .and. traj_entry .le. 
-     &     max_traj_color) then
+      if (abs(traj_entry) .ge. min_traj_color .and. 
+     &        traj_entry  .le. max_traj_color) then
          coval = abs(traj_entry)
       else
          coval =(max_traj_color - min_traj_color)/2 + 
@@ -323,6 +324,10 @@ c     Get the intervals
       if(step .ne. 0. .and. data_max .ne. data_min) then
          j = 1
          depth_levels(1) = tmidval
+
+         do while (depth_levels(1) .lt. data_min)
+            depth_levels(1) = depth_levels(1) + step
+         enddo
 
          do while (depth_levels(1) .gt. data_min)
             depth_levels(1) = depth_levels(1) - step
@@ -335,7 +340,6 @@ c     Go 1 below data_min
          if(num_depth .gt. 2) then
             do i = 2, num_depth
                depth_levels(i)= depth_levels(i-1) + step
-               !print *,'depth_levels',i,depth_levels(i)
             enddo
          endif
 
@@ -345,7 +349,7 @@ c     Go 1 below data_min
       enddo
          
       k=1
-      !print *,'TRAJ_DEPTH',traj_depth
+
       if(traj_depth .gt. 0) then
 
          do i=1,num_depth
@@ -392,17 +396,29 @@ c     Thanks to FORTRASH Arrays, we have gone one k beyond
       k= k -1 
       if (k .gt. max_levs) k = max_levs
       
+      if(tmidval.gt.data_max) then
+        tmiddiff = -int((tmidval-data_max)/step+0.5)
+        mid_num = num_depth - tmiddiff
+      elseif(tmidval.lt.data_min) then
+        tmiddiff = int((data_min-tmidval)/step + 0.5)
+        mid_num = 1 - tmiddiff 
+      else
+        tmiddiff=0
+      endif
+      !coval = coval + tmiddiff
+
       do i=1,max_levs
          depth_levels(i) = tmplevs(i)
-         if(depth_levels(i) .eq. tmidval) mid_num = i
+         if((abs(depth_levels(i) - tmidval).le.epsilon(tmidval)))
+     &        mid_num = i 
       enddo
 
       num_depth = k
       if(num_depth .gt. 0) then
          write(6,*)'Min/Max traj values: ',data_min,'/',data_max
          write(6,*)'Using colorbar step of: ',step
-         write(6,*)'Number of colors: ',num_depth
-c         write(6,*)'Levels: ',depth_levels
+         !write(6,*)'Number of colors: ',num_depth
+         !write(6,*)'Levels: ',depth_levels
       else
          write(6,*)'Numdepth is 0 !!!!!!!!!!!'
       endif
