@@ -226,7 +226,7 @@ c
       oldtime = time(1)
       boldtime = time(1)
 
-      if(mapflg) then
+      if(mapflg .and. .not.(defmap .or. exact_fit)) then
             flag(3)=0
             flag(4)=0
          do i=1,nf

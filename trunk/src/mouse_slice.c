@@ -850,8 +850,7 @@ void mouse_traj(x, y)
     myy = (float)log10(myy);
   }	
   
-  //if(mapflg && (!defmap || !exact_fit)){
-  if(mapflg){
+  if(mapflg && (!defmap || !exact_fit)){
     i=1;
 //    printf("myx %f myy %f - post linlog\n",myx,myy);
     (void)maptri_(&myx,&myy,&lat,&lon);

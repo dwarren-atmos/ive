@@ -146,7 +146,7 @@ c
             mapflg = .false.
          endif
 
-         if ( mapflg ) then
+         if ( mapflg .and. .not. savflg ) then
             call drwmap (error)
          endif
 c
