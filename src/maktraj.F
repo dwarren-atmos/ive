@@ -65,11 +65,14 @@ c     Local variable declarations.
 c
       integer  ni, nj,  buttons, fix, nf, nter, depthvar
       integer  vid, getvid
+      integer         axes
       ive_ptr slab1, slab2, slab3, slab4, topoad, topopt
       ive_ptr subslab, dp1, dp2, dp3, dp4
 
       logical  error, mapflg, savflg, surface
       real pt1, pt2, pt3
+      real vbot, vtop, vleft, vrght,
+     &     wbot, wtop, wleft, wrght
       dimension  fix(4)
       dimension pt1(4), pt2(4), pt3(4)
 c
@@ -93,6 +96,11 @@ c
       slab4=0
       topoad=0
       topopt=0
+c
+c     First lets get the current state of things for later replacement
+      call getset ( vleft, vrght, vbot, vtop,wleft, 
+     &     wrght, wbot, wtop, axes)
+c
 c
       call chktraj(error)
       if( error ) then
@@ -288,6 +296,11 @@ c
       if ( subslab.gt. 0 ) call freemem(subslab) 
       if ( topopt .gt. 0 ) call freemem (topopt)
       if ( topoad .gt. 0 ) call freemem (topoad)
+c
+c     Put it back the way we found it
+      call getset ( vleft, vrght, vbot, vtop,wleft, 
+     &     wrght, wbot, wtop, axes)
+c
 c
 c
 c      if(error)then
