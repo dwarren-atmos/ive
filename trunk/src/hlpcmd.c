@@ -39,7 +39,8 @@ static char rcsid[] = "$Id: hlpcmd.c,v 1.18 2005/09/06 20:22:14 warren Exp $";
 #include <sys/fcntl.h>
 #endif
 #ifndef HELPDIR
-#define HELPDIR "/usr/local/lib/ive/help/"
+//#define HELPDIR "/usr/local/lib/ive/help/"
+#define HELPDIR "http://www.atmos.washington.edu/ive/ive_help/"
 #endif
 #ifndef BROWSER
 #define BROWSER "netscape"
@@ -65,19 +66,16 @@ void hlpcmd_ (command, len)
      * and Construct the help file name.
      */
     if (strcasecmp(command, "help") == 0)
-	sprintf (filename,"%sindex.html", 
-		 ((libbuf=getenv("IVEHELPDIR"))!=NULL? libbuf:HELPDIR));
+	  sprintf (filename,"%sindex.html",((libbuf=getenv("IVEHELPDIR"))!=NULL? libbuf:HELPDIR));
     else
-	sprintf (filename,"%s%s.html", 
-		 ((libbuf=getenv("IVEHELPDIR"))!=NULL? libbuf:HELPDIR),
-		 command);
-    if(stat(filename, &statbuf) == -1){
-	sprintf (filename,
-		 "Sorry, IVE cannot locate help for this command. \n\
-Please see a local IVE power user for assistance.");
-	make_help_widget (filename);
-	return;
+	  sprintf (filename,"%s%s.html",((libbuf=getenv("IVEHELPDIR"))!=NULL? libbuf:HELPDIR),command);
+
+/*    if(stat(filename, &statbuf) == -1 ){
+	  sprintf (filename, "Sorry, IVE cannot locate help for this command.\nPlease see a local IVE power user for assistance.");
+	  make_help_widget (filename);
+	  return;
     }
+	  */
     
     /* Print the help file.
      */
@@ -104,8 +102,7 @@ Window find_netscape()
     for (i = 0; i < nkids; i++){
 	char *name;
 	XFetchName(dpy, kids[i], &name);
-	if(name != NULL && (!strncmp(name,"netscape",8)||
-			    !strncmp(name,"Netscape",8))){
+	if(name != NULL && (!strncmp(name,"netscape",8) || !strncmp(name,"Netscape",8))){
 	    j=kids[i] ;
 	    XFree(kids);
 	    return(j);
@@ -199,16 +196,15 @@ void print_help_file (filename)
     if(!netscape){
       /* we use netscape */
       if((win = find_netscape()) != 0){
-	sprintf(cline,"openFile\\(%s\\)",filename);
+	sprintf(cline,"openFile(%s)",filename);
 	i=vfork();
 	if(i==0){
 	  /*	      close(0);
 	    close(1);
 	    close(2);*/
 	  signal(SIGFPE, SIG_IGN);
-	  printf("netscape,-raise,-remote %s\n",cline);
-	  execlp(ive_help_browser,"netscape","-raise","-remote",
-		 cline,(char *)0);
+	  //printf("netscape -raise -remote %s\n",cline);
+	  execlp(ive_help_browser,"netscape","-raise","-remote",cline,(char *)0);
 	}
 	return;
       }
@@ -228,16 +224,15 @@ void print_help_file (filename)
     if(!mozilla){
       /* we use mozilla */
       if((win = find_netscape()) != 0){
-	sprintf(cline,"openFile\\(%s\\)",filename);
+	sprintf(cline,"openFile(%s)",filename);
 	i=vfork();
 	if(i==0){
 	  /*	      close(0);
 	    close(1);
 	    close(2);*/
 	  signal(SIGFPE, SIG_IGN);
-	  printf("mozilla,-raise,-remote %s\n",cline);
-	  execlp(ive_help_browser,"mozilla","-raise","-remote",
-		 cline,(char *)0);
+	  //printf("mozilla,-raise,-remote %s\n",cline);
+	  execlp(ive_help_browser,"mozilla","-raise","-remote",cline,(char *)0);
 	}
 	return;
       }
@@ -257,16 +252,15 @@ void print_help_file (filename)
     if(!firefox){
       /* we use firefox */
       if((win = find_firefox()) != 0){
-	sprintf(cline,"openFile\\(%s\\)",filename);
+	sprintf(cline,"openFile(%s)",filename);
 	i=vfork();
 	if(i==0){
 	  /*	      close(0);
 	    close(1);
 	    close(2);*/
 	  signal(SIGFPE, SIG_IGN);
-	  printf("firefox,-raise,-remote %s\n",cline);
-	  execlp(ive_help_browser,"firefox","-raise","-remote",
-		 cline,(char *)0);
+	  //printf("firefox -raise -remote %s\n",cline);
+	  execlp(ive_help_browser,"firefox","-raise","-remote",cline,(char *)0);
 	}
 	return;
       }

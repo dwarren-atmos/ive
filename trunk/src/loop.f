@@ -276,38 +276,46 @@ c
 c     make sure previous loop is destroyed.
 c
       call loop_quit
+
       if (startnum.eq.f) then
          call save_pixmap(batch)
          f = f + inc
       else
          f = startnum
       endif
+
       loop_plot = curlist
       call save_state(loop_plot-1, curoverlay(loop_plot))
       do while ((inc.gt.0..and.f.le.endnum).or.
      &     (inc.lt.0..and.f.ge.endnum))
          write(string, 200) type(strbeg(type):strend(type)), f
+
          do i=1, curoverlay(loop_plot)
             loop_flag(dim) = .TRUE.
             call restore_state(i-1, flag)
+
 c
-c     flag is one for DRAW_LINE command only
+c     flag is one for DRAW_LINE, DRAW_LINE_MAP, DRAW_POINT, 
+c     or DRAW_POINT_MAP command only
 c
             if (flag .eq. 0) then
                if (lock(dim) .eq. 1) then
                   loop_flag(dim) = .FALSE.
                   call driver(string,0)
                endif
+
                if (i .EQ. 1) then
                   call driver('NEW_PLOT', 0)
                else
-                  if(use_buttons .eq. 0)call init_points()
+                  if(use_buttons .eq. 0) call init_points()
                   call driver('OVERLAY_PLOT', 0)
                endif
             endif
          enddo
+
          call save_pixmap(batch)
          f = f + inc
+
       enddo
       call do_loop
       return
