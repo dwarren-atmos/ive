@@ -106,11 +106,25 @@ int *overlay, *flag;
 	    skip[cmdskip[i]] = 0;
     }
     /*
-      If DRAW_LINE exists - it is all we do.
+      If DRAW_LINE, DRAW_LINE_MAP, DRAW_POINT, or DRAW_POINT_MAP exist - it is all we do.
     */
     if (saved_state[P_DRAW_LINE][*overlay]) {
-	driver_(saved_state[P_DRAW_LINE][*overlay], &zero,
-		strlen(saved_state[P_DRAW_LINE][*overlay]));
+	driver_(saved_state[P_DRAW_LINE][*overlay], &zero, strlen(saved_state[P_DRAW_LINE][*overlay]));
+	*flag = 1;
+	return;
+    }
+    if (saved_state[P_DRAW_POINT][*overlay]) {
+	driver_(saved_state[P_DRAW_POINT][*overlay], &zero, strlen(saved_state[P_DRAW_POINT][*overlay]));
+	*flag = 1;
+	return;
+    }
+    if (saved_state[P_DRAW_LINE_MAP][*overlay]) {
+	driver_(saved_state[P_DRAW_LINE_MAP][*overlay], &zero, strlen(saved_state[P_DRAW_LINE_MAP][*overlay]));
+	*flag = 1;
+	return;
+    }
+    if (saved_state[P_DRAW_POINT_MAP][*overlay]) {
+	driver_(saved_state[P_DRAW_POINT_MAP][*overlay], &zero, strlen(saved_state[P_DRAW_POINT_MAP][*overlay]));
 	*flag = 1;
 	return;
     }

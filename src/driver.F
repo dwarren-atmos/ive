@@ -760,14 +760,11 @@ c           Command DOMAIN_UNITS.
                call do_props (1)
             endif
             call ui_update (WINDOW_UI)
-         elseif (keynum .eq.  P_DRAW_LINE) then
-c           Command DRAW_LINE
+         elseif (keynum .eq.  P_DRAW_LINE) then ! Command DRAW_LINE
             call draw_line (error)
-         elseif (keynum .eq.  P_DRAW_LINE_MAP) then
-c           Command DRAW_LINE_MAP
+         elseif (keynum .eq.  P_DRAW_LINE_MAP) then ! Command DRAW_LINE_MAP
             call draw_line_map (error)
-         elseif (keynum .eq.  P_DRAWMAP) then
-c           Command DRAWMAP
+         elseif (keynum .eq.  P_DRAWMAP) then ! Command DRAWMAP
             call setmap (error)
             if((iflag .eq. 0) .and. .not.error) then
                call ui_update (DRMAP_UI)
@@ -776,11 +773,9 @@ c           Command DRAWMAP
             mapwin_u2=0.0
             mapwin_v1=0.0
             mapwin_v2=0.0
-         elseif (keynum .eq.  P_DRAW_POINT) then
-c           Command DRAW_POINT
+         elseif (keynum .eq.  P_DRAW_POINT) then ! Command DRAW_POINT
             call draw_point (error)
-         elseif (keynum .eq.  P_DRAW_POINT_MAP) then
-c           Command DRAW_POINT_MAP
+         elseif (keynum .eq.  P_DRAW_POINT_MAP) then ! Command DRAW_POINT_MAP
             call draw_point_map (error)
          elseif (keynum .eq. P_DUMP .or. keynum .eq. P_LOOP_DUMP) then
             call dump(keynum, iflag)
@@ -1575,10 +1570,13 @@ c
                call inscmd (comlin(last_beggrp:beggrp-2))
             endif
 c
-c           DRAW_LINE is a special case - it is a self contained
-c           overlay!
+c           DRAW_LINE, DRAW_LINE_MAP, DRAW_POINT, and DRAW_POINT_MAP
+c           are special cases - they are self-contained overlays!
 c
-            if (keynum .eq. P_DRAW_LINE) then
+            if (     keynum .eq. P_DRAW_LINE 
+     &          .or. keynum .eq. P_DRAW_POINT 
+     &          .or. keynum .eq. P_DRAW_LINE_MAP 
+     &          .or. keynum .eq. P_DRAW_POINT_MAP) then
                call save_plot_command(curoverlay(curlist)-1, curlist-1)
                call save_command(keynum, '')
             endif

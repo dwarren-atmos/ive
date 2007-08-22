@@ -766,7 +766,7 @@ c
 c     Cat nulls to strings sent to C routines.
 c
       call catnull (data_units, len(data_units), error)
-      call catnull (data_units, len(data_display_units), error)
+      call catnull (data_display_units, len(data_display_units), error)
       call getivar ('maxdim', max_dim, error)
       do 5 i = 1, max_dim
          call catnull (domain_units(i), len(domain_units(i)), error)

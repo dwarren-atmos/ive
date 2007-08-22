@@ -70,7 +70,11 @@ c
          ibeg = strbeg(curval)
          iend = strend(curval)
          call chkcmd (curval(ibeg:iend), keynum, error)
-         curval = valcmd(keynum)(1:CMNDLEN)//' '
+         if(error) then
+           curval = 'ive_commands'//' '
+         else
+           curval = valcmd(keynum)(1:CMNDLEN)//' '
+         end if
          ibeg = strbeg(curval)
          iend = strend(curval)
          call locase (curval(ibeg:ibeg), (iend - ibeg + 1))

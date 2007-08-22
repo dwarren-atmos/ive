@@ -80,6 +80,7 @@ DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
 	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE \
 	-DLinux
 
+BROWSER='-DBROWSER=\"firefox\"'
 #DEC = -D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE -I/usr/include \
 #	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE -ffast-math \
 #	-fbranch-count-reg -fmove-all-movables \
