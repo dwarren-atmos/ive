@@ -50,6 +50,7 @@ int  *size;
 
 {
     void *ptr;
-    ptr = (int *) memalign(sizeof(float), sizeof(float) * (*size));
+    /*    ptr = (int *) memalign(sizeof(float), sizeof(float) * (*size));*/
+    ptr = malloc(sizeof(float) * (*size));
     return( ptr );
 }
