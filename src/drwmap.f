@@ -211,6 +211,17 @@ c the following lines are done for every projection to set it:
          call maperr ('maproj', error)
          return
       endif
+c
+c     Set the map colors to foreground - override line color
+c
+      call mapsti('C1',1)
+      call mapsti('C2',1)
+      call mapsti('C3',1)
+      call mapsti('C4',1)
+      call mapsti('C5',1)
+      call mapsti('C6',1)
+      call mapsti('C7',1)
+      call mapsti('C8',1)
 
 c
 c     Set the portion of the u/v plane to be drawn on.
@@ -238,7 +249,7 @@ c
          call maperr ('mapstc', error)
          return
       endif
-	call gslwsc(2.00)
+      call gslwsc(2.00)
 c
 c     Set the grid spacing.
 c
