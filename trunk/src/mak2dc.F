@@ -202,9 +202,9 @@ c
 c
 c     Local variable declarations.
 c
-      integer  ni, nj,	! Number of points in slice
-     &			!    (slabad, slabloc, topoad, topopt)
-     &         nter
+      integer  ni, nj	! Number of points in slice
+                                        !    (slabad, slabloc, topoad, topopt)
+      integer nter,  cindex, ierror
       ive_ptr slabad,	! Dependent variable slice
      &     topoad,      ! Topography height slice
      &     topopt       ! Topography location slice
@@ -300,8 +300,12 @@ c
          endif
 c
          if ( mapflg .and. .not.savflg ) then
+c     get current line color
+            call gqplci (ierror, cindex)
             call drwmap (error)
-         endif
+c     reset current line color
+            call gsplci (cindex)
+        endif
 c
          if ( error ) then
             go to 900
