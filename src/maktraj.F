@@ -90,12 +90,8 @@ c      call chkwin
 c
 c     Init vars so we don't free them if chktraj finds a problem
 c
-      slab1=0
-      slab2=0
-      slab3=0
-      slab4=0
-      topoad=0
-      topopt=0
+      slab1=0 ; slab2=0 ; slab3=0 ; slab4=0 ; subslab=0;
+      topoad=0 ; topopt=0
 c
 c     First lets get the current state of things for later replacement
       call getset ( vleft, vrght, vbot, vtop,wleft, 
@@ -276,23 +272,12 @@ c
 c     Free all allocated memory.
 c
   900 continue
-      if(error) write(6,*)' not plotting traj due to error'
+      if(error) write(6,*)' Not plotting traj due to error'
 
-      if ( slab4  .gt. 0 ) then
-         call freemem(slab4) 
-      endif
-
-      if ( slab1  .gt. 0 ) then
-         call freemem(slab1)
-      endif
-
-      if ( slab2  .gt. 0 )  then
-         call freemem(slab2) 
-      endif
-
-      if ( slab3  .gt. 0 ) then
-         call freemem(slab3)
-      endif
+      if ( slab4  .gt. 0 ) call freemem(slab4) 
+      if ( slab1  .gt. 0 ) call freemem(slab1)
+      if ( slab2  .gt. 0 ) call freemem(slab2) 
+      if ( slab3  .gt. 0 ) call freemem(slab3)
       if ( subslab.gt. 0 ) call freemem(subslab) 
       if ( topopt .gt. 0 ) call freemem (topopt)
       if ( topoad .gt. 0 ) call freemem (topoad)

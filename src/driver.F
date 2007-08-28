@@ -1308,7 +1308,7 @@ C               call setavar('data_display_units', disp_units, error)
                call ui_update(TRAJ_STEP_VAL_UI)
             endif
          elseif (keynum .eq. P_TRAJECTORY_COMPONENTS .or.
-     &          keynum .eq. P_TRAJ_COMPONENTS ) then
+     &           keynum .eq. P_TRAJ_COMPONENTS ) then
 c     Command TRAJECTORY_COMPONENTS.
             call settraj (error) 
             if (.not. error) then
@@ -1316,41 +1316,41 @@ c
 c     Re-set the window the first time a data field is 
 c     specified for a new data set.
 c     
-               if ( firstfile ) then
-                  call driver ('window', 1)
-                  firstfile = .false.
-               endif
-               call chkwin(iflag)
-            if(use_buttons .eq. 1) then
-               call info_2d (plmin_scaled, plmax_scaled, MAXDIM)
-            else
-               call init_points()
-               call do_props (1)
-            endif
-            call ui_update (WINDOW_UI)
-            if ( (iflag .eq. 0) .and. .not.error )  then 
-               call  ui_update (UI_TRAJ_COMP)
-            endif
-            att_var_id = getvid(att_var(strbeg(att_var_traj):
-     &           strend(att_var)))
-            call get_var_atts(att_var_id, lin, cont_int,
-     &           cont_values, no_zero, disp_units, major_tic,
-     &           minor_tic, lmin, lmax, num_vals,
-     &           nulbll, cllab)
-            call setavar('data_display_units', disp_units, error)
-         end if
-      elseif (keynum .eq. P_START_TRAJ) then
-c     Command starttraj
-         call start_traj (error)
-            if(.not.error)  then 
-c               call ui_update (START_TRAJ_UI)
-            endif
-         elseif (keynum .eq. P_INT_TRAJ) then
-c           Command inttraj
+              if ( firstfile ) then
+                call driver ('window', 1)
+                firstfile = .false.
+              endif
+              call chkwin(iflag)
+              if(use_buttons .eq. 1) then
+                call info_2d (plmin_scaled, plmax_scaled, MAXDIM)
+              else
+                call init_points()
+                call do_props (1)
+              endif
+              call ui_update (WINDOW_UI)
+              if ( (iflag .eq. 0) .and. .not.error )  then 
+                call  ui_update (UI_TRAJ_COMP)
+              endif
+              att_var_id = getvid(att_var(strbeg(att_var_traj):
+     &                            strend(att_var)))
+              call get_var_atts(att_var_id, lin, cont_int,
+     &             cont_values, no_zero, disp_units, major_tic,
+     &             minor_tic, lmin, lmax, num_vals,
+     &             nulbll, cllab)
+              call setavar('data_display_units', disp_units, error)
+           end if
+         elseif (keynum .eq. P_START_TRAJ) then !Command start_traj
+           call start_traj (error)
+c          if(.not.error)  then 
+c            call ui_update (START_TRAJ_UI)
+c          endif
+         elseif (keynum .eq. P_START_TRAJ_MAP) then !Command start_traj_map
+           call start_traj_map (error)
+         elseif (keynum .eq. P_INT_TRAJ) then ! Command inttraj
             call int_traj (error)
-            if(.not.error)  then 
+            !if(.not.error)  then 
 c               call ui_update (UI_TRAJ_ENDS)
-            endif
+            !endif
          elseif (keynum .eq. P_VECTOR_COMPONENTS) then
 c           Command VECTOR_COMPONENTS.
             call setvector (error)
@@ -1729,8 +1729,7 @@ c
 c     Make sure GKS really dumps buffers
             call ive_update_gks
             call update_all
-            call getavar('data_display_units',
-     &           disp_units, error)
+            call getavar('data_display_units',disp_units, error)
             call set_var_atts(att_var_id, lin, cont_int, cont_values, 
      &           no_zero, disp_units(strbeg(disp_units):
      &                               strend(disp_units))
