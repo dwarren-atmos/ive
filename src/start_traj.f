@@ -71,12 +71,9 @@ c
                call write_message
                go to 45
             else
-            print *,'BEFORE',i,value
                call unscale (value, 1, domain_slope(i),
      &              domain_intercept(i),0.0)
                start(i) = value
-            print *,'AFTER',i,value
-            print *,' '
             endif
          endif
  20   continue
