@@ -499,6 +499,7 @@ c     WRITECOLORTABLE, WRITE_FRAME not needed
       call save_command(P_YTICS,             'YTICS=0.0,0.0')
       call save_command(P_ZLOCATION,         'ZLOC=F')
       call save_command(P_START_TRAJ,        'START_TRAJ=0.,0.,0.,0.')
+      call save_command(P_START_TRAJ_MAP,'START_TRAJ_MAP=0.,0.,0.,0.')
       call save_command(P_INT_TRAJ,          'INT_TRAJ=0.,28800')
       call save_command(P_POINT_AXIS,        'POINT_AXIS=Default')
       call driver('POINT_AXIS=Default',1)
