@@ -258,9 +258,9 @@ C
          endif
       endif
       if (nblank(comand(FSTVAL+4)) .eq. 0) then
-         batch = 0
+         batch = .false.
       else
-         batch = 1
+         batch = .true.
       endif
       if (iflag.eq.0) call loop_setup_update(dim, startnum, inc, endnum)
 c
