@@ -461,6 +461,9 @@ driver.o  :  attributes.icl cmndlst.icl color.icl \
                   ph2ll.icl plotops.icl \
 	          segments.icl supma.icl traj.icl \
 	          ive_widgets.icl vector.icl
+ifeq (${machine},sun4)
+	${REALF77} -c  ${FCPP} ${FFLAGS} $*.F -o $*.o
+endif
 drlineplt.o : color.icl data.icl plotops.icl units.icl \
 		   pltwin.icl  ovl_props.icl
 drwmap.o  :  data.icl deflts.icl ive_widgets.icl message.icl \
@@ -473,7 +476,11 @@ fixdata.o : fixdata.c
 ifeq (${machine},Linux)
 	${CC}  -c ${CFLAGS} $*.c -o $*.o
 else
+ifeq (${machine},sun4)
+	${CC}  -c ${CFLAGS} $*.c -o $*.o
+else
 	${CC}  -c ${CFLAGS} -ieee $*.c -o $*.o
+endif
 endif
 freefld.o :  incommands.icl data.icl message.icl \
                   ive_widgets.icl
