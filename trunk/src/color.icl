@@ -104,19 +104,19 @@ c
 c
 c
       integer min_user_color, max_user_color, min_traj_color,
-     &        max_traj_color
+     &        max_traj_color 
       common / user_colors/ min_user_color, max_user_color,
      &                      min_traj_color, max_traj_color
 c     These are set by C when we know how many colors there are.      
 
 C     These are for setting the trajectory depth colors
       logical traj_step_set, traj_val_set
-      integer traj_entry
+      integer traj_entry, old_traj_min_color
       real traj_val, traj_step, traj_levels
       Dimension traj_levels(160)
       common / traj_colors / traj_step_set, traj_val_set,
      &  traj_entry, traj_val, traj_step, 
-     &  traj_levels
+     &  traj_levels, old_traj_min_color
 c
 c     These are for locking the color table
       integer lock_entry, entry_used, lock_set_cint, ignore_lock_var,

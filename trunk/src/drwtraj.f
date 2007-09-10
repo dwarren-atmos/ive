@@ -176,6 +176,7 @@ c
       integer, parameter :: max_levs=160
       integer         imap, linepat,axes,i,j,k,coval,colband(max_levs)
       integer         flag(4), line_color, num_depth, mid_num,tmiddiff
+      integer         colband_bot
       logical          movielabs
       real            lolim, uplim, depth_levels, tmplevs,PPI,min_depth
       real        data_min, data_max, step, r, tmidval
@@ -293,11 +294,6 @@ c     Warn if there are to many steps
 
       if (num_depth .lt. 2) num_depth = 2
 
-c     print user set values
-c      print *,'TRAJ_VAL_SET',traj_val_set,traj_val
-c      print *,'TRAJ_STEP_SET',traj_step_set,traj_step
-c      print *,'SAVFLG',savflg
-      
 c     get mid value
       if(traj_val_set) then
          tmidval = traj_val
@@ -325,10 +321,12 @@ c     Get the intervals
          j = 1
          depth_levels(1) = tmidval
 
+         ! does this if tmidval < data_min
          do while (depth_levels(1) .lt. data_min)
             depth_levels(1) = depth_levels(1) + step
          enddo
 
+         ! does this if tmidval < data_min
          do while (depth_levels(1) .gt. data_min)
             depth_levels(1) = depth_levels(1) - step
          enddo
@@ -338,7 +336,7 @@ c     Go 1 below data_min
          depth_levels(2) = depth_levels(1) + step
          
          if(num_depth .gt. 2) then
-            do i = 2, num_depth
+            do i = 3, num_depth
                depth_levels(i)= depth_levels(i-1) + step
             enddo
          endif
@@ -396,46 +394,63 @@ c     Thanks to FORTRASH Arrays, we have gone one k beyond
       k= k -1 
       if (k .gt. max_levs) k = max_levs
       
+      !print *,'tmidval,data_max,data_min',tmidval,data_max,data_min
       if(tmidval.gt.data_max) then
-        tmiddiff = -int((tmidval-data_max)/step+0.5)
+        !tmiddiff = -int((tmidval-data_max)/step+0.5)
+        tmiddiff = -int((tmidval-data_max)/step)-1
         mid_num = num_depth - tmiddiff
       elseif(tmidval.lt.data_min) then
-        tmiddiff = int((data_min-tmidval)/step + 0.5)
-        mid_num = 1 - tmiddiff 
+        !tmiddiff = int((data_min-tmidval)/step + 0.5)
+        !mid_num = 1 - tmiddiff 
+        tmiddiff = int((data_min-tmidval)/step)-1
+        mid_num = 1-tmiddiff 
       else
         tmiddiff=0
       endif
-      !coval = coval + tmiddiff
+
+      !print *,'mid_num,tmidiff,coval: ',mid_num,tmiddiff,coval
 
       do i=1,max_levs
          depth_levels(i) = tmplevs(i)
+         if(abs(tmplevs(i)).le.epsilon(0.0)) depth_levels(i) = 0.
          if((abs(depth_levels(i) - tmidval).le.epsilon(tmidval)))
      &        mid_num = i 
       enddo
 
       num_depth = k
       if(num_depth .gt. 0) then
-         write(6,*)'Min/Max traj values: ',data_min,'/',data_max
-         write(6,*)'Using colorbar step of: ',step
-         !write(6,*)'Number of colors: ',num_depth
-         !write(6,*)'Levels: ',depth_levels
+         write(6,430) data_min,data_max,step
       else
          write(6,*)'Numdepth is 0 !!!!!!!!!!!'
       endif
+
+430   format('Min/Max traj values:',1x,F10.4,1x,'/',F10.4,'.',1x,
+     &       'Using a colorbar step of:',1x,F10.4)
+
       if(num_depth .gt. 0) then
+      !print *,'mid_num,coval: ',mid_num,coval
             
 c     Set the first band then itterate for the rest.
          if(step .ne. 0) then
-            colband(1) = coval - mid_num + 1
+            colband_bot = coval - mid_num + 1
+            !print *,'min_traj_user_color',old_traj_min_color
+
+            if(old_traj_min_color.lt.colband_bot) then
+              colband(1) = old_traj_min_color
+            else
+              colband(1) = colband_bot
+            end if
+
+            !print *,'colband(1): ',colband(1),min_traj_color
 
             do while (colband(1) .lt. min_traj_color) 
-               colband(1) = max_traj_color - abs(min_traj_color -
-     &              colband(1))
+               colband(1) = max_traj_color - 
+     &                      abs(min_traj_color-colband(1))
             enddo
 
             do while (colband(1) .gt. max_traj_color) 
-               colband(1) = min_traj_color + abs(colband(1) -
-     &              max_traj_color)
+               colband(1) = min_traj_color + 
+     &                      abs(colband(1)-max_traj_color)
             enddo
 
          else
@@ -449,7 +464,7 @@ c     Set the first band then itterate for the rest.
             colband(i) = colband(i-1)+1
 
             do while (colband(i) .lt. min_traj_color) 
-               colband(i) = max_traj_color -abs(min_traj_color -1 -
+               colband(i) = max_traj_color - abs(min_traj_color -1 -
      &              colband(i)) 
             enddo
 
@@ -486,6 +501,7 @@ c     &        colband(mid_num)
             tmidval = data_min
          endif
       endif
+      old_traj_min_color = colband(1) 
          
          
          
@@ -531,38 +547,41 @@ c     &                 depth_levels(j+1)
 c         call curved (data_x(i), data_y(i), 2)
          call gpl(2,data_x(i),data_y(i))
 
-         if(time(i+1) - oldtime .ge. disttime) then
-c     Draw arrows
-            arrow_fact = max(line_width*0.6, 1.1)
-            if(arrow_bold_interval .eq. 0)arrow_bold_interval=
-     &           (time(nf)-time(1))/3
-            arrow_width = 1.
-            if(time(i+1)-boldtime.ge.arrow_bold_interval*disttime
-     &           .and.arrow_bold_interval.ne.0) then
-               arrow_width = 2.
-               boldtime = time(i+1)
-               arrow_fact = max(line_width*2.0, 1.1)
-            endif
+         ! Draw Arrows
+c         if(time(i+1) - oldtime .ge. disttime) then
+c            arrow_fact = max(line_width*0.6, 1.1)
+
+c            if(arrow_bold_interval .eq. 0)
+c     &        arrow_bold_interval=(time(nf)-time(1))/3
+
+c            arrow_width = 1.
+
+c            if(time(i+1)-boldtime.ge.arrow_bold_interval*disttime
+c     &           .and.arrow_bold_interval.ne.0) then
+c               arrow_width = 2.
+c               boldtime = time(i+1)
+c               arrow_fact = max(line_width*2.0, 1.1)
+c            endif
             
-            oldtime=time(i+1)
-            if(d_x(1) .ne. d_x(2) .and. 
-     &           d_y(1) .ne. data_y(2)) then
-               x(2) = d_x(2)
-               y(2) = d_y(2)
-               D = ATAN2((d_y(2)-d_y(1))/(wtop-wbot),
-     &              (d_x(2)-d_x(1))/(wrght-wleft))
-               x(1) = x(2) + (cos(D + PPI))*delx*1.1*arrow_fact
-               x(3) = x(2) + (cos(D - PPI))*delx*1.1*arrow_fact
-               y(1) = y(2) + (sin(D + PPI))*dely*1.1*arrow_fact
-               y(3) = y(2) + (sin(D - PPI))*dely*1.1*arrow_fact
+c            oldtime=time(i+1)
+c            if(d_x(1) .ne. d_x(2) .and. 
+c     &           d_y(1) .ne. data_y(2)) then
+c               x(2) = d_x(2)
+c               y(2) = d_y(2)
+c               D = ATAN2((d_y(2)-d_y(1))/(wtop-wbot),
+c     &              (d_x(2)-d_x(1))/(wrght-wleft))
+c               x(1) = x(2) + (cos(D + PPI))*delx*1.1*arrow_fact
+c               x(3) = x(2) + (cos(D - PPI))*delx*1.1*arrow_fact
+c               y(1) = y(2) + (sin(D + PPI))*dely*1.1*arrow_fact
+c               y(3) = y(2) + (sin(D - PPI))*dely*1.1*arrow_fact
             
             
-               call dashdb (65535)
-               call gsplci(9)   !black
-               call gslwsc (1.) 
-               call curved (x(1), y(1), 3)
-            endif
-         endif
+c               call dashdb (65535)
+c               call gsplci(9)   !black
+c               call gslwsc (1.) 
+c               call curved (x(1), y(1), 3)
+c            endif
+c         endif
       enddo
       
  180  continue
@@ -590,17 +609,18 @@ c
                call set ( vleft, vrght, vbot, vtop,
      &              x1, x2, y1, y2, axes)
             endif
-      endif
+         endif
 
-      if ( .not. mapflg .or. (defmap .and. exact_fit)) then
-            xmajr = xmajor
-            xminr = xminor
-            ymajr = ymajor
-            yminr = yminor
+         if ( .not. mapflg .or. (defmap .and. exact_fit)) then
+            xmajr = xmajor ; xminr = xminor
+            ymajr = ymajor ; yminr = yminor
+
             call getivar ('xaxis', xaxis, error)
             call getivar ('yaxis', yaxis, error)
+
             call scaletics (xmajr, xminr, ymajr, yminr,
      &           mod(xaxis,10), mod(yaxis,10))
+
             if (movielabs) then
                call pcseti ('QU',0)
                call pcsetc ('FN', 'HELVETICA-BOLD    ')
@@ -608,6 +628,7 @@ c
                call pcseti ('QU',1)
                call pcseti ('CL',1)
             endif
+
             call uwperim (xmajr, xminr, ymajr, yminr)
          endif
       endif
@@ -659,7 +680,6 @@ c
       call cpsetr ('ORV -out-of-range value', 0.0)
 c     
 c     
-      print *, ' '
  100  format (1x 'The colorbar step of ',F7.2,' gives ',F7.2,
      &      ' colors. Only 20 will be displayed') 
       return
@@ -677,6 +697,7 @@ c
       real          vpl, vpr, vpb, vpt, wdl, wdr, wdb, wdt
       
       real          length, x(5), y(5)
+      real,parameter :: fontsize=0.0125
       
       
       if(count .eq. 0) return
@@ -685,15 +706,16 @@ c
       call getset (vpl, vpr, vpb, vpt, wdl, wdr, wdb, wdt, linlog)
       call scale (levels(1), count, data_slope, data_intercept, 0.0)
       length = (wdt - wdb)/(count)
-      call set (0.,  1.,  vpb,  vpt,
-     &     0., 1., wdb, wdt, 1)
+      call set (0.,  1.,  vpb,  vpt, 0., 1., wdb, wdt, 1)
       call gsclip (0)
 C     Blank out the old one
       x(1)=0.0
       y(1)=wdb - 0.005
-      x(2)=0.018
+      !x(2)=0.018
+      x(2)=vpl
       y(2)=wdb - 0.005
-      x(3)=0.018
+      !x(3)=0.018
+      x(3)=vpl
       y(3)=wdt + 0.005
       x(4)=0.0
       y(4)=wdt + 0.005
@@ -701,8 +723,8 @@ C     Blank out the old one
       call gsfaci(0)
       call gfa (4, x, y)
 C     Do the new one
-      x(1)=.018
-      x(2)=.018
+      !x(1)=0.018 ; x(2)=0.018
+      x(1)=vpl-.01 ; x(2)=vpl-0.01
       if(count .eq. 1) then
          y(1)=wdb
          y(2) = y(1) + length
@@ -712,7 +734,8 @@ C     Do the new one
      &        1,1,barlab(1),outnum,outsig,outpow)
          call clean_zero(barlab(1))
          call gsplci(9)         !black
-         call plchhq(.007,y(1),barlab(1), 0.0084, 90.0, -1.0)
+         !call plchhq(.007,y(1),barlab(1), fontsize, 90.0, -1.0)
+         call plchhq(x(1),y(1),barlab(i), fontsize, 0.0, 0.0)
       else
          numcontrol=1
 c         if(count .gt. 10) then
@@ -724,6 +747,7 @@ c         endif
             if(levels(i) .lt. 1E38) then
                y(1)=wdb+(i-1)*length
                y(2) = y(1) + length
+              !print *,i,colband(i)
                call gsplci(colband(i))
                call curved (x(1), y(1), 2)
                if(mod(i,numcontrol) .eq. 0) then
@@ -732,7 +756,10 @@ c         endif
      &                 1,1,barlab(i),outnum,outsig,outpow)
                   call clean_zero(barlab(i))
                   call gsplci(1) !foreground
-                  call plchhq(.007,y(1),barlab(i), 0.0084, 90.0, -1.0)
+!                  call plchhq(.007,y(1),barlab(i), 0.0084, 90.0, -1.0)
+                  if(i.gt.1) then
+                  call plchhq(x(1),y(1),barlab(i), fontsize, 0.0, 0.0)
+                  end if
 c                  write(6,*)'level: ',levels(i),' color: ',colband(i),
 c     &                 ' label: ',barlab(i)
                endif

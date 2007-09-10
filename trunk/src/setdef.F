@@ -547,10 +547,11 @@ c
       traj_val_set = .false.
       traj_background_field = 'depth'
       old_traj_background = traj_background_field
+      old_traj_min_color = 1000
       do i=1,4
          call set_traj_atts(-i, -1e19, 0)
       enddo
-      do i=1,80
+      do i=1,160
          traj_levels(i) = 1E38
       enddo
       arrow_bold_interval = 0
@@ -681,8 +682,10 @@ c
 
          if ( value  .ne. ' ' ) then
             call catnull (value, len(value), error)
+
             call read_color_table (value, MIN_USER_COLOR, 
      &                             MAX_USER_COLOR,1)
+
             call read_color_table (value, MIN_TRAJ_COLOR, 
      &                             MAX_TRAJ_COLOR,0)
          else
@@ -696,7 +699,7 @@ c
             if ( value  .eq. ' ' ) then
                call getenv ('uwgapctb', value)
             endif
-	    if ( value .eq. ' ') then
+            if ( value .eq. ' ') then
                call getenv ('IVECTBLIB', value)
             endif
             if ( value  .eq. ' ' ) then
