@@ -306,6 +306,7 @@ struct {
   Widget traj_backgroundlab, traj_background;                /*traj*/
   Widget color_form, lock_color_widget, color_left;          /*color*/
   Widget color_reset, color_bar, color_toggle, color_right;  /*color*/
+  Widget which_coltab;
 }Properties={
     NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -3006,7 +3007,7 @@ void init_color(w,data,call)/*The callbacks for this form are in color_misc.c*/
      caddr_t data;          /*additional places                              */
      XmAnyCallbackStruct *call;
 {
-    Widget popup, lab1, lab2;
+    Widget popup, lab1, lab2, lab3;
     int error, ival;
     float rval;
     char fieldc[80], button[80], avar[256];
@@ -3080,8 +3081,10 @@ void init_color(w,data,call)/*The callbacks for this form are in color_misc.c*/
 						     XmATTACH_FORM,
 						     XmNarrowDirection,
 						     XmARROW_RIGHT, NULL);
+
       XtAddCallback(Properties.color_left,
 		    XmNactivateCallback,color_shift_callback,(XtPointer)"L");
+
       XtAddCallback(Properties.color_right,
 		    XmNactivateCallback,color_shift_callback,(XtPointer)"R");
 
@@ -3118,7 +3121,7 @@ void init_color(w,data,call)/*The callbacks for this form are in color_misc.c*/
     */
     /*row 2*/
     lab2 = 
-      XtVaCreateManagedWidget("Lock Color Table:",xmLabelWidgetClass,
+      XtVaCreateManagedWidget("Lock Color\nTable:",xmLabelWidgetClass,
 			      Properties.color_form,
 			      XmNleftAttachment,
 			      XmATTACH_FORM,
@@ -3161,7 +3164,47 @@ void init_color(w,data,call)/*The callbacks for this form are in color_misc.c*/
 
     XtVaSetValues(Properties.lock_color_widget,XmNlabelString,
 		  str,NULL);
+
     XmStringFree(str);
+
+/// TEST FOR WHICH COLOR TABLE OPTION
+
+
+    lab3 = 
+      XtVaCreateManagedWidget("Color\nTable:",xmLabelWidgetClass,
+			      Properties.color_form,
+			      XmNleftAttachment,
+			      XmATTACH_FORM,
+			      XmNtopAttachment,
+			      XmATTACH_WIDGET,
+			      XmNtopWidget,
+			      lab1,
+			      XmNtopOffset, 5,
+				  XmNleftOffset, 115,
+			      NULL);
+
+    Properties.which_coltab = 
+      XtVaCreateManagedWidget("Which Color Table",xmPushButtonWidgetClass,
+			      Properties.color_form, 
+			      XmNleftAttachment,
+			      XmATTACH_WIDGET,
+			      XmNleftWidget, lab3,
+			      XmNtopAttachment,
+			      XmATTACH_WIDGET,
+			      XmNtopWidget,
+			      lab1,
+			      XmNtopOffset, 5,
+			      NULL);
+
+	str = NewString("Standard");
+	//str = NewString("Trajectory");
+
+    XtAddCallback(Properties.which_coltab,XmNactivateCallback,color_lock_callback,NULL);
+
+    XtVaSetValues(Properties.which_coltab,XmNlabelString,str,NULL);
+    XmStringFree(str);
+
+/// END TEST
     
     /*row 3*/
     Properties.color_reset = XtVaCreateManagedWidget("Reset",
@@ -3172,7 +3215,7 @@ void init_color(w,data,call)/*The callbacks for this form are in color_misc.c*/
 						     XmNtopAttachment,
 						     XmATTACH_WIDGET,
 						     XmNtopWidget,
-					     Properties.lock_color_widget,
+					         Properties.lock_color_widget,
 						     XmNtopOffset, 10,
 						     XmNleftOffset, 2,
 						     NULL);
