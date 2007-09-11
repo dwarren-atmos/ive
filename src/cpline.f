@@ -1610,6 +1610,7 @@ c
 c     fix bug in lblbar
 c
       call gstxci(1)
+      call gsplci (1)
       if (mapflg .or. xmajor .gt. 0 .or. ymajor .gt. 0) then
          if(movielabs) then
             call lblbar (1, vpr + .0095, 
