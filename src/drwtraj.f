@@ -256,7 +256,12 @@ c
 c
 c     Make appropriate set call.
 c
-         call set2d (0, mapflg, savflg, lolim, uplim, error)
+      call set2d (0, mapflg, savflg, lolim, uplim, error)
+
+      ! reset the old minimum color if we are on a new plot 
+      if(.not.savflg) old_traj_min_color = max_traj_color
+     
+        
 c
 c     Draw the trajectory.
 c
@@ -601,6 +606,7 @@ c     Draw either a map foreground or perimeter, whichever is
 c     appropriate.
 c     
       if ( .not. savflg ) then
+
          if ( mapflg ) then
             call mapdrw_dl
             if (defmap .and. exact_fit) then
@@ -632,14 +638,10 @@ c
             call uwperim (xmajr, xminr, ymajr, yminr)
          endif
       endif
-c     
-c     
-c     Label plot.
-c     
+
+      ! label plot.
       if ( label ) then
-c     
-c     Use labeling routine for solid fill to label vector plots.
-c     
+         !Use labeling routine for solid fill to label vector plots.
          call labtraj (datfil, lolim, uplim, savflg)
       endif
 c     
