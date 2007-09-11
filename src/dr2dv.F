@@ -109,6 +109,7 @@ c
 c     Local variable declarations.
 c
       integer       ierror, line_index
+      EXTERNAL VVUDMV
 c
 c     Use special value feature.
 c
@@ -139,7 +140,7 @@ c         print *,'call vvseti(MAP, 0)'
 c         call vvseti('MAP', 0)
 c      endif
 
-      if(mapflg) then
+      if(mapflg .and. .not. defmap) then
          call vvseti('MAP', 4)
       else
          call vvseti('MAP', 3)
