@@ -203,9 +203,20 @@ c     quick dirty fix since we only allow linlin with diagnols
          if(axes .eq. 4)axes=3
       endif
       if ( mapflg) then
-         if (defmap .and. exact_fit) then
+         if (defmap) then
             if (.not. savflg) then
-c
+               if(movielabs) then
+                  vleft = VPLEFT_BIG
+                  vrght = VPRIGHT_BIG
+                  vbot  = VPBOT_BIG
+                  vtop  = VPTOP_BIG
+               else
+                  vleft = VPLEFT
+                  vrght = VPRIGHT
+                  vbot  = VPBOT
+                  vtop  = VPTOP
+               endif
+c     
 c     Make first overlay fits within the map.
 c
                if(mapwin_u1 .ne. 0.0 .or. mapwin_u2 .ne. 0.0
@@ -213,8 +224,6 @@ c
      &              then
                   call cpseti ('MAP - mapping flag', 2)
                else
-                  call getset ( vleft, vrght, vbot, vtop, 
-     &                 wleft, wrght, wbot, wtop, axes)
                   call set ( vleft, vrght, vbot, vtop,
      &                 x1, x2, y1, y2, axes)
                   call cpseti ('MAP - mapping flag', 2)
@@ -324,32 +333,32 @@ c
 c
 c     may be top limit is smaller then bottom - special case
 c
-      if(wbot*wtop .le. 0. .and.(axes .eq. 2 .or. axes .eq. 4))then
-         error = .true.
-         write (message, 130)
-         call write_message
-         return
-      endif
+         if(wbot*wtop .le. 0. .and.(axes .eq. 2 .or. axes .eq. 4))then
+            error = .true.
+            write (message, 130)
+            call write_message
+            return
+         endif
 c
 c     same about right/left limits
 c
-      if(wleft*wrght.le. 0. .and.(axes .eq. 3 .or. axes .eq. 4))then
-         error = .true.
-         write (message, 140)
-         call write_message
-         return
-      endif
+         if(wleft*wrght.le. 0. .and.(axes .eq. 3 .or. axes .eq. 4))then
+            error = .true.
+            write (message, 140)
+            call write_message
+            return
+         endif
 c
 c     actual set call
 c
          call set (vleft, vrght, vbot, vtop, 
-     &     wleft, wrght, wbot, wtop, axes)
+     &        wleft, wrght, wbot, wtop, axes)
          window_axes = linlog
 c
 c     set flag to show, that "set" call is completed.
-c
+c     
          call cpseti ('SET - do-set-call flag', 0)
-c
+c     
 c     new stuff to remember limitis for overlay plot
 c
          if(.not. savflg ) then
