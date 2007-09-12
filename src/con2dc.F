@@ -391,16 +391,16 @@ c     appropriate.
 c
       if ( .not. savflg ) then
          if ( mapflg ) then
+            call getset ( vleft, vrght, vbot, vtop, 
+     &           wleft, wrght, wbot, wtop, axes)
             call mapdrw_dl
-            if (defmap .and. exact_fit) then
-               call getset ( vleft, vrght, vbot, vtop, 
-     &              wleft, wrght, wbot, wtop, axes)
+            if (defmap) then
                call set ( vleft, vrght, vbot, vtop,
-     &              x1, x2, y1, y2, axes)
+     &              x1, x2, y1, y2, window_axes)
             endif
          endif 
 
-         if ( .not. mapflg .or. (defmap .and. exact_fit)) then
+         if ( .not. mapflg) then ! .or. (defmap)) then
             xmajr = xmajor
             xminr = xminor
             ymajr = ymajor
@@ -586,21 +586,21 @@ c     appropriate.
 c
       if ( .not. savflg ) then
          if ( mapflg ) then
-            call mapdrw
-            if (defmap .and. exact_fit) then
+            call mapdrw_dl
+            if (defmap) then
                call getset ( vleft, vrght, vbot, vtop, 
      &              wleft, wrght, wbot, wtop, axes)
                call set ( vleft, vrght, vbot, vtop,
      &              x1, x2, y1, y2, axes)
             endif
-	 endif
-	 if ( .not. mapflg .or. (defmap .and. exact_fit)) then
+         endif
+         if ( .not. mapflg .or. (defmap)) then
             xmajr = xmajor
             xminr = xminor
             ymajr = ymajor
             yminr = yminor
-c            call getivar ('xaxis', xaxis, error)
-c            call getivar ('yaxis', yaxis, error)
+c     call getivar ('xaxis', xaxis, error)
+c     call getivar ('yaxis', yaxis, error)
             call scaletics (xmajr, xminr, ymajr, yminr,
      &           mod(xaxis,10), mod(yaxis,10))
             call uwperim (xmajr, xminr, ymajr, yminr)
