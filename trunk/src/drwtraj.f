@@ -655,7 +655,8 @@ c
          call pcseti ('CL',1)
       endif
 
-      call traj_color_bar(depth_levels(1), colband(1), num_depth)
+      call traj_color_bar(depth_levels(1), colband(1), num_depth, 
+     &                    mapflg)
       traj_depth = num_depth
 
       if(.not. traj_val_set)  traj_val = tmidval
@@ -687,46 +688,55 @@ c
       return
       end
       
-      subroutine traj_color_bar(levels, colband, count)
+      subroutine traj_color_bar(levels, colband, count, mapflg)
       include 'color.icl'
       include 'units.icl'
       
       real levels
       integer colband, count
       dimension levels(count), colband(count)
+      logical :: mapflg
       
       integer       i, linlog, outnum,outsig,outpow, numcontrol
       real          vpl, vpr, vpb, vpt, wdl, wdr, wdb, wdt
       
       real          length, x(5), y(5)
-      real,parameter :: fontsize=0.0125
-      
+      real :: fontscale, cent, rotate, xpos, xtxt
       
       if(count .eq. 0) return
+
       call gslwsc (5.)
       call dashdb(65535)
       call getset (vpl, vpr, vpb, vpt, wdl, wdr, wdb, wdt, linlog)
       call scale (levels(1), count, data_slope, data_intercept, 0.0)
       length = (wdt - wdb)/(count)
-      call set (0.,  1.,  vpb,  vpt, 0., 1., wdb, wdt, 1)
+      call set(0.,  1.,  vpb,  vpt, 0., 1., wdb, wdt, 1)
       call gsclip (0)
+
+      if(mapflg) then
+        rotate=0.0
+        fontscale=0.0125
+        cent=1.25
+        xpos=vpl-0.01
+        xtxt=xpos
+      else
+        rotate=90.0
+        fontscale=0.0084
+        cent=-1.0
+        xpos=0.018
+        xtxt=0.007
+      end if
+
 C     Blank out the old one
-      x(1)=0.0
-      y(1)=wdb - 0.005
-      !x(2)=0.018
-      x(2)=vpl
-      y(2)=wdb - 0.005
-      !x(3)=0.018
-      x(3)=vpl
-      y(3)=wdt + 0.005
-      x(4)=0.0
-      y(4)=wdt + 0.005
-      call gsfais(1)
-      call gsfaci(0)
-      call gfa (4, x, y)
+      x(1)=0.0  ; y(1)=wdb - 0.005
+      x(2)=xpos ; y(2)=wdb - 0.005
+      x(3)=xpos ; y(3)=wdt + 0.005
+      x(4)=0.0  ; y(4)=wdt + 0.005
+      call gsfais(1) ; call gsfaci(0) ; call gfa (4, x, y)
+
 C     Do the new one
-      !x(1)=0.018 ; x(2)=0.018
-      x(1)=vpl-.01 ; x(2)=vpl-0.01
+      x(1)=xpos ; x(2)=xpos
+
       if(count .eq. 1) then
          y(1)=wdb
          y(2) = y(1) + length
@@ -734,22 +744,18 @@ C     Do the new one
          call curved (x(1), y(1), 2)
          call cpnumb(levels(1),4,-10000,4,-1,'E',' ',' ',1,0,0,0,
      &        1,1,barlab(1),outnum,outsig,outpow)
+
          call clean_zero(barlab(1))
          call gsplci(9)         !black
-         !call plchhq(.007,y(1),barlab(1), fontsize, 90.0, -1.0)
-         call plchhq(x(1),y(1),barlab(i), fontsize, 0.0, 0.0)
+
+         call plchhq(x(1),y(1),trim(barlab(1)), 
+     &               fontscale, rotate, cent)
       else
          numcontrol=1
-c         if(count .gt. 10) then
-c            numcontrol = (count/10) + 1
-c         else
-c            numcontrol = 
-c         endif
          do i=1, count
             if(levels(i) .lt. 1E38) then
-               y(1)=wdb+(i-1)*length
-               y(2) = y(1) + length
-              !print *,i,colband(i)
+
+               y(1)=wdb+(i-1)*length ; y(2) = y(1) + length
                call gsplci(colband(i))
                call curved (x(1), y(1), 2)
                if(mod(i,numcontrol) .eq. 0) then
@@ -758,16 +764,16 @@ c         endif
      &                 1,1,barlab(i),outnum,outsig,outpow)
                   call clean_zero(barlab(i))
                   call gsplci(1) !foreground
-!                  call plchhq(.007,y(1),barlab(i), 0.0084, 90.0, -1.0)
                   if(i.gt.1) then
-                  call plchhq(x(1),y(1),barlab(i), fontsize, 0.0, 0.0)
+                    call plchhq(xtxt,y(1),trim(barlab(i)), 
+     &                          fontscale, rotate, cent)
                   end if
-c                  write(6,*)'level: ',levels(i),' color: ',colband(i),
-c     &                 ' label: ',barlab(i)
                endif
+
             endif
          enddo
       endif
+
       call set (vpl, vpr, vpb, vpt, wdl, wdr, wdb, wdt, linlog)
       call gslwsc(1.)
       return
