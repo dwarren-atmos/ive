@@ -925,16 +925,25 @@ c
      &           ' '//
      &           unitlabel(strbeg(unitlabel):strend(unitlabel))
       endif
-      if (mapflg) then
-         numlab = ftoa(loc(3))
-         call clean_zero(numlab(strbeg(numlab):strend(numlab)))
-         label = label(strbeg(label):strend(label))//
-     &           ' at '//
-     &           numlab(strbeg(numlab):strend(numlab))//
-     &           ' '//
-     &              domain_display_units(3)(
-     &              strbeg(domain_display_units(3)):
-     &              strend(domain_display_units(3)))
+
+      if (mapflg .and. .not.surface) then
+        select case(lock(3))
+        case (1)
+          numlab2=ftoa(loc(3))
+          call clean_zero(trim(numlab2))
+          numlab = ' at '//trim(numlab2)
+        case (2)
+          numlab2=ftoa(plwmin_scaled(3))
+          call clean_zero(trim(numlab2))
+          numlab = ' AVG '//trim(numlab2)
+
+          numlab2=ftoa(plwmax_scaled(3))
+          call clean_zero(trim(numlab2))
+          numlab = trim(numlab)//' to '//trim(numlab2)
+        end select
+
+        label = trim(label)//trim(numlab)//' '
+     &        //trim(domain_display_units(3))
       endif
       ibeg = 1
       iend = strend (label)
