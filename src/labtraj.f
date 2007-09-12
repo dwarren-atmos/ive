@@ -1,4 +1,4 @@
-      subroutine labtraj (datfil, lolim, uplim, savflg)
+      subroutine labtraj (datfil, lolim, uplim, savflg, mapflg)
 c
 c     $Id
 c
@@ -23,13 +23,11 @@ c
       include 'units.icl'
       include 'segments.icl'  
       include 'traj.icl'
-
-c     
 c
 c     Argument declarations.
 c
       character *(*)   datfil
-      logical          savflg, average
+      logical          savflg, average, mapflg
       real             lolim, uplim, szsc
       integer          axes
       dimension lolim(4), uplim(4)
@@ -72,7 +70,7 @@ c
 c     Only label first 3 overlays
 c
       if (plot_number .gt. 3 . or. 
-     &    (plot_number .gt. 2 .and. movielabs)) return
+     &   (plot_number .gt. 2 .and. movielabs)) return
 c
 c
 c     Set text and line colors to the background color.
@@ -106,12 +104,8 @@ c
 c     Call set so we can use fractional coordinates.
 c
       call set (vpl, vpr, vpb, vpt, 0.0, 1.0, 0.0, 1.0, 1)
-c
-c
-c
-c
+
 c     Write data set label at top of plot.
-c
 c     First eliminate the "directory" part of the file name.
 c
       ibeg = strbeg(datfil)
@@ -151,20 +145,23 @@ c     Add time and endpoints label.
 c     
 c
       value = trajbeg
+      call scale (value,1,domain_slope(4),domain_intercept(4), 0.0)
       numlab = ftoa(value)
       call clean_zero(numlab(strbeg(numlab):strend(numlab)))
-      label = 'Trajectory ('//
-     &            numlab(strbeg(numlab):strend(numlab))
+      label = 'Trajectory (' // trim(numlab)
 c
       value = trajend
+      call scale (value,1,domain_slope(4),domain_intercept(4), 0.0)
       numlab = ftoa(value)
       call clean_zero(numlab(strbeg(numlab):strend(numlab)))
-      label = label(strbeg(label):strend(label))//
-     &       ' - '//numlab(strbeg(numlab):strend(numlab))//' s)'
-c
+      label = trim(label)// ' - ' // trim(numlab) // ' ' //
+     &        domain_display_units(4)
+     &          (strbeg(domain_display_units(4)):
+     &           strend(domain_display_units(4)))//')'
 c
       ibeg = 1
       iend = strend (label)
+
       if (plot_number .eq. 1) then
          xpos = cfux (vpl)
          center = -1.0
@@ -175,14 +172,18 @@ c
          xpos = cfux ((vpl + vpr)/2.0)
          center = 0.0
       endif
+
       if (movielabs) then
-         ypos   = cfuy (vpt + 0.03)
+         !ypos   = cfuy (vpt + 0.03)
+         ypos   = cfuy (vpt + 0.015)
       else
          ypos   = cfuy (vpt + 0.015)
       endif
       orient = 0.0
+
       if (movielabs) then
-         call plchhq (xpos, ypos, label(ibeg:iend), (szsf * szsc)/1.7,
+         !call plchhq (xpos, ypos, label(ibeg:iend), (szsf * szsc)/1.7,
+         call plchhq (xpos, ypos, trim(label), (szsf * szsc),
      &                 orient, center)
       else
          call plchhq (xpos, ypos, label(ibeg:iend), szsf/2.1,
@@ -193,11 +194,12 @@ c
 c     Create labels for the axes
 c
 c
-      if (plot_number .eq. 1 ) then
+      if (plot_number .eq. 1 .and. .not. mapflg ) then
          xx1 = x1
          xx2 = x2
          yy1 = y1
          yy2 = y2
+
          if(xaxis .eq. 0) then
             call scale (xx1, 1, data_slope, data_intercept, 0.0)
             call scale (xx2, 1, data_slope, data_intercept, 0.0)
@@ -207,6 +209,7 @@ c
             call scale (xx2, 1, domain_slope(xaxis), 
      &           domain_intercept(xaxis), 0.0)
          endif
+
          if(yaxis .eq. 0) then
             call scale (yy1, 1, data_slope, data_intercept, 0.0)
             call scale (yy2, 1, data_slope, data_intercept, 0.0)
@@ -216,6 +219,7 @@ c
             call scale (yy2, 1, domain_slope(yaxis), 
      &           domain_intercept(yaxis), 0.0)
          endif
+
          if(xmajor .eq. 0 .and. xaxis .ne. 0) then
 c         xx1 = lolim(xaxis)
 c         xx2 = uplim(xaxis)
@@ -284,7 +288,7 @@ c
 c
 c     axis label
 c
-      if ( curoverlay(curlist) .eq. 1 ) then
+      if ( curoverlay(curlist) .eq. 1 .and. .not. mapflg) then
          if(xaxis .eq. 1) then
             label = 'X'
             ibeg = strbeg(label)
@@ -298,6 +302,7 @@ c
             ibeg = strbeg(label)
             iend = strend(label)
          end if
+
          if (nblank(domain_display_units(xaxis)) .ne. 0) then
             unitlabel = ' ('//
      &                  domain_display_units(xaxis)
@@ -311,16 +316,19 @@ c
          else
             unitlabel = ' (unspecified Units)'
          endif
+
          label = label(ibeg:iend)//
      &               unitlabel(strbeg(unitlabel):strend(unitlabel))
          ibeg = strbeg(label)
          iend = strend(label)
          xpos = cfux ((vpr + vpl)/2)
+
          if(movielabs .or. tic_scale .gt. 1.2) then
             ypos = cfuy (vpb - .050)
          else
             ypos   = cfuy (vpb - .035)
          endif
+
          center = 0.0
          orient = 0.0
          call plchhq (xpos, ypos, label(ibeg:iend), szsf*szsc, 
@@ -374,35 +382,35 @@ c
 c     Create labels indicating contour line type and color for 
 c     each plot.
 c
-      shift = 0.15
-      if ( plot_number .eq. 2 ) then
-         xpos = cfux (vpr)
-         sign = -1
-      else if ( plot_number .eq. 1 ) then
-         xpos = cfux (vpl)
-         sign = 1
-      else if ( plot_number .eq. 3 ) then
-         xpos = cfux((vpl + vpr)/2) - shift/2
-         sign = 1
-      endif
-      xpts(2) = xpos
-      if(movielabs) then
-         ypos = cfuy (vpt + (0.015))
-      else
-         ypos = cfuy (vpt + (0.025))
-      endif
-      call getivar ('hicolor', lineclr, error)
-      call gsplci (lineclr)
-      call getivar ('hipattern', linepat, error)
-      call dashdb (linepat)
-      xpts(1) = xpos
-      xpts(2) = xpos + sign*shift
-      ypts(1) = ypos
-      ypts(2) = ypos
-      call  gslwsc (linewdth)
-      call curved (xpts, ypts, 2)
-      call plotit (0, 0, 0)
-      call  gslwsc (1.)
+c      shift = 0.15
+c      if ( plot_number .eq. 2 ) then
+c         xpos = cfux (vpr)
+c         sign = -1
+c      else if ( plot_number .eq. 1 ) then
+c         xpos = cfux (vpl)
+c         sign = 1
+c      else if ( plot_number .eq. 3 ) then
+c         xpos = cfux((vpl + vpr)/2) - shift/2
+c         sign = 1
+c      endif
+c      xpts(2) = xpos
+c      if(movielabs) then
+c         ypos = cfuy (vpt + (0.015))
+c      else
+c         ypos = cfuy (vpt + (0.025))
+c      endif
+c      call getivar ('hicolor', lineclr, error)
+c      call gsplci (lineclr)
+c      call getivar ('hipattern', linepat, error)
+c      call dashdb (linepat)
+c      xpts(1) = xpos
+c      xpts(2) = xpos + sign*shift
+c      ypts(1) = ypos
+c      ypts(2) = ypos
+c      call  gslwsc (linewdth)
+c      call curved (xpts, ypts, 2)
+c      call plotit (0, 0, 0)
+c      call  gslwsc (1.)
 c     
       call set (vpl, vpr, vpb, vpt, wdl, wdr, wdb, wdt, linlog)
 c
