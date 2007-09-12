@@ -150,7 +150,14 @@ void save_pixmap_(int *batch)
 	}
 	else loop_popup = NULL;
     }
+
+	// 3 is the magic number
+    XSync(dpy, 0);
+    XSync(dpy, 0);
+    XSync(dpy, 0);
     update_all_();
+    XSync(dpy, 0);
+    XSync(dpy, 0);
     XSync(dpy, 0);
     usleep(100000);
     XSync(dpy, 0);
