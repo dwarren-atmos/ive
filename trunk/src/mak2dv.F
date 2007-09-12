@@ -255,16 +255,18 @@ c
       logical function check_vect_slabs(slab1, slab2, ni,nj,error)
       integer ni,nj,i,j
       logical error, b1, b2
-      real slab1(ni,nj), slab2(ni,nj),spval
+      real slab1(ni,nj), slab2(ni,nj),spval, epspval
+      double precision epsilon
 
       call getrvar('spval',spval,error)
+      write(6,*)'spval:',spval
       b1=.true.
       b2=.true.
       check_vect_slabs=.false.
-
+      epspval = epsilon(spval)
       do j=1,nj
          do i=1,ni
-            if(slab1(i,j) .ne. spval) then
+            if(abs(slab1(i,j) - spval) .le. epspval) then
                b1=.false.
                goto 1000
             endif
@@ -273,7 +275,7 @@ c
  1000 continue
       do j=1,nj
          do i=1,ni
-            if(slab2(i,j) .ne. spval) then
+            if(abs(slab2(i,j) - spval) .le. epspval) then
                b2=.false.
                goto 1010
             endif
