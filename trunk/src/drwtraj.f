@@ -260,8 +260,6 @@ c
 
       ! reset the old minimum color if we are on a new plot 
       if(.not.savflg) old_traj_min_color = max_traj_color
-     
-        
 c
 c     Draw the trajectory.
 c
@@ -642,7 +640,7 @@ c
       ! label plot.
       if ( label ) then
          !Use labeling routine for solid fill to label vector plots.
-         call labtraj (datfil, lolim, uplim, savflg)
+         call labtraj (datfil, lolim, uplim, savflg, mapflg)
       endif
 c     
 c     Color bar

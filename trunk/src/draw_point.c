@@ -107,7 +107,7 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     (void)makseg_(&yes);
 
     (void)phys_2_lonlat_trans_(&x,&y,&xt,&yt,&npts);
-    printf("Lon: %f, LAT: %f\n",xt,yt);
+    printf("Lon/LAT: %f, %f\n",xt,yt);
 
     if(mapflg & !(defmap || exact_fit)){
       (void)maptrn_(&yt,&xt,&x,&y);
