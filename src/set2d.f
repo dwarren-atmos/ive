@@ -224,6 +224,9 @@ c
      &              then
                   call cpseti ('MAP - mapping flag', 2)
                else
+                  call getset ( vleft, vrght, vbot, vtop, 
+     &                 wleft, wrght, wbot, wtop, axes)
+
                   call set ( vleft, vrght, vbot, vtop,
      &                 x1, x2, y1, y2, axes)
                   call cpseti ('MAP - mapping flag', 2)
