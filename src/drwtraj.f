@@ -231,14 +231,7 @@ c
             flag(3)=0
             flag(4)=0
          do i=1,nf
-c            in(1)=data_x(i)
-c            in(2)=data_y(i)
-c            in(3)=0.
-c            in(4)=0.
-c            call phys_2_index_trans(in, out, flag, 4, 1)
-c            call cpmpxy(1,out(1),out(2),data_x(i),data_y(i))
             call phys_2_lonlat_trans(data_x(i),data_y(i),rlon,rlat,1)
-            !write(6,*) data_x(i),data_y(i),rlat,rlon
             call MAPTRN(rlat,rlon,data_x(i),data_y(i))
          end do
       endif
@@ -257,16 +250,12 @@ c
 c     Make appropriate set call.
 c
       call set2d (0, mapflg, savflg, lolim, uplim, error)
-
-      ! reset the old minimum color if we are on a new plot 
-      if(.not.savflg) old_traj_min_color = max_traj_color
 c
 c     Draw the trajectory.
 c
       call cpgeti ('MAP - mapping flag', imap) 
 
-      data_min = data_depth(1)
-      data_max = data_depth(1)
+      data_min = data_depth(1) ; data_max = data_depth(1)
       do i=1,nf
          if(data_depth(i) .gt. data_max) data_max = data_depth(i)
          if(data_depth(i) .lt. data_min) data_min = data_depth(i)
@@ -345,53 +334,81 @@ c     Go 1 below data_min
          endif
 
       endif
+
       do i=1,max_levs
          tmplevs(i) = 1E38
       enddo
          
       k=1
-
       if(traj_depth .gt. 0) then
 
+         ! see if the new levels are less than the old levels
          do i=1,num_depth
+
             if(depth_levels(i) .lt. traj_levels(1)) then
                tmplevs(k) = depth_levels(i)
                k = k + 1
             endif
          enddo
 
+         ! fill in any missing levels in the middle
+         do while (tmplevs(k-1) .lt. traj_levels(1)-step)
+           if(k.lt.max_levs) then
+             tmplevs(k) = tmplevs(k-1) + step ; k=k+1
+           else
+             write(message,400) max_levs ; call write_message
+           endif
+         end do
+
+         ! if the levels are monotonic just put them in tmplevs
          do i=1,traj_depth
-            if(k .lt.max_levs) then
+
+            if(k.lt.max_levs) then
                tmplevs(k) = traj_levels(i)
                k = k + 1
             else
-             write(message,*)'You have exceded ',max_levs,' trajectory '
-     &            //'levels. Please advise the IVE development '
-     &            //'team of this error. Thanks'
+               write(message,400) max_levs
                call write_message
             endif
+
          enddo
 
+         ! fill in any missing levels in the middle
+         do while (tmplevs(k-1) .lt. depth_levels(1)-step)
+           if(k.lt.max_levs) then
+             tmplevs(k) = tmplevs(k-1) + step ; k=k+1
+           else
+             write(message,400) max_levs ; call write_message
+           endif
+         end do
+
+
+
          do i=1,num_depth
+
             if(depth_levels(i) .gt. traj_levels(traj_depth)) then
                if(k .lt.max_levs) then
                   tmplevs(k) = depth_levels(i)
                   k = k + 1
                else
-                 write(message,*)'You have exceded ', max_levs,
-     &                ' trajectory levels. Please advise the IVE '
-     &                //'development team of this error. Thanks'
+                 write(message,400) max_levs
                   call write_message
                endif
             endif
+
          enddo
 
       else
+
          do i=1,num_depth
             tmplevs(k) = depth_levels(i)
             k = k + 1
          enddo
+
       endif
+
+400   format('You have exceded ',I3,' trajectory levels.',2x,
+     &       'Please advise the IVE development team of this error.')
          
 c     Thanks to FORTRASH Arrays, we have gone one k beyond
       k= k -1 
@@ -436,7 +453,6 @@ c     Thanks to FORTRASH Arrays, we have gone one k beyond
 c     Set the first band then itterate for the rest.
          if(step .ne. 0) then
             colband_bot = coval - mid_num + 1
-            !print *,'min_traj_user_color',old_traj_min_color
 
             if(old_traj_min_color.lt.colband_bot) then
               colband(1) = old_traj_min_color
@@ -459,7 +475,6 @@ c     Set the first band then itterate for the rest.
          else
             colband(1) = coval
          endif
-            
             
          i = 2
          r = data_min + step
@@ -529,11 +544,9 @@ c     Skip this mess if not needed
 
             do j=1, num_depth
                if(data_depth(i) .ge. depth_levels(j) .and.
-     &              (j .eq. num_depth .or.
-     &              data_depth(i) .lt.  depth_levels(j+1) )) then
+     &           (j .eq. num_depth .or.
+     &            data_depth(i) .lt.  depth_levels(j+1) )) then
                   call gsplci(colband(j))
-c                  write(6,*)depth_levels(j),'>',data_depth(i),'<',
-c     &                 depth_levels(j+1)
                   goto 1010
                endif
             enddo
@@ -588,10 +601,6 @@ c         endif
       enddo
       
  180  continue
-      
-      
-      
-c     
 c     
 c     If these routines encountered any errors, then return.
 c     
@@ -667,7 +676,7 @@ c
 
       open(10,file='./traj_dump.dat',status='replace',action='write')
       do i=1,nf
-c         write(6 ,*) data_x(i),data_y(i),data_depth(i),time(i)
+         !write(6 ,*) data_x(i),data_y(i),data_depth(i),time(i)
          write(10,*) data_x(i),data_y(i),data_depth(i),time(i)
       enddo
       close(10)
@@ -786,6 +795,7 @@ C     Do the new one
       integer, parameter :: max_levs=160
 
       error = .false.
+      old_traj_min_color = max_traj_color
       if(.not. traj_val_set)  traj_val = -1e19
       if(.not. traj_step_set) traj_step = 0.
       if(traj_entry .lt. 0) traj_entry = 0
