@@ -547,6 +547,7 @@ c
       traj_val_set = .false.
       traj_background_field = 'depth'
       old_traj_background = traj_background_field
+      old_traj_min_color = max_traj_color
       do i=1,4
          call set_traj_atts(-i, -1e19, 0)
       enddo
