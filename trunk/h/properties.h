@@ -93,6 +93,7 @@ extern struct {
   Widget traj_backgroundlab, traj_background;             /*traj*/
   Widget color_form, lock_color_widget, color_shift;         /*color*/
   Widget color_reset, color_bar, color_toggle;               /*color*/
+  Widget which_coltab;  /*color*/
 }Properties;
 
 extern struct {
