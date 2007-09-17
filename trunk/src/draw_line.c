@@ -30,6 +30,9 @@ static char rcsid[] = "$Id: draw_line.c,v 1.8 2007-05-01 17:57:10 warren Exp $";
 #endif
 #include <window.h>
 
+extern void getavar_(),getdarr_(),getivar_(),getlvar_(),unscale_(),setlvar_(),makseg_(),
+  phys_2_lonlat_trans_(),maptrn_(),drlineplt_(),add_to_list_(),lonlat_2_phys_trans_(),
+  make_help_widget_(),gcloseseg();
 void draw_line_(error)
     int *error;
 {
@@ -86,7 +89,7 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
     (void)makseg_(&yes);
 /*    (void)curved_(x, y, &npts); */
 
-    if(mapflg & !(defmap || exact_fit)){
+    if(mapflg & !(defmap)){
 
       xt = (float *)malloc((sizeof(float))*((argc-1)/2));
       yt = (float *)malloc((sizeof(float))*((argc-1)/2));
@@ -134,7 +137,7 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
 
     if(!mapflg){
       (void)make_help_widget_("Not plotting on a map - usr draw_line instead");
-      error=1;
+      *error=1;
       return;
     }
 
@@ -162,7 +165,7 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
     }
 
     npts = (argc-1)/2;
-    if(!(defmap || exact_fit)){
+    if(!(defmap)){
       for(i=0; i<npts;i++){
 		(void)maptrn_(yt+i,xt+i,x+i,y+i);
 	  }
