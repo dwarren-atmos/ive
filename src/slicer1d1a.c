@@ -75,6 +75,7 @@ static char rcsid[] = "$Id: slicer1d1a.c,v 1.17 2000/12/13 22:17:22 harry Exp $"
  *
  *
  */
+#include <string.h>
 #include <stdlib.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
@@ -84,6 +85,11 @@ static char rcsid[] = "$Id: slicer1d1a.c,v 1.17 2000/12/13 22:17:22 harry Exp $"
 #include <ive_macros.h>
 #include <missing.h>
 #include <window.h>
+
+extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
+  setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
+  getdvar_(),scale_();
+extern int convert();
 
 float find_min(), find_max();
 

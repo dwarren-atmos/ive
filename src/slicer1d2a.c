@@ -34,6 +34,7 @@ static char rcsid[] = "$Id: slicer1d2a.c,v 1.5 2001/02/13 00:26:01 harry Exp $";
  *
  *
  */
+#include <string.h>
 #include <stdlib.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
@@ -43,6 +44,11 @@ static char rcsid[] = "$Id: slicer1d2a.c,v 1.5 2001/02/13 00:26:01 harry Exp $";
 #include <ive_macros.h>
 #include <missing.h>
 #include <window.h>
+
+extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
+  setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
+  getdvar_(),scale_();
+extern int convert();
 
 float find_min(), find_max();
 
@@ -928,7 +934,7 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    cmpta2[1] = cmpta2[0];
 		    phpta2[1].v[dimavg1] = max[dimavg1];
 		    convert(phpta2, cmpta2, iflag2, *dims, coord_dep, 2);
-		    if (icounter = 0)
+		    if (icounter == 0)
 			first_stepby = floor(cmpta2[0].v[stepby]);
 		    if (cmpta[0].v[dimavg2] < cpmin[dimavg2]) {
 			cmpta[0].v[dimavg2] = cpmin[dimavg2];

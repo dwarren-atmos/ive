@@ -174,7 +174,9 @@ static char rcsid[] = "$Id: slicer.c,v 1.35 2001/08/15 22:25:48 davidive Exp $";
  * Initial revision
  *
  */
+#include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
 #endif
@@ -192,6 +194,11 @@ static char rcsid[] = "$Id: slicer.c,v 1.35 2001/08/15 22:25:48 davidive Exp $";
 #endif
 #define slab_dep(x,y) *(slab_d.slab + (x) + ((y) * nis))
 #define wslab_dep(x,y) *(wslab + (x) + ((y) * *ni))
+
+extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
+  setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
+  getdvar_(),scale_();
+extern int convert();
 
 static int nis, njs, force_new_slice=0;
 
