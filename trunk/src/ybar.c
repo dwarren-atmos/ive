@@ -28,6 +28,7 @@
 #include    <math.h>
 #include    <malloc.h>
 
+extern void make_value_widget_(),make_result_widget_();
 
 /***********************************************************************/
 void write_value_ch_(pt1,result, surface)
