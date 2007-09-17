@@ -39,6 +39,8 @@
 
 static char ident[] = "$Id: input.c,v 1.5 1998/09/04 20:51:59 harry Exp $";
 
+#include <unistd.h>
+#include <strings.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
 #endif
@@ -46,11 +48,40 @@ static char ident[] = "$Id: input.c,v 1.5 1998/09/04 20:51:59 harry Exp $";
 #include <stdio.h>
 #include <ive_macros.h>
 #include <file_widgets.h>
+#include <malloc.h>
 
 static int not_window=0; /*flag passed to driver; means do update windows*/ 
 static int zero=0, one=1;
 
+extern void driver_(),make_help_widget_(),expand_path_();
+
 FILE *input_stream = NULL;
+
+
+int
+step_(flag)
+
+int *flag;
+
+{
+    char buf[1024];
+
+    if (input_stream) {
+	if (fgets(buf, 1024, input_stream)) {
+	    if (*flag) printf(buf);
+	    if (buf[0] != '\n' && buf[0] != '#')
+		(void) driver_(buf, &not_window, strlen(buf)-1);
+	    return(1);
+	}
+	fclose(input_stream);
+	input_stream = NULL;
+	return(0);
+    }
+    (void) make_help_widget_("Cannot STEP - no open input file.");
+    return(0);
+}
+
+
 
 int
 input_(iflag)
@@ -101,25 +132,3 @@ input_(iflag)
   return_args(0);
 }
 
-int
-step_(flag)
-
-int *flag;
-
-{
-    char buf[1024];
-
-    if (input_stream) {
-	if (fgets(buf, 1024, input_stream)) {
-	    if (*flag) printf(buf);
-	    if (buf[0] != '\n' && buf[0] != '#')
-		(void) driver_(buf, &not_window, strlen(buf)-1);
-	    return(1);
-	}
-	fclose(input_stream);
-	input_stream = NULL;
-	return(0);
-    }
-    (void) make_help_widget_("Cannot STEP - no open input file.");
-    return(0);
-}
