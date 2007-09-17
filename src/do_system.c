@@ -29,6 +29,7 @@ int do_system_(str, len)
      char * str;
      int len;
 {
+  void make_help_widget_(char *);
     if(str[len-1] != '\0'){
 	char *dummy;
 	if((dummy = (char *)malloc(len+1)) == (char *)NULL){
