@@ -1,3 +1,4 @@
+#include <strings.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
 #endif
@@ -5,6 +6,7 @@
 #include <stdio.h>
 #include <in_commands.h>
 
+extern void make_help_widget_(),setlvar_();
 /*
  *Turn on or off time independant trajectories
  */
