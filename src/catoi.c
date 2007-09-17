@@ -31,6 +31,7 @@
    int   lenstr ;  /* fortran attempting to pass VAX descriptors. */
 /*                        */
    {
+     int atoi();
    return (atoi(instr)) ;
    }
 
