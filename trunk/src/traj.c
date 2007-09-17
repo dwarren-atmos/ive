@@ -1,7 +1,20 @@
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 
 static float wmin[4], wmax[4], dmin[4], dmax[4];
 extern double interp_();
+extern void make_help_widget_(),huen_(),getavar_(),get_pointer_(),getrvar_(),
+  phys_2_index_trans_(),getrarr_() ;
+extern int chk_point();
+
+int checkoutbounds(float phys[4]){
+  int i;
+  for (i=0; i<4; i++){
+    if(phys[i] < dmin[i] || phys[i] > dmax[i]) return(1);
+  }
+  return(0);
+}
 
 int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
 	  vnx,vny,vnz,vnt,wnx,wny,wnz,wnt)
@@ -294,10 +307,3 @@ int chk_point(pt)
   return(1);
 }
 
-int checkoutbounds(float phys[4]){
-  int i;
-  for (i=0; i<4; i++){
-    if(phys[i] < dmin[i] || phys[i] > dmax[i]) return(1);
-  }
-  return(0);
-}
