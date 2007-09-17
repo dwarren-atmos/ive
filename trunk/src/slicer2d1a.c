@@ -106,18 +106,32 @@ static char rcsid[] = "$Id: slicer2d1a.c,v 1.23 2005/11/03 19:51:57 warren Exp $
  *
  *
  */
+#include <string.h>
 #include <stdlib.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
 #endif
-#ifdef Linux
-#include <tgmath.h>
+#if (LSB == 5)
+#include <lsb5/math.h>
+#elif (LSB == 4)
+#include <lsb4/math.h>
+#elif (LSB == 3)
+#include <lsb3/math.h>
+#elif (LSB == 2)
+#include <lsb2/math.h>
+#elif (LSB == 1)
+#include <lsb1/math.h>
 #else
 #include <math.h>
 #endif
 #include <ive_macros.h>
 #include <missing.h>
 #include <window.h>
+
+extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
+  setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
+  getdvar_(),scale_();
+extern int convert();
 
 #ifndef MAX
 #define MAX(x, y) ((x) > (y)? (x):(y))

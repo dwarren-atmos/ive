@@ -26,6 +26,7 @@ static char rcsid[] = "$Id: slicer3d.c,v 1.2 2001/01/23 22:47:17 davidive Exp $"
  *
  *
  */
+#include <string.h>
 #include <stdlib.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
@@ -35,6 +36,11 @@ static char rcsid[] = "$Id: slicer3d.c,v 1.2 2001/01/23 22:47:17 davidive Exp $"
 #include <ive_macros.h>
 #include <missing.h>
 #include <window.h>
+
+extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
+  setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
+  getdvar_(),scale_();
+extern int convert();
 
 #ifndef MAX
 #define MAX(x, y) ((x) > (y)? (x):(y))

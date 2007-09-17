@@ -64,6 +64,7 @@ static char rcsid[] = "$Id: slicer1d.c,v 1.13 2001/08/15 22:25:49 davidive Exp $
  *
  *
  */
+#include <string.h>
 #include <stdlib.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
@@ -82,6 +83,11 @@ float find_min(), find_max();
 #ifndef MIN
 #define MIN(x, y) ((x) < (y)? (x):(y))
 #endif
+
+extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
+  setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
+  getdvar_(),scale_();
+extern int convert();
 
 static int nis;
 

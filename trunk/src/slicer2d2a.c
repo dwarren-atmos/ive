@@ -33,6 +33,7 @@ static char rcsid[] = "$Id: slicer2d2a.c,v 1.3 2000/08/24 19:06:12 harry Exp $";
  *
  *
  */
+#include <string.h>
 #include <stdlib.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
@@ -42,6 +43,11 @@ static char rcsid[] = "$Id: slicer2d2a.c,v 1.3 2000/08/24 19:06:12 harry Exp $";
 #include <ive_macros.h>
 #include <missing.h>
 #include <window.h>
+
+extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
+  setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
+  getdvar_(),scale_();
+extern int convert();
 
 #ifndef MAX
 #define MAX(x, y) ((x) > (y)? (x):(y))
@@ -192,10 +198,13 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni, *nj, *phys;
 	    slab_d.ri = slab_d.rj = 1.;
 	}
 	slab_d.data = data;
+	/* A B C D not really used in 2d2a
 	slab_d.A = A;
 	slab_d.B = B;
 	slab_d.C = C;
 	slab_d.D = D;
+	*/
+	slab_d.A=slab_d.B=slab_d.C=slab_d.D=0.;
 	slab_d.dimavg1 = -1;	/* In case something goes wrong below */
 	slab_d.dimavg2 = -1;
 	slab_d.locked = -1;
