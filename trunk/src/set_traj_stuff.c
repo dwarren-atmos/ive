@@ -1,7 +1,8 @@
+#include <string.h>
+#include <strings.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
 #endif
-#include <string.h>
 #include <stdio.h>
 #include <in_commands.h>
 
@@ -10,6 +11,9 @@
  *$History$
  */
 
+extern void setlvar_(),setrvar_(),make_help_widget_(),setavar_(),getiarr_(),
+  get_traj_atts_(),get_traj_atts_();
+extern  int getvid_();
 void set_traj_val_(int *error){
   char *ptr, **argv, **get_args();
   int argc,zero = 0, one=1;

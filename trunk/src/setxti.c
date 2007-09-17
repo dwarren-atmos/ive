@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <in_commands.h>
 
+extern void getrvar_(),make_help_widget_(),setrvar_(),getiarr_();
 void setxti_(error)
      int *error;
 {
