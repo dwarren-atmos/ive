@@ -30,6 +30,7 @@ static char rcsid[] = "$Id: pslicer3d.c,v 1.1 1996/07/18 18:02:37 harry Exp $";
  */
 
 #include <math.h>
+#include <malloc.h>
 
 #ifndef MAX
 #define MAX(x, y) ((x) > (y)? (x):(y))
@@ -37,6 +38,8 @@ static char rcsid[] = "$Id: pslicer3d.c,v 1.1 1996/07/18 18:02:37 harry Exp $";
 #ifndef MIN
 #define MIN(x, y) ((x) < (y)? (x):(y))
 #endif
+
+extern void phys_2_index_trans_(),getiarr_();
 
 float *
 pslicer3d_(corner, ii, jj, kk, ni, nj, nk, da, nda)
