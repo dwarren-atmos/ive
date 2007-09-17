@@ -41,6 +41,7 @@ static char ident[] = "@(#)$Id: convert_units.c,v 1.3 1996/07/12 20:59:00 harry 
 #include <stdio.h>
 #include <udunits.h>
 #include <string.h>
+#include <strings.h>
 
 int convert_units_ (from_units, to_units, slope, intercept, 
 		     len_from_units, len_to_units) 
