@@ -63,7 +63,7 @@ static char rcsid[] = "$Id: mouse_slice.c,v 1.21 2007-06-21 20:58:30 reinecke Ex
 #include <ive_for.h>
 
 extern void getset_(),getdarr_(),getivar_(),getrarr_(),getlvar_(),maptri_(),lonlat_2_phys_trans_(),
-  make_help_widget_(),getavar_(),scale_();
+  make_help_widget_(),getavar_(),scale_(), getrvar_();
 
 void get_slice(x1, y1, x2, y2, slice)
      float x1, y1, x2, y2;
