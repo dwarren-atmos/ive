@@ -63,6 +63,7 @@
 # Move NO_PROTO to config.sun.  Fix config.alpha to remove lm_sqrt.
 #
 #
+LSB := ${shell lsb_release -r -s|cut -d. -f1}
 F77=ifort
 KF77=ifort
 ACC=icc
@@ -76,7 +77,7 @@ FCPP =
 FDEC =   -w95 -cm -align -auto -u -ip -zero
 
 DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
-	-I/usr/include \
+	-DLSB=${LSB} -I/usr/include \
 	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE \
 	-DLinux
 
