@@ -65,12 +65,13 @@
 
 static char ident[] = "$Id: restore_state.c,v 1.13 2001/01/06 00:00:27 harry Exp $";
 
+#include <string.h>
+#include <strings.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
 #endif
 #include <stdio.h>
 #include <state.h>
-#include <string.h>
 
 #define doit(i) \
     if (saved_state[i][*overlay] && \
@@ -89,7 +90,9 @@ static int cmdskip[] = {P_DUMP, P_EXIT, P_FIELD, P_FILE, P_FREE, P_HELP,
 			    P_WRITECOLORTABLE, P_RESIZE, P_DRAW_LINE, -1};
 static int skip[NVCMND], zero=1;
 
-restore_state_(overlay, flag)
+extern void driver_();
+
+void restore_state_(overlay, flag)
 
 int *overlay, *flag;
 
