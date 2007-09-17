@@ -3017,6 +3017,7 @@ void init_color(w,data,call)/*The callbacks for this form are in color_misc.c*/
     extern void color_reset_callback();
     extern void color_lock_callback();
     extern void color_shift_callback();
+    extern void color_table_callback();
     if (Properties.color_form){
 	if(XtIsManaged(XtParent(Properties.color_form)))
 	  /*XtUnmanageChild(XtParent(Properties.color_form));*/
@@ -3199,7 +3200,7 @@ void init_color(w,data,call)/*The callbacks for this form are in color_misc.c*/
 	str = NewString("Standard");
 	//str = NewString("Trajectory");
 
-    XtAddCallback(Properties.which_coltab,XmNactivateCallback,color_lock_callback,NULL);
+    XtAddCallback(Properties.which_coltab,XmNactivateCallback,color_table_callback,NULL);
 
     XtVaSetValues(Properties.which_coltab,XmNlabelString,str,NULL);
     XmStringFree(str);
