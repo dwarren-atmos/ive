@@ -31,6 +31,10 @@ static char rcsid[] = "$Id: makpointplt.c,v 1.5 2007-01-09 22:52:14 warren Exp $
 #endif
 
 extern struct wpt wp;
+extern void getrvar_(),getiarr_(),getrarr_(),getlvar_(),make_help_widget_(),
+  getivar_(),phys_2_index_trans_(),write_value_ch_(),ftoa_c_(),free(void *),
+  make_value_widget_(),write_result_ch_();
+extern int convert();
 
 void
 makpointplt_(float *data, int *nx, int *ny, int *nz, int *nt)
