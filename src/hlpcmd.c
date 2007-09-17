@@ -17,6 +17,9 @@ static char rcsid[] = "$Id: hlpcmd.c,v 1.18 2005/09/06 20:22:14 warren Exp $";
  * Fix declarations.
  *
  */
+#ifdef linux
+#define vfork fork
+#endif
 
 #ifdef MEMDBG
 #include <mnemosyne.h>
@@ -24,12 +27,14 @@ static char rcsid[] = "$Id: hlpcmd.c,v 1.18 2005/09/06 20:22:14 warren Exp $";
 #include <malloc.h>
 #include <stdlib.h>
 #endif
+#include <unistd.h>
 #include <signal.h>
-#include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include <cmndlst.h>
 #include <ive_macros.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <Xm/XmAll.h>
