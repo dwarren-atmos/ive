@@ -3,6 +3,10 @@
 
 static float  boxx[2], boxy[2], boxz[2], lenx, leny, lenz;
 
+extern void setup_3D(),getavar_(),getivar_(),make_help_widget_(),getiarr_(),getlvar_(),
+  getrarr_(),getrvar_();
+extern float * slicer3d_();
+
 void make3d_(varpt, x, y, z, t)
      float  *varpt;
      int    *x, *y, *z, *t;
