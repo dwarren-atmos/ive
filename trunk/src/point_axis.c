@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <in_commands.h>
 
+extern void make_help_widget_();
+
 struct {
   int plot_axis;
   int rec_axis;
@@ -46,7 +48,7 @@ static int chk_axis(char *ax){
     break;
   }
   /* can't get here, but compiler complains*/
-  return(5)
+  return(5);
 }
 
 void point_fix_label_value_(int *axes, float *lab){
