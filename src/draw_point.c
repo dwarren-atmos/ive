@@ -30,6 +30,9 @@ static char rcsid[] = "$Id: draw_point.c,v 1.5 2007-06-21 20:58:30 reinecke Exp 
 #include <window.h>
 #include <xgks.h>
 
+extern void make_help_widget_(),getdarr_(),getivar_(),getlvar_(),unscale_(),setlvar_(),
+  makseg_(),phys_2_lonlat_trans_(),maptrn_(),gsetmarkersize(),gsetmarkertype(),
+  gsetmarkercolourind(),gpolymarker(),gcloseseg(),lonlat_2_phys_trans_(),phys_2_index_trans_();
 void draw_point_(error)
     int *error;
 {
@@ -109,7 +112,7 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     (void)phys_2_lonlat_trans_(&x,&y,&xt,&yt,&npts);
     printf("Lon/LAT: %f, %f\n",xt,yt);
 
-    if(mapflg & !(defmap || exact_fit)){
+    if(mapflg & ! defmap){
       (void)maptrn_(&yt,&xt,&x,&y);
 	}
 
@@ -150,7 +153,7 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
    (void)getlvar_("mapflg",&mapflg,error,6);
     if(!mapflg){
       (void)make_help_widget_("Not plotting on a map - usr draw_point instead");
-      error=1;
+      *error=1;
       return;
     }
 
@@ -198,7 +201,7 @@ consisting of an xy pair, an optional point type and an optional scale factor:\n
     (void)setlvar_("savflg", &yes, error, 6);
     (void)makseg_(&yes);
 
-    if(!(defmap || exact_fit)){
+    if(!defmap){
       (void)maptrn_(&yt,&xt,&x,&y);
 	}
 	else{
