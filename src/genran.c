@@ -27,11 +27,16 @@
  *
 -----------------------------------------------------------------------
 */
-
-#include <stdlib.h>
 #include <time.h> 
 #include <math.h> 
 #include <limits.h>
+#include <stdlib.h>
+
+int myiverandomnum;
+#ifdef linux
+extern void srandom (unsigned int __seed) __THROW;
+extern long int random (void) __THROW;
+#endif
 
 int *genran_ (limit)
      int *limit;
@@ -44,8 +49,8 @@ int *genran_ (limit)
     t = (unsigned long)time(&now);
     srandom (t) ;
     divisor = LONG_MAX / (long) *limit ;
-
-    return ( (int *) (random() / divisor) ) ;
+    myiverandomnum = (int)(random() / divisor);
+    return (&myiverandomnum) ;
 
 }
 
