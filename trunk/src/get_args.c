@@ -36,6 +36,8 @@ static char ident[] = "$Id: get_args.c,v 1.3 1994/10/08 19:01:27 warren Exp $";
 #include <mnemosyne.h>
 #endif
 #include <string.h>
+#include <malloc.h>
+extern void get_prscmd_();
 
 char **
 get_args(argc)
