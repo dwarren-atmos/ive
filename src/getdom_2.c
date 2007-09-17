@@ -42,6 +42,8 @@
  *  New/old getdom_2.
  */
 
+extern void getiarr_(),getrarr_(),getrvar_(),phys_2_index_trans_();
+
 void getdom_2_(iwi, jwi, kwi, nxw, nyw, nzw)
      int *iwi, *jwi, *kwi, *nxw, *nyw, *nzw;
 {
