@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <string.h>
+#include <strings.h>
 
 void upcase_(string, lenstr, length)
 
