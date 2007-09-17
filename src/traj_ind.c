@@ -1,7 +1,7 @@
 #include <stdlib.h>
 extern int chk_point();
 extern int checkoutbounds();
-
+extern void getrarr_(),make_help_widget_(),huen_();
 static float wmin[4], wmax[4], dmin[4], dmax[4];
 
 int traj_ind_(u,v,w, x, y, z, t, unx,uny,unz,unt,
