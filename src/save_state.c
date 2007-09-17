@@ -28,8 +28,12 @@
 
 static char ident[] = "$Id: save_state.c,v 1.3 1997/04/15 17:24:41 harry Exp $";
 
+#include <string.h>
+#include <strings.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
+#else
+#include <malloc.h>
 #endif
 #include <stdio.h>
 #include <state.h>
