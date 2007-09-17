@@ -45,6 +45,8 @@ static int chk_axis(char *ax){
     return(3);
     break;
   }
+  /* can't get here, but compiler complains*/
+  return(5)
 }
 
 void point_fix_label_value_(int *axes, float *lab){
