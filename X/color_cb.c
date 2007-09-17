@@ -118,6 +118,7 @@ static repress=0;
 static Widget colorholder=(Widget)NULL;
 static Widget *colorholdercells=(Widget *)NULL;
 static moved=0;
+static colortabletodo=0;
 void cleanup_color_bar(w, data, call)
      Widget w;
      char *data;
@@ -142,13 +143,22 @@ void color_shift_callback(w, data, call)
 {
     XColor bundle,extrab;
     int i;
-
+    int minclr,maxclr;
+      
+    if(colortabletodo){
+      minclr = user_colors_.min_traj_color;
+      maxclr = user_colors_.max_traj_color;
+    }
+    else{
+      minclr = user_colors_.min_user_color;
+      maxclr = user_colors_.max_user_color;
+    }
     if(IVE_TRUE_COLOR)
       {
         /* this should work for either true or direct color*/
         unsigned long *pix;
 	int modval;
-	modval = user_colors_.max_user_color - user_colors_.min_user_color +1;
+	modval = maxclr - minclr +1;
         pix = (unsigned long *)malloc(modval * sizeof(unsigned long));
         if(pix == (unsigned long *)NULL){
 	  (void)make_help_widget_("Can't allocate memory - shift colors");
@@ -157,32 +167,32 @@ void color_shift_callback(w, data, call)
 	switch(*data){
 	case 'R':		/* Shift table to the right */
 	  for(i=modval; i>0; i--) /*i=modval is same as i = 0*/
-	    pix[i%modval] = IveGetPixel(user_colors_.min_user_color +
+	    pix[i%modval] = IveGetPixel(minclr +
 					((i-1)%modval));
-	  if (++moved > user_colors_.max_user_color - 
-	      user_colors_.min_user_color) {
+	  if (++moved > maxclr - 
+	      minclr) {
 	    moved = 0;
 	  }
 	  break; 
 	case 'L':		/* Shift table to the right */
 	  for(i=0; i< modval; i++)
-	    pix[i%modval] = IveGetPixel(user_colors_.min_user_color +
+	    pix[i%modval] = IveGetPixel(minclr +
 					((i+1)%modval));
-	  if (--moved < -(user_colors_.max_user_color - 
-	      user_colors_.min_user_color)) {
+	  if (--moved < -(maxclr - 
+	      minclr)) {
 	    moved = 0;
 	  }
 	  break;
 	}
         for(i=0; i< modval; i++)          
-          (void)IVE_TO_X((user_colors_.min_user_color + i), pix[i]);
+          (void)IVE_TO_X((minclr + i), pix[i]);
 	if(!repress){
 	  (void)gredrawsegws(WS_X);
 	  if(colorholdercells){
 	    for(i=0; i< modval; i++)
 	      XtVaSetValues(colorholdercells[i],
 			    XmNbackground,
-			    IveGetPixel(user_colors_.min_user_color+i),NULL);
+			    IveGetPixel(minclr+i),NULL);
 	    XSync(XtDisplay(w),FALSE);
 	    XSync(XtDisplay(w),FALSE);
 	    XSync(XtDisplay(w),FALSE);
@@ -194,38 +204,38 @@ void color_shift_callback(w, data, call)
       extrab.flags=DoRed|DoGreen|DoBlue;
       switch(*data){
       case 'R':		/* Shift table to the right */
-	i=user_colors_.max_user_color;
-	extrab.pixel=IveGetPixel(user_colors_.max_user_color);
+	i=maxclr;
+	extrab.pixel=IveGetPixel(maxclr);
 	XQueryColor(XtDisplay(w), cmap, &extrab);
-	while(i>user_colors_.min_user_color){
+	while(i>minclr){
 	  bundle.pixel=IveGetPixel(i-1);
 	  XQueryColor(XtDisplay(w), cmap, &bundle);
 	  bundle.pixel=IveGetPixel( i);
 	  XStoreColor(XtDisplay(w), cmap, &bundle);
 	    i--;
 	}
-	extrab.pixel=IveGetPixel(user_colors_.min_user_color);
+	extrab.pixel=IveGetPixel(minclr);
 	XStoreColor(XtDisplay(w), cmap, &extrab);
-	if (++moved > user_colors_.max_user_color - 
-	    user_colors_.min_user_color) {
+	if (++moved > maxclr - 
+	    minclr) {
 	  moved = 0;
 	}
 	break;
       case 'L':		/* Shift table to the left */
-	i=user_colors_.min_user_color;
-	extrab.pixel=IveGetPixel(user_colors_.min_user_color);
+	i=minclr;
+	extrab.pixel=IveGetPixel(minclr);
 	XQueryColor(XtDisplay(w), cmap, &extrab);
-	while(i<user_colors_.max_user_color){
+	while(i<maxclr){
 	  bundle.pixel=IveGetPixel(i+1);
 	  XQueryColor(XtDisplay(w), cmap, &bundle);
 	  bundle.pixel=IveGetPixel(i);
 	  XStoreColor(XtDisplay(w), cmap, &bundle);
 	  i++;
 	}
-	extrab.pixel=IveGetPixel(user_colors_.max_user_color);
+	extrab.pixel=IveGetPixel(maxclr);
 	XStoreColor(XtDisplay(w), cmap, &extrab);
-	if (--moved < -(user_colors_.max_user_color - 
-			user_colors_.min_user_color)) {
+	if (--moved < -(maxclr - 
+			minclr)) {
 	  moved = 0;
 	}
 	break;
@@ -255,6 +265,30 @@ void color_lock_callback(w, data, call)
     XmStringFree(F);
 
 }
+/*color_table_callback chooses between mucking with the standard or traj color tables*/
+void color_table_callback(w, data, call)
+     Widget w;
+     char *data;
+     XmAnyCallbackStruct *call;
+{
+    Arg args[1];
+    XmString F,old;
+    F = (XmString)NewString("Standard");
+    XtVaGetValues(w,XmNlabelString,&old,NULL);
+    if (XmStringCompare(F,old)){	/* Standard */
+      colortabletodo=1; /*use traj*/
+      XmStringFree(F);
+      F = (XmString)NewString("Trajectory");
+      XtVaSetValues(w,XmNlabelString,F,NULL);
+    }
+    else{
+      colortabletodo=0 ;/*use standard*/
+      XtVaSetValues(w,XmNlabelString,F,NULL);
+    }
+    XmStringFree(old);
+    XmStringFree(F);
+
+}
 /*
    "color_reset_callback" is called when the "Reset" button is pressed.
    It resets the color table to its original state by repeated calls to
@@ -265,6 +299,16 @@ void color_reset_callback(w, data, call)
      char *data;
      XmAnyCallbackStruct *call;
 {
+    int minclr,maxclr;
+      
+    if(colortabletodo){
+      minclr = user_colors_.min_traj_color;
+      maxclr = user_colors_.max_traj_color;
+    }
+    else{
+      minclr = user_colors_.min_user_color;
+      maxclr = user_colors_.max_user_color;
+    }
   repress=1;
   while(moved>0){
     color_shift_callback(w, "L", call);
@@ -277,10 +321,10 @@ void color_reset_callback(w, data, call)
   (void)gredrawsegws(WS_X);
   if(colorholdercells){
     int i;
-    for(i=0; i< user_colors_.max_user_color-user_colors_.min_user_color ; i++)
+    for(i=0; i< maxclr-minclr ; i++)
       XtVaSetValues(colorholdercells[i],
 		    XmNbackground,
-		    IveGetPixel(user_colors_.min_user_color+i),NULL);
+		    IveGetPixel(minclr+i),NULL);
     
     XSync(XtDisplay(w),FALSE);
     XSync(XtDisplay(w),FALSE);
@@ -332,7 +376,17 @@ void color_bar_callback(w, data, call)
     int status;
     char buff[4];
     Widget color_bar;
+    int minclr,maxclr;
     
+    if(colortabletodo){
+      minclr = user_colors_.min_traj_color;
+      maxclr = user_colors_.max_traj_color;
+    }
+    else{
+      minclr = user_colors_.min_user_color;
+      maxclr = user_colors_.max_user_color;
+    }
+
     if (colorholder){
       /*
 	If the widget already exists, make it visible if it isn't and
@@ -370,14 +424,14 @@ void color_bar_callback(w, data, call)
 	/*
 	  Make each inividual color box.
 	*/
-	colorholdercells = (Widget *)malloc((user_colors_.max_user_color -
-					     user_colors_.min_user_color +1 )*
+	colorholdercells = (Widget *)malloc((maxclr -
+					     minclr +1 )*
 					    sizeof(Widget));
 	
-	for(i=user_colors_.min_user_color;
-	    i<=user_colors_.max_user_color; i++){
+	for(i=minclr;
+	    i<=maxclr; i++){
 	  sprintf(buff,"%3d",i);
-	  colorholdercells[i - user_colors_.min_user_color] = 
+	  colorholdercells[i - minclr] = 
 	    XtVaCreateManagedWidget(buff,xmLabelWidgetClass,colorholder,
 				    XmNheight,30,XmNmarginTop,5,
 				    XmNbackground,IveGetPixel(i),NULL);
@@ -395,10 +449,21 @@ void ive_update_colorbar(){
   /*only called for 24 bit color - prbably crash under 8 */
   int i;
   char buff[4];
+    int minclr,maxclr;
+      
+    if(colortabletodo){
+      minclr = user_colors_.min_traj_color;
+      maxclr = user_colors_.max_traj_color;
+    }
+    else{
+      minclr = user_colors_.min_user_color;
+      maxclr = user_colors_.max_user_color;
+    }
+
   if(colorholdercells){
-    for(i=user_colors_.min_user_color;
-	i<=user_colors_.max_user_color; i++){
-      XtVaSetValues(colorholdercells[i - user_colors_.min_user_color],
+    for(i=minclr;
+	i<=maxclr; i++){
+      XtVaSetValues(colorholdercells[i - minclr],
 		    XmNbackground,IveGetPixel(i),NULL);
     }
   }
