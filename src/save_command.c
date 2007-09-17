@@ -33,11 +33,14 @@
 
 static char ident[] = "$Id: save_command.c,v 1.4 2001/01/05 19:34:56 davidive Exp $";
 
+#include <string.h>
+#include <strings.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
+#else
+#include <malloc.h>
 #endif
 #include <stdio.h>
-#include <strings.h>
 #include "state.h"
 
 char *cur_commands[NVCMND];

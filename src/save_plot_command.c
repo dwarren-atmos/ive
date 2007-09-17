@@ -30,9 +30,11 @@
  */
 
 static char ident[] = "$Id: save_plot_command.c,v 1.3 1997/04/15 17:24:41 harry Exp $";
-
+#include <string.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
+#else
+#include <malloc.h>
 #endif
 #include <stdio.h>
 #include "state.h"
