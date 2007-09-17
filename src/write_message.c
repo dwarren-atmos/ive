@@ -9,6 +9,7 @@
  *com_message_.message
  *--------------------------------------------------------------*/
 #include <message.h>
+extern void make_info_widget_(),make_help_widget_();
 
 void write_info_(){
   char *beg, *end;
