@@ -87,7 +87,8 @@
    these are used in all callback routines except for those that only effect
    the interface
 */
-extern int expand_path_();
+extern int expand_path_(),ginqcolorrep(),gsetcolourrep(),gupdatews();
+extern void getivar_(),make_help_widget_(),setivar_(),ive_update_colorbar(),update_all_();
 
 void write_color_table(outfile,min,max,iscontour)
      char *outfile;

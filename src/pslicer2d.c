@@ -47,6 +47,7 @@ static char rcsid[] = "$Id: pslicer2d.c,v 1.5 2000/08/02 19:59:43 harry Exp $";
 
 #include <math.h>
 #include <missing.h>
+#include <malloc.h>
 
 #ifndef MAX
 #define MAX(x, y) ((x) > (y)? (x):(y))
@@ -54,6 +55,8 @@ static char rcsid[] = "$Id: pslicer2d.c,v 1.5 2000/08/02 19:59:43 harry Exp $";
 #ifndef MIN
 #define MIN(x, y) ((x) < (y)? (x):(y))
 #endif
+
+extern void getlvar_(),phys_2_index_trans_(),getiarr_(),convert();
 
 float *
 pslicer2d_(corner, ii, jj, ni, nj, da, nda, ri, rj)
