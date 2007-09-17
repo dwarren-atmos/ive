@@ -2,9 +2,11 @@
 #include <mnemosyne.h>
 #endif
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include <in_commands.h>
 
+extern void make_help_widget_();
 
 extern struct {
     float tic_width_maj, tic_width_min;
