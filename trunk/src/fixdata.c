@@ -7,11 +7,14 @@ static char rcsid[] = "$Id: fixdata.c,v 1.1 2000/12/06 22:47:58 warren Exp $";
  * Fix fpe data once and for all
  *
  */
-
+#ifdef linux
+#define _BSD_SOURCE
+#endif
 #include <math.h>
 #ifdef SOLARIS
 #include <ieeefp.h>
 #endif
+#include <stdio.h>
 
 void ive_fixdata_(data, missing, len)
      float *data, *missing; 
