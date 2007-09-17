@@ -10,7 +10,7 @@
  */
 static char ident[] = "Id$";
 
-static struct wind {
+struct wind {
     float mins[4], maxs[4];
 };
 
