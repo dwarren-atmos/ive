@@ -62,6 +62,8 @@ static char rcsid[] = "$Id: mouse_slice.c,v 1.21 2007-06-21 20:58:30 reinecke Ex
 #include <window.h>
 #include <ive_for.h>
 
+extern void getset_(),getdarr_(),getivar_(),getrarr_(),getlvar_(),maptri_(),lonlat_2_phys_trans_(),
+  make_help_widget_(),getavar_(),scale_();
 
 void get_slice(x1, y1, x2, y2, slice)
      float x1, y1, x2, y2;
@@ -247,7 +249,7 @@ void get_slice(x1, y1, x2, y2, slice)
     (void)getlvar_("mapflg", &mapflg, &error, 6);
     (void)getlvar_("defmap", &defmap, &error, 6);
     (void)getlvar_("exact_fit", &exact_fit, &error, 9);
-    if(mapflg && (!defmap || !exact_fit)){
+    if(mapflg && (!defmap)){
 	float lat[4], lon[4], x[4], y[4];
 	int npts=4;
 	(void)maptri_(&x1w,&y1w,&lat[0],&lon[0]);
@@ -721,7 +723,7 @@ void draw_line(x1, y1, x2, y2)
     (void)getlvar_("mapflg", &mapflg, &error, 6);
     (void)getlvar_("defmap", &defmap, &error, 6);
     (void)getlvar_("exact_fit", &exact_fit, &error, 9);
-    if(mapflg && (!defmap || !exact_fit)){
+    if(mapflg && (!defmap)){
 	float lat[4], lon[4], x[4], y[4];
 	int npts=4;
 	/* 
@@ -850,7 +852,7 @@ void mouse_traj(x, y)
     myy = (float)log10(myy);
   }	
   
-  if(mapflg && (!defmap || !exact_fit)){
+  if(mapflg && (!defmap)){
     i=1;
 //    printf("myx %f myy %f - post linlog\n",myx,myy);
     (void)maptri_(&myx,&myy,&lat,&lon);
