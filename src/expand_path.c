@@ -45,9 +45,10 @@ static char ident[] = "$Id: expand_path.c,v 1.5 1998/12/17 23:17:18 warren Exp $
 #include <string.h>
 #include <pwd.h>
 #include <sys/param.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
+#include <malloc.h>
 expand_path_(str, len)
      char *str;
      int len;
@@ -55,7 +56,7 @@ expand_path_(str, len)
     char *where;
     char *buff = (char *)NULL, *buff2, *tmpbuf;
     struct passwd *pptr;
-
+    void make_help_widget_(char *);
     if(str[0] != '~')
       return(1);
     
