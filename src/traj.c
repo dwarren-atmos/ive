@@ -3,10 +3,23 @@
 #include <strings.h>
 
 static float wmin[4], wmax[4], dmin[4], dmax[4];
+static int xyaxis[2];
 extern double interp_();
 extern void make_help_widget_(),huen_(),getavar_(),get_pointer_(),getrvar_(),
-  phys_2_index_trans_(),getrarr_() ;
-extern int chk_point();
+  phys_2_index_trans_(),getrarr_(),getivar_();
+
+int chk_point(pt)
+     float pt[4];
+{
+  int i, ii;
+  for(ii=0; ii<2; ii++){
+	i=xyaxis[ii];
+    if(pt[i] < wmin[i] || pt[i] > wmax[i]){
+      return(0);
+    }
+  }
+  return(1);
+}
 
 int checkoutbounds(float phys[4]){
   int i;
@@ -32,19 +45,22 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   char traj_background[80];
 
   dims=4;
-  (void)getrarr_("plwmin",wmin,&dims,&i,6,4);
-  (void)getrarr_("plwmax",wmax,&dims,&i,6,4);
-  (void)getrarr_("phmin",dmin,&dims,&i,6,4);
-  (void)getrarr_("phmax",dmax,&dims,&i,6,4);
+  (void)getrarr_("plwmin",wmin,&dims,&i,6,dims);
+  (void)getrarr_("plwmax",wmax,&dims,&i,6,dims);
+  (void)getrarr_("phmin",dmin,&dims,&i,6,dims);
+  (void)getrarr_("phmax",dmax,&dims,&i,6,dims);
+
+  (void)getivar_("xaxis",&xyaxis[0],&i,5);
+  (void)getivar_("yaxis",&xyaxis[1],&i,5);
+  xyaxis[0]=xyaxis[0]-1; xyaxis[1]=xyaxis[1]-1;
+
   bg=0;
   (void)getavar_("traj_background_field",traj_background,&i,21,80);
   if(traj_background[0] != '\0' && traj_background[0] != ' '&&
      strncasecmp(traj_background,"depth",5)){
-    //printf("traj_background should be %s\n",traj_background);
     (void)get_pointer_(traj_background, &bgptr, &bx,&by,&bz,&bt,
 		       (int)strlen(traj_background));
     bg=1;
-    //if(bgptr != NULL)printf("GOT IT!!!!!!!!!!%s\n",traj_background);
   }
 
   /* start with 2*time steps points*/
@@ -258,7 +274,6 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   *y = y_cord;
   *z = z_cord;
   *t = t_cord;
-//  printf("num_points %d\n",num_pts);
   if(bg){
     float special, *bf;
     bf = (float *)malloc(num_pts * sizeof(float));
@@ -270,7 +285,6 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
       i=16;
       (void)getrvar_("spval",&special,&error,5);
       need[0]=need[1]=need[2]=need[3]=1;
-      //printf("num_pts %d\n",num_pts);
       for (i=0; i<num_pts; i++){
 	pval[0]=x_cord[i];
 	pval[1]=y_cord[i];
@@ -282,28 +296,12 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
 				    &cval[0],&cval[1],
 				    &cval[2],&cval[3],
 				    &special);
-	/*	printf("bf[%d] = %f (%f,%f,%f,%f) (%f,%f,%f,%f)\n",i, bf[i], 
-	pval[0],pval[1],pval[2],pval[3],cval[0],cval[1],cval[2],cval[3]);
-	*/
       }
     }
     *bfield = bf;
   }
   else
     *bfield = (float *)NULL;
-//  printf("num_points %d\n",num_pts);
   return(num_pts);
-}
-
-int chk_point(pt)
-     float pt[4];
-{
-  int i;
-  for(i=0; i<3; i++){
-    if(pt[i] < wmin[i] || pt[i] > wmax[i]){
-      return(0);
-    }
-  }
-  return(1);
 }
 
