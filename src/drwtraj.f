@@ -352,13 +352,15 @@ c     Go 1 below data_min
          enddo
 
          ! fill in any missing levels in the middle
-         do while (tmplevs(k-1) .lt. traj_levels(1)-step)
+         if(k.gt.1) then
+         do while (tmplevs(k-1) .lt. traj_levels(1)-2.0*step)
            if(k.lt.max_levs) then
              tmplevs(k) = tmplevs(k-1) + step ; k=k+1
            else
              write(message,400) max_levs ; call write_message
            endif
          end do
+         end if
 
          ! if the levels are monotonic just put them in tmplevs
          do i=1,traj_depth
@@ -381,8 +383,6 @@ c     Go 1 below data_min
              write(message,400) max_levs ; call write_message
            endif
          end do
-
-
 
          do i=1,num_depth
 
@@ -676,10 +676,11 @@ c
 
       open(10,file='./traj_dump.dat',status='replace',action='write')
       do i=1,nf
-         !write(6 ,*) data_x(i),data_y(i),data_depth(i),time(i)
-         write(10,*) data_x(i),data_y(i),data_depth(i),time(i)
+         !write(6 ,700) data_x(i),data_y(i),data_depth(i),time(i)
+         write(10,700) data_x(i),data_y(i),data_depth(i),time(i)
       enddo
       close(10)
+700   format(4(F14.6,4x))
 c     
 c     Release all output.
 c     
