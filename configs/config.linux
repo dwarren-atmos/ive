@@ -63,7 +63,7 @@
 # Move NO_PROTO to config.sun.  Fix config.alpha to remove lm_sqrt.
 #
 #
-LSB := ${shell lsb_release -r -s|cut -d. -f1}
+LSB := ${shell ls -d /usr/include/lsb*|sort -n|tail -1|cut -f2 -db}
 F77=ifort
 KF77=ifort
 ACC=icc
@@ -74,7 +74,8 @@ RANLIB=ranlib
 #NETCDF=/usr/local/netcdf-3.6.1
 FCPP =  
 #FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
-FDEC =   -w95 -cm -align -auto -u -ip -zero
+#FDEC =   -w95 -cm -align -auto -u -ip -zero
+FDEC =   -cm -align -auto -u -ip -zero
 
 DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
 	-DLSB=${LSB} -I/usr/include \
@@ -104,7 +105,8 @@ LIBS =       -threads -Vaxlib -L/usr/lib  \
 	-lXm -lc -lifcore
 
 
-COPT = -O -w
+#COPT = -O -w
+COPT = -O
 FOPT = -O 
 LDOPT =  -Wl,--export-dynamic -nofor_main -ip
 LDSTUFF = ${LDOPT} 

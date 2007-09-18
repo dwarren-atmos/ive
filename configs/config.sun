@@ -42,7 +42,7 @@ LIBS = 	-L/usr/dt/lib -L/usr/openwin/lib -L${NCARG_ROOT}/lib/ \
 LDOPT = -O 
 LDSTUFF = ${LDOPT}
 DEC = -I/usr/dt/include -I/usr/openwin/include -I/usr/include \
-	-I/opt/local/include \
+	-I/opt/local/include -DLSB=0 \ 
 	-D SOLARIS -DLIBDIR=\\\"/opt/local/lib/ive/\\\"
 FDEC =  -DLIBDIR=\\'/opt/local/lib/ive/\\' -stackvar
 ALPHA =

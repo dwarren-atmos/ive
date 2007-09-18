@@ -17,7 +17,7 @@ BROWSER='-DBROWSER=\"Mosaic\"'
 COPT = -O -Olimit 1500 -DNEED_USLEEP
 ACC= c89
 CC = c89
-DEC = -common -I/usr/include/mit
+DEC = -common -I/usr/include/mit -DLSB=0
 FDEC = -align commons -assume recursive 
 ifeq(${CC},cc)  DEC = -Wf,-XNl4096 -I/usr/include/mit 
 LIBS = -L/usr/local/lib -lncarg -lncarg_loc -lphigs -lXm \
