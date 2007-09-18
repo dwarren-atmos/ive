@@ -57,7 +57,7 @@ ifeq (${CC},cc)
 DEC = -D_XOPEN_SOURCE_EXTENDED -D__alpha -D_ANSI_C_SOURCE -D_FASTMATH \
 	-I/usr/include -I/usr/local/include -D_POSIX_SOURCE -inline speed \
 	-unroll 2 -D_INTRINSICS -D_INLINE_INTRINSICS -readonly_strings  \
-	-speculate by_routine -member_alignment -arch generic
+	-speculate by_routine -member_alignment -arch generic -DLSB=0
 
 ifeq (${FOPT},-g)
 FOPT= ${FOPT} -assume gfullpath

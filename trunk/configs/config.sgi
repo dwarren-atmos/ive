@@ -14,7 +14,7 @@ COPT = -O
 ACC= cc
 CC = cc
 DEC = -I/user3/edmon/udunits-1.10.8/include -I/user3/edmon/include \
-	-I/usr/local/include -DIRIX
+	-I/usr/local/include -DIRIX -DLSB=0
 FDEC = 
 LIBS = -L/usr/local/ncarg/lib -L/usr/local/lib -L/usr/lib \
 	-lncarg -lncarg_c -lXm \
