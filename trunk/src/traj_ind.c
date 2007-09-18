@@ -1,8 +1,9 @@
 #include <stdlib.h>
 extern int chk_point();
 extern int checkoutbounds();
-extern void getrarr_(),make_help_widget_(),huen_();
+extern void getrarr_(),make_help_widget_(),huen_(),getivar_();
 static float wmin[4], wmax[4], dmin[4], dmax[4];
+static int xyaxis[2];
 
 int traj_ind_(u,v,w, x, y, z, t, unx,uny,unz,unt,
 	      vnx,vny,vnz,vnt,wnx,wny,wnz,wnt)
@@ -21,6 +22,10 @@ int traj_ind_(u,v,w, x, y, z, t, unx,uny,unz,unt,
   (void)getrarr_("plwmax",wmax,&dims,&i,6,4);
   (void)getrarr_("phmin",dmin,&dims,&i,6,4);
   (void)getrarr_("phmax",dmax,&dims,&i,6,4);
+
+  (void)getivar_("xyaxis",&xyaxis[0],&i,5);
+  (void)getivar_("xyaxis",&xyaxis[1],&i,5);
+  xyaxis[0]=xyaxis[0]-1; xyaxis[1]=xyaxis[1]-1;
 
   /* start with 2*time steps points*/
   
