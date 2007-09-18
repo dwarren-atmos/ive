@@ -3,6 +3,9 @@
 #include <volume.h>
 #include <window.h>
 #include <ive_3d_macros.h>
+extern int ginqcolorrep();
+extern char *  gluErrorString();
+
 
 struct{
   float x,y,z;
@@ -1747,9 +1750,9 @@ D-> |    | C /
       cpt.x = i + get_x0(vert[0],vert[3],vert[2],vert[1]);
       cpt.y = j;
       cpt.z = k + get_y0(vert[0],vert[3],vert[2],vert[1]);
-      tval1 = vert[0] + get_dist(cpt.z,k,k+1)*(vert[3] - vert[0]);
-      tval2 = vert[1] + get_dist(cpt.z,k,k+1)*(vert[2] - vert[1]);
-      cval = tval1 + get_dist(cpt.x,x,x+1)*(tval2 - tval1);
+      tval1 = vert[0] + get_dist(cpt.z,(float)k,(float)(k+1))*(vert[3] - vert[0]);
+      tval2 = vert[1] + get_dist(cpt.z,(float)k,(float)(k+1))*(vert[2] - vert[1]);
+      cval = tval1 + get_dist(cpt.x,(float)x,(float)(x+1))*(tval2 - tval1);
       if(val > cval){ /*knit high*/
 	KNITHIGH(vert[0],vert[3],pt[0],pt[1],pt[2],pt[3]);}
       else{
@@ -1783,9 +1786,9 @@ D-> |    | C /
       cpt.x = i + get_x0(vert[4],vert[7],vert[6],vert[5]);
       cpt.y = j+1;
       cpt.z = k + get_y0(vert[4],vert[7],vert[6],vert[5]);
-      tval1 = vert[4] + get_dist(cpt.z,k,k+1)*(vert[7] - vert[4]);
-      tval2 = vert[5] + get_dist(cpt.z,k,k+1)*(vert[6] - vert[5]);
-      cval = tval1 + get_dist(cpt.x,x,x+1)*(tval2 - tval1);
+      tval1 = vert[4] + get_dist(cpt.z,(float)k,(float)(k+1))*(vert[7] - vert[4]);
+      tval2 = vert[5] + get_dist(cpt.z,(float)k,(float)(k+1))*(vert[6] - vert[5]);
+      cval = tval1 + get_dist(cpt.x,(float)x,(float)(x+1))*(tval2 - tval1);
       if(val > cval){ /*knit high*/
 	KNITHIGH(vert[4],vert[7],pt[4],pt[5],pt[6],pt[7]);}
       else{
@@ -1819,9 +1822,9 @@ D-> |    | C /
       cpt.x = i + 1;
       cpt.y = j + get_y0(vert[1],vert[2],vert[6],vert[5]);
       cpt.z = k + get_x0(vert[1],vert[2],vert[6],vert[5]);
-      tval1 = vert[1] + get_dist(cpt.z,k,k+1)*(vert[2] - vert[1]);
-      tval2 = vert[5] + get_dist(cpt.z,k,k+1)*(vert[6] - vert[5]);
-      cval = tval1 + get_dist(cpt.y,y,y+1)*(tval2 - tval1);
+      tval1 = vert[1] + get_dist(cpt.z,(float)k,(float)(k+1))*(vert[2] - vert[1]);
+      tval2 = vert[5] + get_dist(cpt.z,(float)k,(float)(k+1))*(vert[6] - vert[5]);
+      cval = tval1 + get_dist(cpt.y,(float)y,(float)(y+1))*(tval2 - tval1);
       if(val > cval){ /*knit high*/
 	KNITHIGH(vert[1],vert[2],pt[9],pt[5],pt[8],pt[1]);}
       else{
@@ -1855,9 +1858,9 @@ D-> |    | C /
       cpt.x = i;
       cpt.y = j + get_y0(vert[4],vert[7],vert[3],vert[0]);
       cpt.z = k + get_x0(vert[4],vert[7],vert[3],vert[0]);
-      tval1 = vert[4] + get_dist(cpt.z,k,k+1)*(vert[7] - vert[4]);
-      tval2 = vert[0] + get_dist(cpt.z,k,k+1)*(vert[3] - vert[0]);
-      cval = tval1 + get_dist(cpt.y,y,y+1)*(tval2 - tval1);
+      tval1 = vert[4] + get_dist(cpt.z,(float)k,(float)(k+1))*(vert[7] - vert[4]);
+      tval2 = vert[0] + get_dist(cpt.z,(float)k,(float)(k+1))*(vert[3] - vert[0]);
+      cval = tval1 + get_dist(cpt.y,(float)y,(float)(y+1))*(tval2 - tval1);
       if(val > cval){ /*knit high*/
 	KNITHIGH(vert[4],vert[7],pt[11],pt[3],pt[10],pt[7]);}
       else{
@@ -1891,9 +1894,9 @@ D-> |    | C /
       cpt.x = i + get_x0(vert[4],vert[0],vert[1],vert[5]);
       cpt.y = j + get_y0(vert[4],vert[0],vert[1],vert[5]);;
       cpt.z = k;
-      tval1 = vert[0] + get_dist(cpt.y,j,j+1)*(vert[4] - vert[0]);
-      tval2 = vert[1] + get_dist(cpt.y,j,j+1)*(vert[5] - vert[1]);
-      cval = tval1 + get_dist(cpt.x,x,x+1)*(tval2 - tval1);
+      tval1 = vert[0] + get_dist(cpt.y,(float)j,(float)(j+1))*(vert[4] - vert[0]);
+      tval2 = vert[1] + get_dist(cpt.y,(float)j,(float)(j+1))*(vert[5] - vert[1]);
+      cval = tval1 + get_dist(cpt.x,(float)x,(float)(x+1))*(tval2 - tval1);
       if(val > cval){ /*knit high*/
 	KNITHIGH(vert[0],vert[4],pt[4],pt[9],pt[0],pt[11]);}
       else{
@@ -1927,9 +1930,9 @@ D-> |    | C /
       cpt.x = i + get_x0(vert[3],vert[7],vert[6],vert[2]);
       cpt.y = j + get_y0(vert[3],vert[7],vert[6],vert[2]);
       cpt.z = k;
-      tval1 = vert[3] + get_dist(cpt.y,j,j+1)*(vert[7] - vert[3]);
-      tval2 = vert[2] + get_dist(cpt.y,j,j+1)*(vert[6] - vert[2]);
-      cval = tval1 + get_dist(cpt.x,x,x+1)*(tval2 - tval1);
+      tval1 = vert[3] + get_dist(cpt.y,(float)j,(float)(j+1))*(vert[7] - vert[3]);
+      tval2 = vert[2] + get_dist(cpt.y,(float)j,(float)(j+1))*(vert[6] - vert[2]);
+      cval = tval1 + get_dist(cpt.x,(float)x,(float)(x+1))*(tval2 - tval1);
       if(val > cval){ /*knit high*/
 	KNITHIGH(vert[3],vert[7],pt[2],pt[8],pt[6],pt[10]);}
       else{
