@@ -84,8 +84,8 @@ static int	CreateWindow();
 static void	AllocGroundColors();
 static void	CreateGC();
 static void	UpdateOpenWSTable();
-extern void	XgksProcessEvents();
-
+extern void XgksProcessEvents(),draw_line(),get_slice(),mouse_traj,
+  XtMoveWidget();
 
 
 /*--------------------------------------------------------
@@ -105,45 +105,45 @@ xXgksWidgetOpenWs(gw, wk)
 
 	/* Insure connection to display. */
 	if (!(status = InsureConn(wk)))
-	{
-
-		/* Flush all events from the widget's display connection */
-		XFlush(XtDisplay(gw));
-
-		/* Create window -- using widget resources for defaults. */
-		if (!(status = CreateWindow(gw, wk)))
-		{
-		        XEvent          xev;	/* X event structure */
-			XWindowAttributes	WinAtt;
-
-
-			/* Put window id in widget instance */
-			gw->core.window = wk->win;
-
-			/* Map window. */
-			XMapWindow(wk->dpy, wk->win);
-			XWindowEvent(wk->dpy, wk->win, ExposureMask, &xev);
-			XSync(wk->dpy, 0);
-
-			/* Get size of actual window obtained. */
-			XGetWindowAttributes(wk->dpy, wk->win, &WinAtt);
-			wk->wbound.x = WinAtt.width;
-			wk->wbound.y = WinAtt.height;
-
-			/* Update open-workstation table. */
-			(void) UpdateOpenWSTable(wk);
-
-			/* Select Input Events */
-			XtInsertEventHandler(gw, wk->event_mask,
-					     FALSE, XgksProcessEvents,
-					     (Opaque) NULL,
-					     XtListTail);
+	  {
+	    
+	    /* Flush all events from the widget's display connection */
+	    XFlush(XtDisplay(gw));
+	    
+	    /* Create window -- using widget resources for defaults. */
+	    if (!(status = CreateWindow(gw, wk)))
+	      {
+		XEvent          xev;	/* X event structure */
+		XWindowAttributes	WinAtt;
+		
+		
+		/* Put window id in widget instance */
+		gw->core.window = wk->win;
+		
+		/* Map window. */
+		XMapWindow(wk->dpy, wk->win);
+		XWindowEvent(wk->dpy, wk->win, ExposureMask, &xev);
+		XSync(wk->dpy, 0);
+		
+		/* Get size of actual window obtained. */
+		XGetWindowAttributes(wk->dpy, wk->win, &WinAtt);
+		wk->wbound.x = WinAtt.width;
+		wk->wbound.y = WinAtt.height;
+		
+		/* Update open-workstation table. */
+		(void) UpdateOpenWSTable(wk);
+		
+		/* Select Input Events */
+		XtInsertEventHandler((Widget)gw, wk->event_mask,
+				     FALSE, XgksProcessEvents,
+				     (Opaque) NULL,
+				     XtListTail);
+		
+		/*XSelectInput(wk->dpy, wk->win, wk->event_mask); */
+		XSync(wk->dpy, 0);
+	      }
+	  }
 	
-/*			XSelectInput(wk->dpy, wk->win, wk->event_mask); */
-			XSync(wk->dpy, 0);
-		}
-	}
-
 	return status ? status : OK;
 }
 

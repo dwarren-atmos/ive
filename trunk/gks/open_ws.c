@@ -232,10 +232,10 @@ XgksWidgetOpenWs(gw, ws_id, connection, ws_type)
 			XgksAllocNewWs();
 	WS_STATE_PTR	XgksNewWs();
   */
-	WS_STATE_PTR		ws;		/* workstation state list */
-	EWSTYPE			ewstype;	/* corresponding ws_type */
-	char			*getenv();
-	int			status;
+	WS_STATE_PTR	ws;	/* workstation state list */
+	EWSTYPE	ewstype;	/* corresponding ws_type */
+	char  *getenv();
+	int    status;
 
 
 	/* check proper state */
@@ -245,10 +245,12 @@ XgksWidgetOpenWs(gw, ws_id, connection, ws_type)
 	GKSERROR((!VALID_WSID(ws_id)), 20, errgopenws);
 
 	/* Check for valid connection */
-	if (connection == (char *) NULL)
-		connection = getenv("DISPLAY");
-	if (connection == (char *) NULL)
-	  connection = DisplayString(ws->dpy);
+	if ((char *)connection == (char *) NULL)
+	  (char *)connection = getenv("DISPLAY");
+	/* WS  DOESN'T EXIST YET !!!
+	if ((char *)connection == (char *) NULL)
+	  (char *) connection = DisplayString(ws->dpy);
+	*/
 	GKSERROR((STRLEN(connection) == 0), 21, errgopenws);
 
 	/*
