@@ -71,7 +71,10 @@
 #endif
 
 extern void		XgksDelAllMoSeg();
-
+extern void   gerrorhand(),gflushevents(),XgksDeleteAllSeg(),XgksIDevDelete(),
+  XgksInitWssTrans(),XgksInitIDev(),XgksInitWssText(),XgksInitWssFillArea(),
+  XgksInitWssPmarkers(),XgksInitWssPlines();
+extern int xXgksWidgetOpenWs(), xXgksWidgetCloseWs();
 
 /*
  * XgksOneOpenWs ()
