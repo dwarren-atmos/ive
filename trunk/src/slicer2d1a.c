@@ -1461,7 +1461,7 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni, *nj, *phys, *surface;
 	    }
 	}
 	slab_d.xaxis = dfree+1;
-	slab_d.yaxis = stepby+11;
+	slab_d.yaxis = stepby+1;
 	slab_d.dfree = dfree;
 	slab_d.stepby = stepby;
 	slab_d.other = other;

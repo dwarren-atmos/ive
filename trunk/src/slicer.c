@@ -818,7 +818,7 @@ int *dims, *nx, *ny, *nz, *nt, *ni, *nj, *phys, *surface;
 	if (*phys == 2) {
 	    stepby = slab_d.stepby;
 	    other = slab_d.other;
-	    printf("stepby is %d, other is %d\n",stepby,other);
+	    //printf("stepby is %d, other is %d\n",stepby,other);
 	    nis = phpts.numx;
 	    njs = phpts.numy;
 	    if ((phpt=(struct point4 *)malloc(nis*sizeof(struct point4)))
@@ -960,7 +960,7 @@ int *dims, *nx, *ny, *nz, *nt, *ni, *nj, *phys, *surface;
 		slope = 1/slope;
 		intercept = - intercept*slope;
 	    }
-	    printf("stepby is %d, other is %d\n",stepby,other);
+	    //printf("stepby is %d, other is %d\n",stepby,other);
 	    if (c1[stepby] > c2[stepby]) {
 		float f;
 		
@@ -1243,7 +1243,7 @@ int *dims, *nx, *ny, *nz, *nt, *ni, *nj, *phys, *surface;
 	    }
 	}
 	slab_d.xaxis = dfree+1;
-	slab_d.yaxis = stepby+11;
+	slab_d.yaxis = stepby+1;
 	slab_d.dfree = dfree;
 	slab_d.stepby = stepby;
 	slab_d.other = other;
