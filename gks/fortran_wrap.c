@@ -49,7 +49,9 @@
 #include "xgks.h"
 #include "fortxgks.h"
 
-
+extern void gcreateseg(), gcloseseg(),grenameseg(),gdelseg(),gdelsegws(),
+  gassocsegws(),gcopysegws(),ginsertseg(),gps_init(),geps_init(),gps_page(),
+  gps_init_page(),gps_end();
 /*
  *  gcrsg - Create Segment
  *

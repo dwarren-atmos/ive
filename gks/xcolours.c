@@ -300,7 +300,7 @@ XcInit(ws, vinfo)
 	    "XcInit: Couldn't allocate %u-bytes for X-to-GKS color-map.\n",
 		       nbytes);
       } else {
-	register        i,status;
+	register int       i,status;
 	unsigned long mask[1];
 	
 	/* Initialize mapping table with trivial mapping */
@@ -688,7 +688,8 @@ unsigned long IveGetPixel(i)
       ToX = &map->ToX;
       return(ToX->colour[i]);
     }
-  }     
+  }
+  return((unsigned long)0);
 }
 
 void IVE_TO_X(i, pixel)
