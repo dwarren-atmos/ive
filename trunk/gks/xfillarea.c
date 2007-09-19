@@ -51,6 +51,9 @@
     static char rcsid[]	= "$Id: xfillarea.c,v 1.2 1995/10/18 19:25:13 warren Exp $";
 #endif
 
+extern void XgksSIGIO_OFF(),XgksSIGIO_ON(),gerrorhand(),
+  xXgksSetForeground(),xXgksSetLineAttributes(),xXgksSetFillStyle(),
+  xXgksSetFillAreaClipRectangles(),xXgksSetStipple();
 
 xXgksFillArea(ws, fill_ptr)
     WS_STATE_PTR    ws;
