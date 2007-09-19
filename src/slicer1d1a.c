@@ -922,7 +922,7 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		free(cmpt);
 		free(phpt);
 	    }
-	    slab_l.xaxis = stepby+11;
+	    slab_l.xaxis = stepby+1;
 	    slab_l.yaxis = 0;
 	    slab_l.slope = slope;
 	    slab_l.intercept = intercept;
