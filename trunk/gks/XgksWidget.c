@@ -119,6 +119,7 @@ XgksRealize(widget, value_mask, attributes)
 	Mask			*value_mask;
 	XSetWindowAttributes	*attributes;
 {
+  int XgksWidgetOpenWs();
 	XgksWidget	xw = (XgksWidget) widget;
 
 
@@ -137,6 +138,7 @@ static void
 XgksDestroy(widget)
 	Widget	widget;
 {
+  int XgksWidgetCloseWs();
 	XgksWidget	gw = (XgksWidget) widget;
 
 
