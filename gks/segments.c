@@ -109,6 +109,14 @@ n *		  - transformation, visibility, highlight, prioirty,
 #include <math.h>
 #include "gks_implem.h"
 
+extern void xXgksInqTextExtent(),XgksMiniMax(),
+  XgksDeletePrimi(),xXgksClearWs(),XgksUnpendPendingTrans(),
+  XgksIDevDisable(), xXgksHighLight(),XgksIDevEnable(),XgksDrawToWs();
+extern void xXgksUpdateClip(),gerrorhand(),
+  XgksWsWinInterset(),XgksInsertPrimi(),XgksOutputToWs(),
+  XgksAppendWsPrimi(),XgksUpdatePrimiBound();
+
+
 #ifdef lint
     static void	lint_malloc(n) size_t n; { n++; }
 #   define	malloc(n)	(lint_malloc((n)), 0)
@@ -172,73 +180,84 @@ extern struct {
 int isopen;
 }is_eps_file_open_;
 
-
-    static void
-XgksSegAttrMo(ws, seg)
+XgksSetLineAttrMo(ws, lnattr)
     WS_STATE_PTR    ws;
-    SEG_STATE_PTR   seg;
+    Glnattr        *lnattr;
 {
-    XgksMoSetSegTransOnWs(ws, seg->segattr.seg, seg->segattr.segtran);
-    XgksMoSetSegAttrOnWs(ws, seg->segattr.seg, 92,
-			 (seg->segattr.vis == GVISIBLE ? 0 : 1));
-    XgksMoSetSegAttrOnWs(ws, seg->segattr.seg, 93,
-			 (seg->segattr.hilight == GNORMAL ? 0 : 1));
-    XgksMoSetSegPriOnWs(ws, seg->segattr.seg, seg->segattr.pri);
-    XgksMoSetSegAttrOnWs(ws, seg->segattr.seg, 95,
-			 (seg->segattr.det == GUNDETECTABLE ? 0 : 1));
+    XgksMoSetGraphicAttrOnWs(ws, 21, lnattr->line);
+    XgksMoSetGraphicAttrOnWs(ws, 22, lnattr->bundl.type);
+    XgksMoSetGraphicSizeOnWs(ws, 23, lnattr->bundl.width);
+    XgksMoSetGraphicAttrOnWs(ws, 24, lnattr->bundl.colour);
 }
 
 
-    static void
-XgksOutPrimiToMo(ws, primi)
+XgksSetMarkAttrMo(ws, mkattr)
     WS_STATE_PTR    ws;
-    OUT_PRIMI      *primi;
+    Gmkattr        *mkattr;
 {
-    switch (primi->pid) {
-    case PLINE:
-	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
-	XgksSetLineAttrMo(ws, &(primi->primi.pline.plnattr));
-	XgksMoGraphicOutputToWs
-	    (ws, 11, primi->primi.pline.num_pts, primi->primi.pline.pts);
-	break;
-    case PMARK:
-	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
-	XgksSetMarkAttrMo(ws, &(primi->primi.pmark.mkattr));
-	XgksMoGraphicOutputToWs
-	    (ws, 12, primi->primi.pmark.num_pts, primi->primi.pmark.location);
-	break;
-    case TEXT:
-	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
-	XgksSetTextAttrMo(ws, &(primi->primi.text.txattr),
-			  &(primi->primi.text.chattr));
-	XgksMoSetCharUpOnWs(ws, &(primi->primi.text.up_vec),
-			    &(primi->primi.text.base_vec));
-	XgksMoTextToWs(ws, primi->primi.text.location,
-		       primi->primi.text.string);
-	break;
-    case FILL_AREA:
-	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
-	XgksSetFillPatAttrMo(ws,
-	&(primi->primi.fill_area.flattr), &(primi->primi.fill_area.ptattr));
-	XgksMoGraphicOutputToWs(ws, 14, primi->primi.fill_area.num_pts,
-			        primi->primi.fill_area.pts);
-	break;
-    case CELL_ARRAY:
-	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
-	XgksMoCellArrayToWs
-	    (ws, &(primi->primi.cell_array.ll), &(primi->primi.cell_array.ur),
-	     &(primi->primi.cell_array.lr), primi->primi.cell_array.rowsize,
-	     primi->primi.cell_array.colour, &(primi->primi.cell_array.dim));
-	break;
-    case GDP:					/* gdp */
-    case CLIP_REC:
-    case XGKS_MESG:
-    default:
-	break;
+    XgksMoSetGraphicAttrOnWs(ws, 25, mkattr->mark);
+    XgksMoSetGraphicAttrOnWs(ws, 26, mkattr->bundl.type);
+    XgksMoSetGraphicSizeOnWs(ws, 27, mkattr->bundl.size);
+    XgksMoSetGraphicAttrOnWs(ws, 28, mkattr->bundl.colour);
+}
+
+
+XgksSetTextAttrMo(ws, txattr, chattr)
+    WS_STATE_PTR    ws;
+    Gtxattr        *txattr;
+    CHATTR         *chattr;
+{
+    CHATTR          tmp;
+
+    XgksMoSetGraphicAttrOnWs(ws, 29, txattr->text);
+    XgksMoSetTextFPOnWs(ws, &(txattr->bundl.fp));
+    XgksMoSetGraphicSizeOnWs(ws, 31, txattr->bundl.ch_exp);
+    XgksMoSetGraphicSizeOnWs(ws, 32, txattr->bundl.space);
+    XgksMoSetGraphicAttrOnWs(ws, 33, txattr->bundl.colour);
+
+    tmp = xgks_state.gks_chattr;
+    xgks_state.gks_chattr = *chattr;
+    XgksMoSetTextPathOnWs(ws, chattr->path);
+    XgksMoSetTextAlignOnWs(ws, &(chattr->align));
+    xgks_state.gks_chattr = tmp;
+}
+
+
+XgksSetFillPatAttrMo(ws, flattr, ptattr)
+    WS_STATE_PTR    ws;
+    Gflattr        *flattr;
+ /* ARGSUSED */
+    PTATTR         *ptattr;
+{
+    XgksMoSetGraphicAttrOnWs(ws, 37, flattr->fill);
+    XgksMoSetFillIntStyleOnWs(ws, flattr->bundl.inter);
+    XgksMoSetGraphicAttrOnWs(ws, 39, flattr->bundl.style);
+    XgksMoSetGraphicAttrOnWs(ws, 40, flattr->bundl.colour);
+    /* 41 & 42 not supported (patterns) */
+}
+
+/*
+ * SEG_STATE_PTR
+ * XgksFindSeg (name)
+ * Gint name;		 - the target segment name;
+ *
+ * Tries to find the <name> segment in the segment table, if found return a 
+ * pointer to to the segment state, else return NULL
+ */
+    static SEG_STATE_PTR 
+XgksFindSeg(name)
+    Gint            name;
+{
+    SEG_STATE_PTR   next;
+
+    next = segtable[SHASH(name)];
+    while (next != NULL) {
+	if (next->segattr.seg == name)
+	    return next;
+	next = next->seg_next;
     }
+    return NULL;
 }
-
-
 /*
  * XgksSegPrimiTran (primi, matrix)	build a transformed ndc primitive
  *					structure and return a pointer to the
@@ -373,6 +392,295 @@ XgksSegPrimiTran(primi, matrix)
     }
     return &trans_primi;
 }
+/*
+ * XgksProcessLocalBound -- if there's text-primitive in segment than update
+ * seg->bound into localbound, else simply return seg->bound
+ */
+    static void
+XgksProcessLocalBound(ws, seg, localbound)
+    WS_STATE_PTR    ws;
+    SEG_STATE_PTR   seg;
+    Glimit         *localbound;
+{
+    OUT_PRIMI      *primi;
+    Gpoint          ndc_points[5];
+
+    *localbound = seg->bound;
+
+    if (seg->text_present == FALSE)
+	return;
+
+    primi = seg->primi_list.next;
+    while (primi != NULL) {
+	if (primi->pid == TEXT) {
+	    (void) xXgksInqTextExtent(ws, &(primi->primi.text), ndc_points);
+	    XgksMiniMax(localbound, &(ndc_points[1]));
+	    XgksMiniMax(localbound, &(ndc_points[2]));
+	    XgksMiniMax(localbound, &(ndc_points[3]));
+	    XgksMiniMax(localbound, &(ndc_points[4]));
+	}
+	primi = primi->next;
+    }
+}
+
+/*
+ * XgksSetHighLight(ws, seg)	setting/unsetting segment highlight on
+ *				specified workstations.
+ */
+    static 
+XgksSetHighLight(ws, seg)
+    WS_STATE_PTR    ws;
+    SEG_STATE_PTR   seg;
+{
+    Gint            i;
+    Gpoint          ndc[4], trans[5];
+    Gfloat          xfact, yfact;
+    Glimit          localbound;
+
+    XgksProcessLocalBound(ws, seg, &localbound);
+
+    /* figuring out the stretching factor for the bounding box */
+    xfact = 0.01 * (ws->wsti.current.w.xmax - ws->wsti.current.w.xmin);
+    yfact = 0.01 * (ws->wsti.current.w.ymax - ws->wsti.current.w.ymin);
+
+    /* now ndc values are stretched bounding box */
+    ndc[0].x = localbound.xmin - xfact;
+    ndc[0].y = localbound.ymin - yfact;
+    ndc[1].x = localbound.xmin - xfact;
+    ndc[1].y = localbound.ymax + yfact;
+    ndc[2].x = localbound.xmax + xfact;
+    ndc[2].y = localbound.ymax + yfact;
+    ndc[3].x = localbound.xmax + xfact;
+    ndc[3].y = localbound.ymin - yfact;
+
+    /* pass the bounding box through segtran */
+    for (i = 0; i < 4; i++)
+	SegTrans(&(ndc[i]), &(trans[i]), seg->segattr.segtran);
+
+    trans[4] = trans[0];			/* for xpolyline to do
+						 * drawing */
+
+    XgksIDevDisable(ws);
+    (void) xXgksHighLight(ws, trans);
+    XgksIDevEnable(ws);
+}
+/*
+ * XgksUpdateWsSegList (wsg)  -- re-insert the whole ws->seglist according to
+ *				 each segment's priority
+ *
+ *	Reorder list from low priority to high priority
+ *
+ *	The way priority works:
+ *
+ * 	During redraw ... just redraw blindly from the front, BIGGEST will
+ *	get drawn last, thus highest prority.
+ */
+    void
+XgksUpdateWsSegList(ws)
+    WS_STATE_PTR    ws;
+{
+    WS_SEG_LIST    *old, *cnt, *pre;
+    SEG_STATE_PTR   workSeg, oldSeg;
+    void XgksCleanUpWsSegList();
+    /* segment list is clean again */
+    ws->seg_list_dirty = FALSE;
+
+    /* First clean up the list by deleting all segment with INVALID name */
+    XgksCleanUpWsSegList(ws);
+
+    /* Do the rearrangment by construct the list */
+
+    /*
+     * if there's only one segment in the list then we are done
+     */
+    if (ws->seglist == ws->seg_insertpt)
+	return;
+
+    old = ws->seglist->next;
+    ws->seg_insertpt = ws->seglist;
+    ws->seg_insertpt->next = NULL;
+
+    while (old != NULL) {
+	oldSeg = XgksFindSeg(old->seg);
+	cnt = ws->seglist;
+	workSeg = XgksFindSeg(cnt->seg);
+	pre = NULL;
+	while ((workSeg->segattr.pri <= oldSeg->segattr.pri) &&
+	       (cnt != NULL)) {
+	    pre = cnt;
+	    cnt = cnt->next;
+	    if (cnt != NULL)
+		workSeg = XgksFindSeg(cnt->seg);
+	    else
+		break;
+	}
+	if (cnt == NULL) {			/* At the end of the
+						 * ws->seglist */
+	    pre->next = old;
+	    ws->seg_insertpt = old;
+	    old = old->next;
+	    ws->seg_insertpt->next = NULL;
+	} else if (pre == NULL) {		/* Begingin of the
+						 * ws->seglist */
+	    ws->seglist = old;
+	    old = old->next;
+	    ws->seglist->next = cnt;
+	} else {
+	    pre->next = old;
+	    old = old->next;
+	    pre->next->next = cnt;
+	}
+    }
+}
+/*
+ * XgksDrawSegToWs(ws) 		- draw out all ws assoc segments to ws
+ *
+ * Routine will do UPDATE_SEG_CNT for every segment!!
+ * Routine will also Disable and Enable before and after segment redraws
+ */
+    void
+XgksDrawSegToWs(ws)
+    WS_STATE_PTR    ws;
+{
+    SEG_STATE_PTR   seg;
+    WS_SEG_LIST    *seglist;
+    int XgksReDrawSeg();
+    XgksIDevDisable(ws);
+    seglist = ws->seglist;
+    while (seglist != NULL) {
+	if (seglist->seg != INVALID) {
+	    seg = XgksFindSeg(seglist->seg);
+	    UPDATE_SEG_CNT(ws->primi_insert_pt);
+	    if (seg->segattr.vis == GVISIBLE)
+		XgksReDrawSeg(ws, seg->segattr.seg);
+	}
+	seglist = seglist->next;
+    }
+    XgksIDevEnable(ws);
+}
+
+/*
+ * Do gredrawsegws() - with no error checking and no MO output
+ *
+ */
+XgksReDrawSegWs(ws)
+    WS_STATE_PTR    ws;
+{
+  void XgksClearWs();
+  XgksIDevDisable(ws);
+
+  XgksClearWs(ws);
+    /*
+     * Now workstaiton had been cleared, update segment list (according to
+     * priority) and redraw all segments
+     */
+    if (ws->seg_list_dirty == TRUE)
+	XgksUpdateWsSegList(ws);
+    XgksDrawSegToWs(ws);			/* Now redraw all segments */
+
+    XgksIDevEnable(ws);
+}
+
+/*
+ * XgksReDrawSeg(ws, seg_id)	This is the x-initiated re-draw segment path,
+ *				this function should only be called be re-draw
+ *				initialted.
+ */
+XgksReDrawSeg(ws, seg_id)
+    WS_STATE_PTR    ws;
+    Gint            seg_id;
+{
+    SEG_STATE_PTR   seg;
+    OUT_PRIMI      *primi;
+    Glimit          tmp_clip;
+    void XgksReDrawWs();
+    if (seg_id != INVALID) {
+
+	seg = XgksFindSeg(seg_id);
+	if (seg->segattr.vis == GINVISIBLE)
+	    return;
+	primi = &(seg->primi_list);
+	tmp_clip = ws->clip;			/* save the current clip
+						 * region */
+	while (primi != NULL) {
+	    XgksReDrawWs(ws, XgksSegPrimiTran(primi, seg->segattr.segtran));
+	    primi = primi->next;
+	}
+	ws->clip = tmp_clip;			/* restore clip ws-clip
+						 * region */
+	xXgksUpdateClip(ws);
+	if (seg->segattr.hilight == GHIGHLIGHTED)
+	    XgksSetHighLight(ws, seg);
+    }
+}
+
+
+    static void
+XgksSegAttrMo(ws, seg)
+    WS_STATE_PTR    ws;
+    SEG_STATE_PTR   seg;
+{
+    XgksMoSetSegTransOnWs(ws, seg->segattr.seg, seg->segattr.segtran);
+    XgksMoSetSegAttrOnWs(ws, seg->segattr.seg, 92,
+			 (seg->segattr.vis == GVISIBLE ? 0 : 1));
+    XgksMoSetSegAttrOnWs(ws, seg->segattr.seg, 93,
+			 (seg->segattr.hilight == GNORMAL ? 0 : 1));
+    XgksMoSetSegPriOnWs(ws, seg->segattr.seg, seg->segattr.pri);
+    XgksMoSetSegAttrOnWs(ws, seg->segattr.seg, 95,
+			 (seg->segattr.det == GUNDETECTABLE ? 0 : 1));
+}
+
+
+    static void
+XgksOutPrimiToMo(ws, primi)
+    WS_STATE_PTR    ws;
+    OUT_PRIMI      *primi;
+{
+    switch (primi->pid) {
+    case PLINE:
+	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
+	XgksSetLineAttrMo(ws, &(primi->primi.pline.plnattr));
+	XgksMoGraphicOutputToWs
+	    (ws, 11, primi->primi.pline.num_pts, primi->primi.pline.pts);
+	break;
+    case PMARK:
+	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
+	XgksSetMarkAttrMo(ws, &(primi->primi.pmark.mkattr));
+	XgksMoGraphicOutputToWs
+	    (ws, 12, primi->primi.pmark.num_pts, primi->primi.pmark.location);
+	break;
+    case TEXT:
+	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
+	XgksSetTextAttrMo(ws, &(primi->primi.text.txattr),
+			  &(primi->primi.text.chattr));
+	XgksMoSetCharUpOnWs(ws, &(primi->primi.text.up_vec),
+			    &(primi->primi.text.base_vec));
+	XgksMoTextToWs(ws, primi->primi.text.location,
+		       primi->primi.text.string);
+	break;
+    case FILL_AREA:
+	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
+	XgksSetFillPatAttrMo(ws,
+	&(primi->primi.fill_area.flattr), &(primi->primi.fill_area.ptattr));
+	XgksMoGraphicOutputToWs(ws, 14, primi->primi.fill_area.num_pts,
+			        primi->primi.fill_area.pts);
+	break;
+    case CELL_ARRAY:
+	XgksMoSetGraphicAttrOnWs(ws, 44, primi->pickid);
+	XgksMoCellArrayToWs
+	    (ws, &(primi->primi.cell_array.ll), &(primi->primi.cell_array.ur),
+	     &(primi->primi.cell_array.lr), primi->primi.cell_array.rowsize,
+	     primi->primi.cell_array.colour, &(primi->primi.cell_array.dim));
+	break;
+    case GDP:					/* gdp */
+    case CLIP_REC:
+    case XGKS_MESG:
+    default:
+	break;
+    }
+}
+
+
 
 
     static void
@@ -494,36 +802,6 @@ XgksCheckSegAttr(old, new)
 }
 
 
-/*
- * XgksProcessLocalBound -- if there's text-primitive in segment than update
- * seg->bound into localbound, else simply return seg->bound
- */
-    static void
-XgksProcessLocalBound(ws, seg, localbound)
-    WS_STATE_PTR    ws;
-    SEG_STATE_PTR   seg;
-    Glimit         *localbound;
-{
-    OUT_PRIMI      *primi;
-    Gpoint          ndc_points[5];
-
-    *localbound = seg->bound;
-
-    if (seg->text_present == FALSE)
-	return;
-
-    primi = seg->primi_list.next;
-    while (primi != NULL) {
-	if (primi->pid == TEXT) {
-	    (void) xXgksInqTextExtent(ws, &(primi->primi.text), ndc_points);
-	    XgksMiniMax(localbound, &(ndc_points[1]));
-	    XgksMiniMax(localbound, &(ndc_points[2]));
-	    XgksMiniMax(localbound, &(ndc_points[3]));
-	    XgksMiniMax(localbound, &(ndc_points[4]));
-	}
-	primi = primi->next;
-    }
-}
 
 
 /*
@@ -1146,9 +1424,9 @@ XgksCleanUpWsSegList(ws)
  *			DELETE all non-segment primitives.  Will also
  *			unpend_pending_transformations.
  */
-    static void
+static void
 XgksClearWs(ws)
-    WS_STATE_PTR    ws;
+     WS_STATE_PTR    ws;
 {
     /* Free up ALL non-segment primitive associcated with this ws */
     XgksDeletePrimi(&(ws->primi_list), &(ws->primi_insert_pt));
@@ -1174,48 +1452,6 @@ XgksClearWs(ws)
     return;
 }
 
-
-/*
- * XgksSetHighLight(ws, seg)	setting/unsetting segment highlight on
- *				specified workstations.
- */
-    static 
-XgksSetHighLight(ws, seg)
-    WS_STATE_PTR    ws;
-    SEG_STATE_PTR   seg;
-{
-    Gint            i;
-    Gpoint          ndc[4], trans[5];
-    Gfloat          xfact, yfact;
-    Glimit          localbound;
-
-    XgksProcessLocalBound(ws, seg, &localbound);
-
-    /* figuring out the stretching factor for the bounding box */
-    xfact = 0.01 * (ws->wsti.current.w.xmax - ws->wsti.current.w.xmin);
-    yfact = 0.01 * (ws->wsti.current.w.ymax - ws->wsti.current.w.ymin);
-
-    /* now ndc values are stretched bounding box */
-    ndc[0].x = localbound.xmin - xfact;
-    ndc[0].y = localbound.ymin - yfact;
-    ndc[1].x = localbound.xmin - xfact;
-    ndc[1].y = localbound.ymax + yfact;
-    ndc[2].x = localbound.xmax + xfact;
-    ndc[2].y = localbound.ymax + yfact;
-    ndc[3].x = localbound.xmax + xfact;
-    ndc[3].y = localbound.ymin - yfact;
-
-    /* pass the bounding box through segtran */
-    for (i = 0; i < 4; i++)
-	SegTrans(&(ndc[i]), &(trans[i]), seg->segattr.segtran);
-
-    trans[4] = trans[0];			/* for xpolyline to do
-						 * drawing */
-
-    XgksIDevDisable(ws);
-    (void) xXgksHighLight(ws, trans);
-    XgksIDevEnable(ws);
-}
 
 
 /*
@@ -1436,29 +1672,6 @@ XgksRenameWsSeg(ws, old, new)
     }
 }
 
-
-/*
- * SEG_STATE_PTR
- * XgksFindSeg (name)
- * Gint name;		 - the target segment name;
- *
- * Tries to find the <name> segment in the segment table, if found return a 
- * pointer to to the segment state, else return NULL
- */
-    static SEG_STATE_PTR 
-XgksFindSeg(name)
-    Gint            name;
-{
-    SEG_STATE_PTR   next;
-
-    next = segtable[SHASH(name)];
-    while (next != NULL) {
-	if (next->segattr.seg == name)
-	    return next;
-	next = next->seg_next;
-    }
-    return NULL;
-}
 
 
 /*
@@ -1976,7 +2189,7 @@ gcopysegws(ws_id, seg_id)
     WS_SEG_LIST    *WsSeg;
     OUT_PRIMI      *clip, *primi, *tran;
     Glimit          wsclip;
-
+    void XgksReDrawWs();
     /* check for operating state */
     GKSERROR((xgks_state.gks_state != GWSOP && xgks_state.gks_state != GWSAC), 
 	     6, errgcopysegws);
@@ -2258,33 +2471,6 @@ XgksDelAllMoSeg(ws)
 }
 
 
-/*
- * XgksDrawSegToWs(ws) 		- draw out all ws assoc segments to ws
- *
- * Routine will do UPDATE_SEG_CNT for every segment!!
- * Routine will also Disable and Enable before and after segment redraws
- */
-    void
-XgksDrawSegToWs(ws)
-    WS_STATE_PTR    ws;
-{
-    SEG_STATE_PTR   seg;
-    WS_SEG_LIST    *seglist;
-
-    XgksIDevDisable(ws);
-    seglist = ws->seglist;
-    while (seglist != NULL) {
-	if (seglist->seg != INVALID) {
-	    seg = XgksFindSeg(seglist->seg);
-	    UPDATE_SEG_CNT(ws->primi_insert_pt);
-	    if (seg->segattr.vis == GVISIBLE)
-		XgksReDrawSeg(ws, seg->segattr.seg);
-	}
-	seglist = seglist->next;
-    }
-    XgksIDevEnable(ws);
-}
-
 
 /*
  * XgksAppendSegClip()	check if current gks_open_seg->primi_insertpt->pid 
@@ -2331,108 +2517,7 @@ XgksSegDump(seg)
 #endif
 
 
-/*
- * XgksUpdateWsSegList (wsg)  -- re-insert the whole ws->seglist according to
- *				 each segment's priority
- *
- *	Reorder list from low priority to high priority
- *
- *	The way priority works:
- *
- * 	During redraw ... just redraw blindly from the front, BIGGEST will
- *	get drawn last, thus highest prority.
- */
-    void
-XgksUpdateWsSegList(ws)
-    WS_STATE_PTR    ws;
-{
-    WS_SEG_LIST    *old, *cnt, *pre;
-    SEG_STATE_PTR   workSeg, oldSeg;
 
-    /* segment list is clean again */
-    ws->seg_list_dirty = FALSE;
-
-    /* First clean up the list by deleting all segment with INVALID name */
-    XgksCleanUpWsSegList(ws);
-
-    /* Do the rearrangment by construct the list */
-
-    /*
-     * if there's only one segment in the list then we are done
-     */
-    if (ws->seglist == ws->seg_insertpt)
-	return;
-
-    old = ws->seglist->next;
-    ws->seg_insertpt = ws->seglist;
-    ws->seg_insertpt->next = NULL;
-
-    while (old != NULL) {
-	oldSeg = XgksFindSeg(old->seg);
-	cnt = ws->seglist;
-	workSeg = XgksFindSeg(cnt->seg);
-	pre = NULL;
-	while ((workSeg->segattr.pri <= oldSeg->segattr.pri) &&
-	       (cnt != NULL)) {
-	    pre = cnt;
-	    cnt = cnt->next;
-	    if (cnt != NULL)
-		workSeg = XgksFindSeg(cnt->seg);
-	    else
-		break;
-	}
-	if (cnt == NULL) {			/* At the end of the
-						 * ws->seglist */
-	    pre->next = old;
-	    ws->seg_insertpt = old;
-	    old = old->next;
-	    ws->seg_insertpt->next = NULL;
-	} else if (pre == NULL) {		/* Begingin of the
-						 * ws->seglist */
-	    ws->seglist = old;
-	    old = old->next;
-	    ws->seglist->next = cnt;
-	} else {
-	    pre->next = old;
-	    old = old->next;
-	    pre->next->next = cnt;
-	}
-    }
-}
-
-
-/*
- * XgksReDrawSeg(ws, seg_id)	This is the x-initiated re-draw segment path,
- *				this function should only be called be re-draw
- *				initialted.
- */
-XgksReDrawSeg(ws, seg_id)
-    WS_STATE_PTR    ws;
-    Gint            seg_id;
-{
-    SEG_STATE_PTR   seg;
-    OUT_PRIMI      *primi;
-    Glimit          tmp_clip;
-
-    if (seg_id != INVALID) {
-
-	seg = XgksFindSeg(seg_id);
-	if (seg->segattr.vis == GINVISIBLE)
-	    return;
-	primi = &(seg->primi_list);
-	tmp_clip = ws->clip;			/* save the current clip
-						 * region */
-	while (primi != NULL) {
-	    XgksReDrawWs(ws, XgksSegPrimiTran(primi, seg->segattr.segtran));
-	    primi = primi->next;
-	}
-	ws->clip = tmp_clip;			/* restore clip ws-clip
-						 * region */
-	xXgksUpdateClip(ws);
-	if (seg->segattr.hilight == GHIGHLIGHTED)
-	    XgksSetHighLight(ws, seg);
-    }
-}
 
 
 /*
@@ -2549,83 +2634,8 @@ XgksFindPickSeg(ws, ndcpt, response, idev, findpickid)
 }
 
 
-/*
- * Do gredrawsegws() - with no error checking and no MO output
- *
- */
-XgksReDrawSegWs(ws)
-    WS_STATE_PTR    ws;
-{
-    XgksIDevDisable(ws);
-
-    XgksClearWs(ws);
-    /*
-     * Now workstaiton had been cleared, update segment list (according to
-     * priority) and redraw all segments
-     */
-    if (ws->seg_list_dirty == TRUE)
-	XgksUpdateWsSegList(ws);
-    XgksDrawSegToWs(ws);			/* Now redraw all segments */
-
-    XgksIDevEnable(ws);
-}
 
 
-XgksSetLineAttrMo(ws, lnattr)
-    WS_STATE_PTR    ws;
-    Glnattr        *lnattr;
-{
-    XgksMoSetGraphicAttrOnWs(ws, 21, lnattr->line);
-    XgksMoSetGraphicAttrOnWs(ws, 22, lnattr->bundl.type);
-    XgksMoSetGraphicSizeOnWs(ws, 23, lnattr->bundl.width);
-    XgksMoSetGraphicAttrOnWs(ws, 24, lnattr->bundl.colour);
-}
-
-
-XgksSetMarkAttrMo(ws, mkattr)
-    WS_STATE_PTR    ws;
-    Gmkattr        *mkattr;
-{
-    XgksMoSetGraphicAttrOnWs(ws, 25, mkattr->mark);
-    XgksMoSetGraphicAttrOnWs(ws, 26, mkattr->bundl.type);
-    XgksMoSetGraphicSizeOnWs(ws, 27, mkattr->bundl.size);
-    XgksMoSetGraphicAttrOnWs(ws, 28, mkattr->bundl.colour);
-}
-
-
-XgksSetTextAttrMo(ws, txattr, chattr)
-    WS_STATE_PTR    ws;
-    Gtxattr        *txattr;
-    CHATTR         *chattr;
-{
-    CHATTR          tmp;
-
-    XgksMoSetGraphicAttrOnWs(ws, 29, txattr->text);
-    XgksMoSetTextFPOnWs(ws, &(txattr->bundl.fp));
-    XgksMoSetGraphicSizeOnWs(ws, 31, txattr->bundl.ch_exp);
-    XgksMoSetGraphicSizeOnWs(ws, 32, txattr->bundl.space);
-    XgksMoSetGraphicAttrOnWs(ws, 33, txattr->bundl.colour);
-
-    tmp = xgks_state.gks_chattr;
-    xgks_state.gks_chattr = *chattr;
-    XgksMoSetTextPathOnWs(ws, chattr->path);
-    XgksMoSetTextAlignOnWs(ws, &(chattr->align));
-    xgks_state.gks_chattr = tmp;
-}
-
-
-XgksSetFillPatAttrMo(ws, flattr, ptattr)
-    WS_STATE_PTR    ws;
-    Gflattr        *flattr;
- /* ARGSUSED */
-    PTATTR         *ptattr;
-{
-    XgksMoSetGraphicAttrOnWs(ws, 37, flattr->fill);
-    XgksMoSetFillIntStyleOnWs(ws, flattr->bundl.inter);
-    XgksMoSetGraphicAttrOnWs(ws, 39, flattr->bundl.style);
-    XgksMoSetGraphicAttrOnWs(ws, 40, flattr->bundl.colour);
-    /* 41 & 42 not supported (patterns) */
-}
 
 
 /* Inquiry functions for segment */
@@ -2961,6 +2971,7 @@ gps_print(ws_id, seg_id, BWLINES, as, coltab)
     OUT_PRIMI      *clip, *primi, *tran;
     Glimit          wsclip;
     Gfloat         xm, ym;
+    int PsInsertPrimi();
     /* check for operating state */
     GKSERROR((xgks_state.gks_state != GWSOP && xgks_state.gks_state != GWSAC),
              6, errgcopysegws);

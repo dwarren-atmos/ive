@@ -117,7 +117,9 @@ int ive_gks_control=0;
  *    >0 => ignoring
  */
 static int      SigCount = 0;
-
+extern void draw_line(),get_slice(),mouse_traj(),XtMoveWidget(),
+  XgksIDevDisable(), xXgksUpdateTrans(),XgksXReDrawWs(),XgksIDevEnable(),
+  XgksIProcessXEvent();
 /*
  * Do mouse stuff
  */
@@ -229,7 +231,7 @@ void cancel_mouse_slicing_()
 {
     if (gks_mouse_menu_tracker) {
 	if (gksokbox)
-	    gks_line_cancel(gksokbox, 0, NULL);
+	  gks_line_cancel(gksokbox, 0,(XmAnyCallbackStruct *) NULL);
 	else gks_mouse_menu_tracker = 0;
     }
 }
@@ -346,9 +348,12 @@ void gks_start_line(x,y)
       str = NewString("              Done");
       XtVaSetValues(gksokbox, XmNmessageString, str,NULL);
       XmStringFree(str);
-      XtAddCallback(gksokbox, XmNcancelCallback, gks_line_cancel, 0L);
-      XtAddCallback(gksokbox, XmNhelpCallback, gks_line_help, 0L);
-      XtAddCallback(gksokbox, XmNokCallback, gks_line_ok, 0L);
+      XtAddCallback(gksokbox, XmNcancelCallback,
+		    (XtCallbackProc) gks_line_cancel, 0L);
+      XtAddCallback(gksokbox, XmNhelpCallback, 
+		    (XtCallbackProc)gks_line_help, 0L);
+      XtAddCallback(gksokbox, XmNokCallback, 
+		    (XtCallbackProc)gks_line_ok, 0L);
       XtVaGetValues(xgks_widget, XmNheight,&hei, XmNwidth, &wid,
       XmNx, &posx, XmNy, &posy, NULL);
 /*    XtVaSetValues(popup, XmNx,posx-200, NULL);
@@ -357,7 +362,7 @@ void gks_start_line(x,y)
       XGetWindowAttributes(location.dpy, location.win, &win_att);
       XtInsertEventHandler(xgks_widget,win_att.all_event_masks,
 			   FALSE,mouseProcessEvents,
-			   NULL,0);
+			   NULL,XtListHead);
       XtManageChild(gksokbox);
       XtManageChild(popup);
       XtMoveWidget(popup, 100,100);
@@ -457,7 +462,7 @@ void gks_start_window(x,y)
     XGetWindowAttributes(location.dpy, location.win, &win_att);
     XtInsertEventHandler(xgks_widget,win_att.all_event_masks,
 			 FALSE,mouseProcessEvents,
-			 NULL,0);
+			 NULL,XtListHead);
 /*    while(gks_mouse_menu_tracker){
 	mouseProcessEvents();
     }*/
@@ -699,7 +704,7 @@ static void special_button_stuff(ws,event)
     char str[256+1];
     Display		*dpy	= ws->dpy;
     Window		root,win,*children;
-    int                 numc;
+    unsigned int                 numc;
     XWindowAttributes	win_att;
    
     XQueryTree(dpy, ws->win, &root, &win, &children, &numc);
@@ -839,10 +844,10 @@ Boolean *continue_to_dispatch;
 		 * redraws on the latter servers.
 		 */
 	    case Expose:
-		if (((XExposeEvent *)xev)->count == 0) {
-		    if (gks_mouse_menu_tracker && gksokbox)
-			gks_line_cancel(gksokbox, 0, NULL);
-		    (void) redraw(ws);
+	      if (((XExposeEvent *)xev)->count == 0) {
+	if (gks_mouse_menu_tracker && gksokbox)
+	  gks_line_cancel(gksokbox, 0, (XmAnyCallbackStruct *)NULL);
+	    (void) redraw(ws);
 		}
 		break;
 
@@ -1117,7 +1122,7 @@ void start_traj_mouse_()
   XGetWindowAttributes(location.dpy, location.win, &win_att);
   XtInsertEventHandler(xgks_widget,win_att.all_event_masks,
 		       FALSE,mouseProcessEvents,
-		       NULL,0);
+		       NULL,XtListHead);
 }
 
 void stop_traj_mouse_()
@@ -1141,7 +1146,7 @@ void stop_traj_mouse_()
 			 mouseProcessEvents,
 			 NULL);
   }
-  slice_menu_call((Widget)0, (caddr_t)10, (XtPointer)0);
+  slice_menu_call((Widget)0, (caddr_t)10, (XmAnyCallbackStruct *)0);
 }
  
 void clear_traj_mouse_()
