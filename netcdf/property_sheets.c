@@ -105,9 +105,13 @@ static char ident[] = "$Id: property_sheets.c,v 1.24 2002/05/23 19:41:12 davidiv
  */
 #include "cdfinfo.h"
 #include "diminfo.h"
+#include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <cmndlst.h>
 
+extern void save_command_(),getivar_(),getiarr_(),getrarr_(),getavar_(),setrvar_(),setivar_(),getrvar_();
+extern int check_points_line_(),getvid_();
 extern cdf_info var_file;
 
 #define VAR var_file.vars[*var_id].vatts

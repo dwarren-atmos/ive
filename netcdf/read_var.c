@@ -150,9 +150,13 @@ static char ident[] = "$Id: read_var.c,v 1.31 2006/05/01 22:08:17 davidive Exp $
 
 #include "cdfinfo.h"
 #include <string.h>
+#include <strings.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <malloc.h>
 
+extern void make_help_widget_(),setlvar_();
+extern void getrarr_(),make_help_widget_(),setlvar_();
 #ifdef NC_FILL_BYTE
 #define SIZE_T size_t
 #else
