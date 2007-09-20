@@ -135,11 +135,11 @@ c     Local variable declarations.
 c
       ive_ptr ctb, get_color_table
       integer i, ibeg, iend, istate, ierr, MAXPLTS, 
-     &        numplts, PLT_ID, ii, j, ix, land
+     &        numplts, PLT_ID, ii, j, ix, land,junk
       real    xscale, yscale
       character *2 string
       character *10  SCRATCHDIR
-      character *80 curdir, metaname, prnam
+      character *80 curdir, metaname, prnam,randname
       character *256 syscommand, PSDIR
       parameter ( PLT_ID = 200, 
      &            MAXPLTS = 6,
@@ -192,13 +192,15 @@ c
 c     Create a unique postscript file name by appending a random 
 c     number.
 c     
-      write (metaname, 919) genran (10000)
+      junk = genran (10000)
+      write (randname, 919)junk
  919  format (i5)
       curdir = SCRATCHDIR
       call catnull(curdir, len(curdir),ierr)
       call expand_path(curdir)
       metaname = curdir(strbeg(curdir):strend(curdir))//
-     &     metaname(strbeg(metaname):strend(metaname))//
+c     &     metaname(strbeg(metaname):strend(metaname))//
+     &     randname(strbeg(randname):strend(randname))//
      &     char(0)
       call gps_init(metaname)
 c
@@ -219,10 +221,23 @@ c
             if (numplts .le. 4) then
                ix = (mod(i-1,2)+1)*2 - int((i-1)/2)
             else
-               ix = (mod(i-1,3)+1)*2 - int((i-1)/3)
+               if(mod(i,2) .eq. 1) then
+                  ix = i+1
+               else
+                  ix = i-1
+               endif
             endif
          else
-            ix = i
+            if (numplts .le.4) then
+               ix = i
+               else
+                  if(mod(i,2) .eq. 1) then
+                     ix = 3 - (mod(i,3)+1)
+                  else
+                     ix = 6 - mod(i,3)
+                  endif
+                  if(ix .eq. 0)ix = 3
+               endif
          endif
          if(pltnum(ix) .eq. -1) then
             call gps_init_page(land,xscale/yscale)
