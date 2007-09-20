@@ -164,12 +164,18 @@ static char ident[] = "$Id: open_var.c,v 1.30 2006-10-05 16:29:42 reinecke Exp $
   This subroutine opens the specified var netcdf file, reads in the header
   information and returns the netCDF id.
   */
-
-#include <ctype.h>
+#ifdef linux
+#undef  _POSIX_SOURCE
+#endif
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include "cdfinfo.h"
+#include <malloc.h>
 
+extern void *read_var_();
+extern int getvid_();
+extern void getivar_(),add_field_(),set_button_name(),keep_var_(),setavar_(),setivar_();
 cdf_info var_file;
 
 /*

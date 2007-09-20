@@ -71,6 +71,10 @@ static char ident[] = "$Id: free_var.c,v 1.7 2003/12/22 23:20:43 warren Exp $" ;
 
 #include "cdfinfo.h"
 #include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+#include <strings.h>
+
 void make_help_widget_();
 cdf_info var_file;
 

@@ -23,35 +23,12 @@
 static char ident[] = "$Id: set_button_name.c,v 1.3 1999/12/22 00:32:32 warren Exp $";
 
 #include "cdfinfo.h"
+#include <malloc.h>
+#include <string.h>
+#include <strings.h>
 
 cdf_info var_file;
 
-/*
- * Fortran jacket
- */
-
-int
-set_button_name_(variable, button_name, len1, len2)
-char *variable, *button_name;
-int len1, len2;
-
-{
-    int i;
-    char *v, *b;
-
-    for (i=len1-1; i >= 0 && variable[i] == ' '; i--);
-    v = (char *) malloc(i+2);
-    if (i+1) strncpy(v, variable, i+1);
-    v[i+1] = '\0';
-    for (i=len2-1; i >= 0 && button_name[i] == ' '; i--);
-    b = (char *) malloc(i+2);
-    if (i+1) strncpy(b, button_name, i+1);
-    b[i+1] = '\0';
-    i = set_button_name(v, b);
-    free(v);
-    free(b);
-    return(i);
-}
 
 int
 set_button_name(variable, button_name)
@@ -90,5 +67,31 @@ char *variable, *button_name;
 }
 
 
+/*
+ * Fortran jacket
+ */
+
+int
+set_button_name_(variable, button_name, len1, len2)
+char *variable, *button_name;
+int len1, len2;
+
+{
+    int i;
+    char *v, *b;
+
+    for (i=len1-1; i >= 0 && variable[i] == ' '; i--);
+    v = (char *) malloc(i+2);
+    if (i+1) strncpy(v, variable, i+1);
+    v[i+1] = '\0';
+    for (i=len2-1; i >= 0 && button_name[i] == ' '; i--);
+    b = (char *) malloc(i+2);
+    if (i+1) strncpy(b, button_name, i+1);
+    b[i+1] = '\0';
+    i = set_button_name(v, b);
+    free(v);
+    free(b);
+    return(i);
+}
 
     
