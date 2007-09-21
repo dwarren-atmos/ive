@@ -37,8 +37,13 @@
 static char ident[] = "$Id: derivative.c,v 1.7 2001/04/11 19:11:07 harryive Exp $";
 
 #include <string.h>
+#include <strings.h>
+#include <malloc.h>
+#include <stdio.h>
 
 #define FIELD(i, j, k, t) *(field+i+(dims[0]*((j)+dims[1]*((k)+dims[2]*(t)))))
+
+extern void getaarr_(),make_help_widget_(),index_2_phys_trans_(),getrarr_();
 
 float *getvar_();
 int isfunc_(char *, char*, char*, char*, char*, int, int, int, int, int);
