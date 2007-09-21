@@ -84,7 +84,7 @@ c
       call scale(v1, 1, domain_slope(2), domain_intercept(2), 0.0)
       call scale(v2, 1, domain_slope(2), domain_intercept(2), 0.0)
       write(wincmd,120) u1,u2,v1,v2
-      call driver(wincmd,1)
+      call driver(wincmd,0)
 
  90   mapwin_u1=0.0 ; mapwin_u2=0.0 ; mapwin_v1=0.0 ; mapwin_v2=0.0
 
