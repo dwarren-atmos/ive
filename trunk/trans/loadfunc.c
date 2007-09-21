@@ -191,18 +191,43 @@
  * Change malloc to valloc.
  *
 ***********************************************************************/
+static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" ;
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <malloc.h>
+#include <unistd.h>
+
 #ifdef ultrix
 #define memalign(size1,size2) valloc(size2)
 #endif
 #ifdef __osf__
 #define memalign(size1,size2) malloc(size2)
 #endif
-static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" ;
+#ifdef linux
+#undef _POSIX_SOURCE
+#define __USE_BSD
+#endif
+#if (LSB == 5)
+#include <lsb5/math.h>
+#elif (LSB == 4)
+#include <lsb4/math.h>
+#elif (LSB == 3)
+#include <lsb3/math.h>
+#elif (LSB == 2)
+#include <lsb2/math.h>
+#elif (LSB == 1)
+#include <lsb1/math.h>
+#else
+#include <math.h>
+#endif
+
+#include <string.h>
+#include <strings.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
+
 #ifdef ultrix
-#include <stdio.h>
 #include <sys/exec.h>
 #include <nlist.h>
 #else /* BSD */
@@ -218,6 +243,9 @@ static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" 
 #ifdef __alpha
 #include <signal.h>
 #endif
+#include <netcdf.h>
+#include <udunits.h>
+
 
 #ifdef mips
 #  ifdef ultrix
@@ -234,7 +262,7 @@ static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" 
 
 #endif /* mips */
 
-#define round(x,s) ((((x)-1) & ~((s)-1)) + (s))
+#define ROUND(x,s) ((((x)-1) & ~((s)-1)) + (s))
 
 #ifdef STATIC
 #define NEW_FILE new_file_
@@ -288,14 +316,9 @@ void  *MOVE_PARCEL(), *PHYSUV_2_LONLATUV_TRANS(), *RUN_SUB();
 
 /* BEGIN INTERFACE ROUTINES AND DEFAULT TRANSFORMS */
 
-#include <netcdf.h>
-#include <stdio.h>
-#ifdef Linux
-#include <tgmath.h>
-#else
-#include <math.h>
-#endif
-#include <udunits.h>
+extern void getrarr_(),getivar_(),setrarr_(),getiarr_(),make_help_widget_(),getavar_(),getaarr_();
+  extern int getvid_();
+extern void *read_var_();
 /*
  * Common variables
  */
@@ -859,7 +882,7 @@ int *ni, *da, *nda;
     float dv[4], cmin, cmax;
 
     for (i=0; i < 4; i++) iflag[i] = 1;
-    phys_2_index_trans_(endpt, cendpt, iflag, &four, &two);
+    phys_2_index_trans_((float *)endpt, (float *)cendpt, iflag, &four, &two);
     *ni = 1;
     for (i=0; i < 4; i++) 
 	if (i != da[0]-1 && i != da[1]-1)
@@ -948,7 +971,7 @@ int *ni, *da, *nda;
 	}
 	j = *ni * nda[0] * nda[1];
     }
-    phys_2_index_trans_(pslice, slice, iflag, &four, &j);
+    phys_2_index_trans_((float *)pslice, (float *)slice, iflag, &four, &j);
     free(pslice);
     return((float *) slice);
 }
@@ -1165,7 +1188,7 @@ int len;
 char *name;
 {
   if (EXISTS(run_sub)) {
-    return(RUN_SUB(name,  len));
+    RUN_SUB(name,  len);
   }
   else
     {
@@ -1381,7 +1404,7 @@ check_obj(name, type)
     if(magic[0] == 0x62 && magic[1] == 0x1) found_type = "ultrix";
     else if (magic[0] == 0x83 && magic[1] == 0x1) found_type = "alpha";
     else if (magic[0] == 0x81 && magic[1] == 0x3) found_type = "sunos";
-    else if (magic[0] == 0x7f && strncmp(magic+1, "ELF", 3) == 0)
+    else if (magic[0] == 0x7f && strncmp((char *)magic+1, "ELF", 3) == 0)
 	found_type = "ELF";
     else found_type = "unknown";
     if (strcmp(type, found_type)) {
@@ -1447,9 +1470,9 @@ load_func_(progname,objfile)
         perror("read");
         return 3;
     }
-    readsize = round(header.a_text,4) + round(header.a_data,4);
+    readsize = ROUND(header.a_text,4) + ROUND(header.a_data,4);
     totsize += readsize + header.a_bss;
-    totsize = round(totsize,512); /* XXX (BSD magic number) */
+    totsize = ROUND(totsize,512); /* XXX (BSD magic number) */
     
     base = (caddr_t)valloc(totsize);
     
@@ -1510,9 +1533,9 @@ load_func_(progname,objfile)
 	}
         return 3;
     }
-    readsize = round(header.a_text,4) + round(header.a_data,4);
+    readsize = ROUND(header.a_text,4) + ROUND(header.a_data,4);
     newsize += readsize + header.a_bss;
-    newsize = round(totsize,512); /* XXX (BSD magic number) */
+    newsize = ROUND(totsize,512); /* XXX (BSD magic number) */
     
     if(newsize != totsize){
 	base2 = (caddr_t)realloc(base,totsize);
@@ -1598,9 +1621,9 @@ nl[17].n_name = "";
 	data_slicer_2d = (float (*)())nl[11].n_value;
 	data_slicer_3d = (float (*)())nl[12].n_value;
 	file_coordinate = (float (*)())nl[13].n_value;
-	move_parcel = (void (*)())nl[14].n_value;
-	run_sub = (void (*)())nl[15].n_value;
-	physuv_2_lonlatuv_trans = (void (*)())nl[16].n_value;
+	move_parcel = (void *(*)())nl[14].n_value;
+	run_sub = (void *(*)())nl[15].n_value;
+	physuv_2_lonlatuv_trans = (void *(*)())nl[16].n_value;
 
     }
     if (unlink(tmpfile)){
@@ -1621,7 +1644,6 @@ load_func_(progname, objfile)
      char *progname, *objfile;
 {
     static void *dlp=NULL;
-    extern int strlen();
 
     if(dlp) {
 	dlclose(dlp);
@@ -1723,19 +1745,19 @@ load_func_(progname, objfile)
         (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
-    if ((move_parcel=(void(*)())dlsym(dlp, "_move_parcel_"))
+    if ((move_parcel=(void *(*)())dlsym(dlp, "_move_parcel_"))
 	== NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
-    if ((run_sub=(void(*)())dlsym(dlp, "_run_sub_"))
+    if ((run_sub=(void *(*)())dlsym(dlp, "_run_sub_"))
 	== NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error run_sub procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
-    if (physuv_2_lonlatuv_trans(=(void(*)())dlsym(dlp, "_physuv_2_lonlatuv_trans_"))
+    if (physuv_2_lonlatuv_trans(=(void *(*)())dlsym(dlp, "_physuv_2_lonlatuv_trans_"))
 	== NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error physuv_2_lonlatuv_trans procedure\n",stderr);
@@ -1754,7 +1776,6 @@ load_func_(progname, objfile)
     static void *dlp=NULL;
 #if defined(IRIX)
 #else
-    extern int strlen();
 #endif
     if(dlp) {
 	dlclose(dlp);
@@ -1861,17 +1882,17 @@ load_func_(progname, objfile)
         (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
-    if ((move_parcel=(void(*)())dlsym(dlp, "move_parcel_")) == NULL) {
+    if ((move_parcel=(void *(*)())dlsym(dlp, "move_parcel_")) == NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
-    if ((run_sub=(void(*)())dlsym(dlp, "run_sub_")) == NULL) {
+    if ((run_sub=(void *(*)())dlsym(dlp, "run_sub_")) == NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error finding run_sub procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
-    if ((physuv_2_lonlatuv_trans=(void(*)())dlsym(dlp, "physuv_2_lonlatuv_trans_")) == NULL) {
+    if ((physuv_2_lonlatuv_trans=(void *(*)())dlsym(dlp, "physuv_2_lonlatuv_trans_")) == NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error finding physuv_2_lonlatuv_trans procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/

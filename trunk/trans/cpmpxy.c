@@ -1,6 +1,9 @@
 static char *rcsid = "$Id: cpmpxy.c,v 1.7 1999/12/22 00:33:34 warren Exp $";
 
 #include <math.h>
+#include <stdio.h>
+
+extern void make_help_widget_(),phys_2_lonlat_trans_(),maptrn_();
 #define ABS(x)    ((x < 0)? -x:x)
 #define MAX(x, y) ((x > y)? x:y) 
 #define MIN(x, y) ((x < y)? x:y) 
