@@ -726,7 +726,7 @@ c           Command AXES.
             if((iflag .eq. 0) .and. .not.error) call ui_update (AXES_UI)
          elseif (keynum .eq.  P_BIG_LABELS) then
 c           COMMAND BIG_LABELS
-            call setbl(error)	
+            call setbl(error)
          elseif (keynum .eq.  P_COLOR_BAR) then
             call set_color_bar (error)
          elseif (keynum .eq.  P_CONTOUR_INTERVAL) then
@@ -740,7 +740,7 @@ c           Command CONTOUR_VALUES.
          elseif (keynum .eq.  P_DATA_UNITS) then
 c           Command DATA_UNITS.
             call set_units (error)
-	 elseif (keynum .eq.  P_DEFAULT_MAP) then
+         elseif (keynum .eq.  P_DEFAULT_MAP) then
 c           Command DEFAULT_MAP.
             call set_defmap(error)
             if ((iflag .eq.0) .and. .not.error) then
@@ -910,14 +910,14 @@ c           Command LABEL.
          elseif (keynum .eq. P_LANDSCAPE) then
 c           Command LANDSCAPE
             call set_landscape(error)
-	    if((iflag .eq. 0) .and.  .not.error) then
+            if((iflag .eq. 0) .and.  .not.error) then
                call ui_update (LANDSCAPE_UI)
             endif
          elseif (keynum .eq. P_LIFT_OVERLAY) then
 c           Command LIFT_OVERLAY
             call delseg (curseg)
             call set_up_old_lim
-	    call update_all
+            call update_all
          elseif (keynum .eq. P_LINECOLOR) then
 c           Command LINECOLOR. 
             call setclclr (error)
@@ -1116,7 +1116,7 @@ c           Command RUN_SUB.
          elseif (keynum .eq. P_SAVE) then
 c           Command SAVE.
             call setsav (error) 
-	 elseif (keynum .eq. P_SAVE_WINDOW) then
+         elseif (keynum .eq. P_SAVE_WINDOW) then
 c           Command SAVE_WINDOW
             call save_window
          elseif (keynum .eq. P_SCALE_VECTOR) then
@@ -1374,7 +1374,7 @@ c
                if ( (iflag .eq. 0) .and. .not.error )  then 
                   call  ui_update (UI_VECT_COMP)
                endif
-	       att_var_id = getvid(att_var(strbeg(att_var):
+               att_var_id = getvid(att_var(strbeg(att_var):
      &              strend(att_var)))
                 call get_var_atts(att_var_id, lin, cont_int,
      &              cont_values, no_zero, disp_units, major_tic,
@@ -1399,11 +1399,11 @@ c           Command VECTOR_MAX
          elseif (keynum .eq. P_VECTOR_LOCK) then
 c           Command VECTOR_LOCK
             call   setveclock(error)
-	    if ((iflag .eq. 0) .and. .not.error) then
+            if ((iflag .eq. 0) .and. .not.error) then
                call ui_update(VLOCK_UI)
             endif
             call update_all
-	 elseif (keynum .eq. P_VECTOR_POSITION) then
+         elseif (keynum .eq. P_VECTOR_POSITION) then
             call setvec_pos(error)
             if ((iflag .eq. 0) .and. .not.error) then
                call ui_update(VPOS)
@@ -1436,9 +1436,9 @@ c           Command WRITECOLORTABLE.
          elseif (keynum .eq. P_WRITE_FRAME) then
 c           Command WRITE_FRAME.
             call write_frame (error)
-	 elseif (keynum .eq. P_WRITE_1D) then
+         elseif (keynum .eq. P_WRITE_1D) then
 c	    Command WRITE_1D.
-	    call write_1d(error)
+            call write_1d(error)
          elseif (keynum .eq. P_XLOCATION) then
 c           Command XLOCATION.
             keepit = lock(1)
@@ -1469,10 +1469,7 @@ c           Command XPOINTS.
             endif
             call get_dim_atts()
             call do_props (1)
-            mapwin_u1=0.0
-            mapwin_u2=0.0
-            mapwin_v1=0.0
-            mapwin_v2=0.0
+            mapwin_u1=0.0 ; mapwin_u2=0.0 ; mapwin_v1=0.0 ; mapwin_v2=0.0
          elseif (keynum .eq. P_XTICS) then
 c           Command XTICS
             call setxti (error)
@@ -1664,7 +1661,7 @@ c
                   call makpointplt(%val(varpt1), cpmax1, cpmax2, 
      &                 cpmax3, cpmax4)
                elseif ( plotyp(ibeg:iend) .eq. 'SCALAR' .or. 
-     &		        plotyp(ibeg:iend) .eq. 'LINE') then
+     &                  plotyp(ibeg:iend) .eq. 'LINE') then
 c
 c	Normal 2D plot
 c

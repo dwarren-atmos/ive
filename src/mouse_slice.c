@@ -69,8 +69,8 @@ void get_slice(x1, y1, x2, y2, slice)
      float x1, y1, x2, y2;
      int slice; /*slice or window flag 0=slice 1=window*/
 {
-  double domain_intercept[4], domain_slope[4];
- float vpl,vpr,vpb,vpt,wdl,wdr,wdb,wdt, trade, spval=0.0; 
+	double domain_intercept[4], domain_slope[4];
+	float vpl,vpr,vpb,vpt,wdl,wdr,wdb,wdt, trade, spval=0.0; 
     float x1w, x2w, y1w, y2w; /*world coord*/
     float x3w, x4w, y3w, y4w; /*extras for 2 dimention line*/
     float wmin[4], wmax[4];
@@ -90,452 +90,481 @@ void get_slice(x1, y1, x2, y2, slice)
     y2 = 1-y2;
     /* gks is backwards from X*/
     switch(linlog){
-    case 1:
-	break;
-    case 2:
-	wdb = (float)log10(wdb);
-	wdt = (float)log10(wdt);
-	break;
+	case 1:
+	  break;
+	case 2:
+	  wdb = (float)log10(wdb);
+	  wdt = (float)log10(wdt);
+	  break;
     case 3:
-	wdl = (float)log10(wdl);
-	wdr = (float)log10(wdr);
-	break;
+	  wdl = (float)log10(wdl);
+	  wdr = (float)log10(wdr);
+	  break;
     case 4:
-	wdl = (float)log10(wdl);
-	wdr = (float)log10(wdr);
-	wdb = (float)log10(wdb);
-	wdt = (float)log10(wdt);
+	  wdl = (float)log10(wdl);
+	  wdr = (float)log10(wdr);
+	  wdb = (float)log10(wdb);
+	  wdt = (float)log10(wdt);
     }	
+
     if(use_buttons){
-	xaxis = window_points_.xaxis;
-	yaxis = window_points_.yaxis;
+	  xaxis = window_points_.xaxis;
+	  yaxis = window_points_.yaxis;
     }
     else{
 /*      Note: only need to set ax1 and ax2 as we can only have one combined
               dimention
 */	
 /*	float point1[4],point2[4],point3[4]; already declared */
-	i=4;
-	(void)getrarr_("point_1", point1, &i, &error,7);
-	(void)getrarr_("point_2", point2, &i, &error,7);
-	(void)getrarr_("point_3", point3, &i, &error,7);
-	if (window_points_.xaxis == 0)
+	  i=4;
+	  (void)getrarr_("point_1", point1, &i, &error,7);
+	  (void)getrarr_("point_2", point2, &i, &error,7);
+	  (void)getrarr_("point_3", point3, &i, &error,7);
+	  if (window_points_.xaxis == 0)
 	    xaxis = window_points_.xaxis;
-	else{
+	  else{
 	    xaxis = 5;
-	}
-	if (window_points_.yaxis == 0)
+	  }
+	  
+	  if (window_points_.yaxis == 0)
 	    yaxis = window_points_.yaxis;
-	else{
+	  else{
 	    yaxis = 5;
-	}
-	ax[0] = ax[1] = 0;
-	x1w = x2w = x3w = x4w = 0.;
-	    if(xaxis== 5){
+	  }
+	  ax[0] = ax[1] = 0;
+	  x1w = x2w = x3w = x4w = 0.;
+	  if(xaxis== 5){
+
 		if(yaxis != 1 && (point1[0] != point2 [0] || point2[0] != 
-				  point3[0] || point1[0] != point3 [0]))
+				          point3[0] || point1[0] != point3 [0]))
 		    ax[0] = 1;
+
 		if(yaxis != 2 && (point1[1] != point2 [1] || point2[1] != 
-				  point3[1] || point1[1] != point3 [1])){
+				          point3[1] || point1[1] != point3 [1])){
 		    if(ax[0] == 0) ax[0] = 2;
 		    else ax[1] = 2;
 		}
+
 		if(yaxis != 3 && (point1[2] != point2 [2] || point2[2] != 
-				  point3[2] || point1[2] != point3 [2])){
+				          point3[2] || point1[2] != point3 [2])){
 		    if(ax[0] == 0) ax[0] = 3;
 		    else ax[1] = 3;
 		}
+
 		if(yaxis != 4 && (point1[3] != point2 [3] || point2[3] != 
-				  point3[3] || point1[3] != point3 [3]))
+				          point3[3] || point1[3] != point3 [3]))
 		    ax[1] = 4;
-	    }
-	if(yaxis== 5){
+	  }
+
+	  if(yaxis== 5){
 	    if(xaxis != 1 && (point1[0] != point2 [0] || point2[0] != 
-			      point3[0] || point1[0] != point3 [0]))
-		ax[0] == 1;
+						  point3[0] || point1[0] != point3 [0]))
+		  ax[0] == 1;
+
 	    if(xaxis != 2 && (point1[1] != point2 [1] || point2[1] != 
-			      point3[1] || point1[1] != point3 [1])){
+						  point3[1] || point1[1] != point3 [1])){
 		    if(ax[0] == 0) ax[0] = 2;
 		    else ax[1] = 2;
 		}
+
 	    if(xaxis != 3 && (point1[2] != point2 [2] || point2[2] != 
-			      point3[2] || point1[2] != point3 [2])){
+						  point3[2] || point1[2] != point3 [2])){
 		    if(ax[0] == 0) ax[0] = 2;
 		    else ax[1] = 3;
 		}
+
 	    if(xaxis != 4 && (point1[3] != point2 [3] || point2[3] != 
-			      point3[3] || point1[3] != point3 [3]))
-		ax[1] = 4;
-	}
-	(void)getrarr_("plwmin", wmin, &i, &error, 6);
-	(void)getrarr_("plwmax", wmax, &i, &error, 6);
+						  point3[3] || point1[3] != point3 [3]))
+		  ax[1] = 4;
+	  }
+	  (void)getrarr_("plwmin", wmin, &i, &error, 6);
+	  (void)getrarr_("plwmax", wmax, &i, &error, 6);
     }
 
     
     if(xaxis == 5){
-	x1w = MIN(wdl,wdr) + (x1-vpl)/(vpr-vpl)*
-	    (wmax[ax[0] - 1] - wmin[ax[0] - 1]);
-	x2w = MIN(wdl,wdr) + (x2-vpl)/(vpr-vpl)*
-	    (wmax[ax[0] - 1] - wmin[ax[0] - 1]);
-	x3w = MIN(wdl,wdr) + (x1-vpl)/(vpr-vpl)*
-	    (wmax[ax[1] - 1] - wmin[ax[1] - 1]);
-	x4w = MIN(wdl,wdr) + (x2-vpl)/(vpr-vpl)*
-	    (wmax[ax[1] - 1] - wmin[ax[1] - 1]);
-	    }
-    else{
-	x1w = MIN(wdl,wdr) + (x1-vpl)/(vpr-vpl)*(MAX(wdl,wdr) - MIN(wdl,wdr));
-	x2w = MIN(wdl,wdr) + (x2-vpl)/(vpr-vpl)*(MAX(wdl,wdr) - MIN(wdl,wdr));
+	  x1w = MIN(wdl,wdr) + (x1-vpl)/(vpr-vpl)*(wmax[ax[0] - 1] - wmin[ax[0] - 1]);
+	  x2w = MIN(wdl,wdr) + (x2-vpl)/(vpr-vpl)*(wmax[ax[0] - 1] - wmin[ax[0] - 1]);
+	  x3w = MIN(wdl,wdr) + (x1-vpl)/(vpr-vpl)*(wmax[ax[1] - 1] - wmin[ax[1] - 1]);
+	  x4w = MIN(wdl,wdr) + (x2-vpl)/(vpr-vpl)*(wmax[ax[1] - 1] - wmin[ax[1] - 1]);
 	}
+    else{
+	  x1w = MIN(wdl,wdr) + (x1-vpl)/(vpr-vpl)*(MAX(wdl,wdr) - MIN(wdl,wdr));
+	  x2w = MIN(wdl,wdr) + (x2-vpl)/(vpr-vpl)*(MAX(wdl,wdr) - MIN(wdl,wdr));
+	}
+
     if(yaxis == 5){
-	y1w = MIN(wdb,wdt) + (y1-vpb)/(vpt-vpb)*
-	    (wmax[ax[0] - 1] - wmin[ax[0] - 1]);
-	y2w = MIN(wdb,wdt) + (y2-vpb)/(vpt-vpb)*
-	    (wmax[ax[0] - 1] - wmin[ax[0] - 1]);
-	y3w = MIN(wdb,wdt) + (y1-vpb)/(vpt-vpb)*
-	    (wmax[ax[1] - 1] - wmin[ax[1] - 1]);
-	y3w = MIN(wdb,wdt) + (y2-vpb)/(vpt-vpb)*
-	    (wmax[ax[1] - 1] - wmin[ax[1] - 1]);
+	  y1w = MIN(wdb,wdt) + (y1-vpb)/(vpt-vpb)*(wmax[ax[0] - 1] - wmin[ax[0] - 1]);
+	  y2w = MIN(wdb,wdt) + (y2-vpb)/(vpt-vpb)*(wmax[ax[0] - 1] - wmin[ax[0] - 1]);
+	  y3w = MIN(wdb,wdt) + (y1-vpb)/(vpt-vpb)*(wmax[ax[1] - 1] - wmin[ax[1] - 1]);
+	  y3w = MIN(wdb,wdt) + (y2-vpb)/(vpt-vpb)*(wmax[ax[1] - 1] - wmin[ax[1] - 1]);
     }
     else{
-	y1w = MIN(wdb,wdt) + (y1-vpb)/(vpt-vpb)*(MAX(wdb,wdt) - MIN(wdb,wdt));
-	y2w = MIN(wdb,wdt) + (y2-vpb)/(vpt-vpb)*(MAX(wdb,wdt) - MIN(wdb,wdt));
+	  y1w = MIN(wdb,wdt) + (y1-vpb)/(vpt-vpb)*(MAX(wdb,wdt) - MIN(wdb,wdt));
+	  y2w = MIN(wdb,wdt) + (y2-vpb)/(vpt-vpb)*(MAX(wdb,wdt) - MIN(wdb,wdt));
     }
     
     switch(linlog){
     case 1:
-	break;
+	  break;
     case 2:
-	wdb = (float)pow(10,wdb);
-	wdt = (float)pow(10,wdt);
+	  wdb = (float)pow(10,wdb);
+	  wdt = (float)pow(10,wdt);
 	break;
     case 3:
-	wdl = (float)pow(10,wdl);
-	wdr = (float)pow(10,wdr);
+	  wdl = (float)pow(10,wdl);
+	  wdr = (float)pow(10,wdr);
 	break;
     case 4:
-	wdl = (float)pow(10,wdl);
-	wdr = (float)pow(10,wdr);
-	wdb = (float)pow(10,wdb);
-	wdt = (float)pow(10,wdt);
+	  wdl = (float)pow(10,wdl);
+	  wdr = (float)pow(10,wdr);
+	  wdb = (float)pow(10,wdb);
+	  wdt = (float)pow(10,wdt);
     }	
+
     switch(linlog){
     case 1:
-	break;
+	  break;
     case 2:
-	y1w = (float)pow(10,y1w);
-	y2w = (float)pow(10,y2w);
-	break;
+	  y1w = (float)pow(10,y1w);
+	  y2w = (float)pow(10,y2w);
+	  break;
     case 3:
-	x1w = (float)pow(10,x1w);
-	x2w = (float)pow(10,x2w);
-	break;
+	  x1w = (float)pow(10,x1w);
+	  x2w = (float)pow(10,x2w);
+	  break;
     case 4:
-	x1w = (float)pow(10,x1w);
-	x2w = (float)pow(10,x2w);
-	y1w = (float)pow(10,y1w);
-	y2w = (float)pow(10,y2w);
+	  x1w = (float)pow(10,x1w);
+	  x2w = (float)pow(10,x2w);
+	  y1w = (float)pow(10,y1w);
+	  y2w = (float)pow(10,y2w);
     }	
+
     if(x1w < wdl && x1w < wdr) x1w  = MIN(wdl,wdr);
     if(x2w < wdl && x2w < wdr) x2w  = MIN(wdl,wdr);
     if(x1w > wdl && x1w > wdr) x1w  = MAX(wdl,wdr);
     if(x2w > wdl && x2w > wdr) x2w  = MAX(wdl,wdr);
+
     if(y1w < wdb && y1w < wdt) y1w  = MIN(wdb,wdt);
     if(y2w < wdb && y2w < wdt) y2w  = MIN(wdb,wdt);
     if(y1w > wdb && y1w > wdt) y1w  = MAX(wdb,wdt);
     if(y2w > wdb && y2w > wdt) y2w  = MAX(wdb,wdt);
 
-    if(x1w == x2w && y1w == y2w)return;
+    if(x1w == x2w && y1w == y2w) return;
     
     (void)getlvar_("mapflg", &mapflg, &error, 6);
     (void)getlvar_("defmap", &defmap, &error, 6);
     (void)getlvar_("exact_fit", &exact_fit, &error, 9);
+
     if(mapflg && (!defmap)){
-	float lat[4], lon[4], x[4], y[4];
-	int npts=4;
-	(void)maptri_(&x1w,&y1w,&lat[0],&lon[0]);
-	(void)maptri_(&x2w,&y2w,&lat[3],&lon[3]);
-	(void)maptri_(&x1w,&y2w,&lat[1],&lon[1]);
-	(void)maptri_(&x2w,&y1w,&lat[2],&lon[2]);
-	(void)lonlat_2_phys_trans_(x, y, lon, lat, &npts);
-	if((x[0]!=x[1]) || (x[2]!=x[3]) || 
-	   (y[0]!=y[2]) || (y[1]!=y[3])){
-	  /* We need to call mapset so.. (as long as it's not a slice) */
-	  if(!slice){		
-	    (void)make_help_widget_("Nonrectangular window has been chosen\nIVE only supports rectangular slices within the data space");
+	  float lat[4], lon[4], x[4], y[4];
+	  int npts=4;
+	  (void)maptri_(&x1w,&y1w,&lat[0],&lon[0]);
+	  (void)maptri_(&x2w,&y2w,&lat[3],&lon[3]);
+	  (void)maptri_(&x1w,&y2w,&lat[1],&lon[1]);
+	  (void)maptri_(&x2w,&y1w,&lat[2],&lon[2]);
+	  
+	  (void)lonlat_2_phys_trans_(x, y, lon, lat, &npts);
+	  if((x[0]!=x[1]) || (x[2]!=x[3]) || 
+		 (y[0]!=y[2]) || (y[1]!=y[3])){
+		/* We need to call mapset so.. (as long as it's not a slice) */
+		if(!slice){		
+		  (void)make_help_widget_("Nonrectangular window has been chosen\nIVE only supports rectangular slices within the data space");
 	    return;
+		}
+		else{
+		  char buff[256];
+		  int inorth, isouth, ine, isw;
+		  /*need smallest val first*/
+		  for(i=0;i<4;i++){
+			if(lon[i]<0) lon[i]=lon[i]+360;
+			if(lon[i]>360) lon[i]=lon[i]-360;
+		  }
+
+		  if(lat[0] >= lat[1]){
+			  inorth = 0; 
+			  isouth = 1;
+		  }
+          else{
+			  inorth = 1; 
+			  isouth = 0;
+		  }
+
+		  if(lon[inorth+2] >= lon[inorth]) ine=inorth+2;
+		  else ine=inorth;
+
+		  if(lon[isouth+2] <= lon[isouth]) isw=isouth+2;
+		  else isw=isouth;
+
+	      sprintf(buff,"map_window=  %f, %f, %f, %f",
+			  lon[isw],lon[ine],lat[isw],lat[ine]);
+		  /*
+		  sprintf(buff,"map_window=  %f, %f, %f, %f",
+		      MIN(x1w,x2w),MIN(y1w,y2w),MAX(x1w,x2w),MAX(y1w,y2w));
+		  */
+		  driver(buff);
+		  return;
+		}
 	  }
-	  else{
-	    char buff[256];
-	    sprintf(buff,"map_window=  %f, %f, %f, %f",
-		    MIN(x1w,x2w),MIN(y1w,y2w),MAX(x1w,x2w),MAX(y1w,y2w));
-	    /*need smallest val first*/
-	    driver(buff);
-	    return;
-	  }
-	}
-	x1w=MIN(x[0], x[2]);
-	x2w=MAX(x[0], x[2]);
-	y1w=MIN(y[0], y[1]);
-	y2w=MAX(y[0], y[1]);
+	  x1w=MIN(x[0], x[2]); x2w=MAX(x[0], x[2]);
+	  y1w=MIN(y[0], y[1]); y2w=MAX(y[0], y[1]);
     }
     
 
     if(!slice) {
-	char buffx[256], buffy[256];
-	/*	int error; already declared*/
-	driver_notwin("point_setup");
-	switch(xaxis){
-	case 0: 
+	  char buffx[256], buffy[256];
+	  /*	int error; already declared*/
+	  driver_notwin("point_setup");
+
+	  switch(xaxis){
+	  case 0: 
 	    (void)getavar_("field", buffx, &error, 256);
 	    (void)make_help_widget_("Sorry, mouse slicing the field is not yet supported");
 	    return;
 	    break;
-	case 1:
+	  case 1:
 	    i=1;
 	    (void)scale_(&x1w,&i,domain_slope,domain_intercept,&spval);
 	    (void)scale_(&x2w,&i,domain_slope,domain_intercept,&spval);
 	    sprintf(buffx,"xpoint=%f,%f", x1w,x2w);
 	    break;
-	case 2:
+	  case 2:
 	    i=1;
 	    (void)scale_(&x1w,&i,domain_slope+1,domain_intercept+1,&spval);
 	    (void)scale_(&x2w,&i,domain_slope+1,domain_intercept+1,&spval);
 	    sprintf(buffx,"ypoint=%f,%f", x1w,x2w);
 	    break;
-	case 3:
+	  case 3:
 	    i=1;
 	    (void)scale_(&x1w,&i,domain_slope+2,domain_intercept+2,&spval);
 	    (void)scale_(&x2w,&i,domain_slope+2,domain_intercept+2,&spval);
 	    sprintf(buffx,"zpoint=%f,%f", x1w,x2w);
 	    break;
-	case 4:
+	  case 4:
 	    i=1;
 	    (void)scale_(&x1w,&i,domain_slope+3,domain_intercept+3,&spval);
 	    (void)scale_(&x2w,&i,domain_slope+3,domain_intercept+3,&spval);
 	    sprintf(buffx,"tpoint=%f,%f", x1w,x2w);
 	    break;
-	case 5:
+	  case 5:
 	    (void)make_help_widget_("Sorry, mouse slicing mixed domains is not yet supported");
 	    return;
 	    break;
-	}
-	switch(yaxis){
-	case 0: 
+	  }
+
+	  switch(yaxis){
+	  case 0: 
 	    (void)getavar_("field", buffy, &error, 5, 256);
 	    (void)make_help_widget_("Sorry, mouse slice the field is not yet supported");
 	    return;
 	    break;
-	case 1:
+	  case 1:
 	    i=1;
 	    (void)scale_(&y1w,&i,domain_slope,domain_intercept,&spval);
 	    (void)scale_(&y2w,&i,domain_slope,domain_intercept,&spval);
 	    sprintf(buffy,"xpoint=%f,%f", y1w,y2w);
 	    return;
 	    break;
-	case 2:
+	  case 2:
 	    i=1;
 	    (void)scale_(&y1w,&i,domain_slope+1,domain_intercept+1,&spval);
 	    (void)scale_(&y2w,&i,domain_slope+1,domain_intercept+1,&spval);
 	    sprintf(buffy,"ypoint=%f,%f", y1w,y2w);
 	    break;
-	case 3:
+	  case 3:
 	    i=1;
 	    (void)scale_(&y1w,&i,domain_slope+2,domain_intercept+2,&spval);
 	    (void)scale_(&y2w,&i,domain_slope+2,domain_intercept+2,&spval);
 	    sprintf(buffy,"zpoint=%f,%f", y1w,y2w);
 	    break;
-	case 4:
+	  case 4:
 	    i=1;
 	    (void)scale_(&y1w,&i,domain_slope+3,domain_intercept+3,&spval);
 	    (void)scale_(&y2w,&i,domain_slope+3,domain_intercept+3,&spval);
 	    sprintf(buffy,"tpoint=%f,%f", y1w,y2w);
 	    break;
-	case 5:
+	  case 5:
 	    (void)make_help_widget_("Sorry, mouse slicing mixed domains is not yet supported");
 	    return;
 	    break;
-	}
-	driver_notwin(buffx);
-	driver_notwin(buffy);
-	driver("switch_slicer=points");
+	  }
+	  driver_notwin(buffx);
+	  driver_notwin(buffy);
+	  driver("switch_slicer=points");
     }
     else{
-	char buffx[256], buffy[256];
-	/*	int error; already declared*/
-	if(wdb > wdt){
+	  char buffx[256], buffy[256];
+	  /*	int error; already declared*/
+	  if(wdb > wdt){
 	    if(y1w<y2w){
-		trade = y1w;
-		y1w = y2w;
-		y2w = trade;
+		  trade = y1w;
+		  y1w = y2w;
+		  y2w = trade;
 	    }
-	}
-	else
-	{
+	  }
+	  else{
 	    if(y1w>y2w){
-		trade = y1w;
-		y1w = y2w;
-		y2w = trade;
-	    }
-	}	    
-	if(wdl > wdr){
-	    if(x1w<x2w){
-		trade = x1w;
-		x1w = x2w;
-		x2w = trade;
-	    }
-	}
-	else
-	{
-	    if(x1w>x2w){
-		trade = x1w;
-		x1w = x2w;
-		x2w = trade;
-	    }
-	}	    
+		  trade = y1w;
+		  y1w = y2w;
+		  y2w = trade;
+		  }
+	  }	    
 
-	switch(xaxis){
-	case 0: 
+	  if(wdl > wdr){
+	    if(x1w<x2w){
+		  trade = x1w;
+		  x1w = x2w;
+		  x2w = trade;
+	    }
+	  }
+	  else{
+	    if(x1w>x2w){
+		  trade = x1w;
+		  x1w = x2w;
+		x2w = trade;
+	    }
+	  }	    
+
+	  switch(xaxis){
+	  case 0: 
 /*	    (void)getavar_('field', buffx, &error, 256);
 	    (void)make_help_widget_("Sorry, mouse windowing the field is not yet supported");*/
 	    buffx[0] = '\0';
 	    break;
-	case 1:
+	  case 1:
 	    i=1;
 	    (void)scale_(&x1w,&i,domain_slope,domain_intercept,&spval);
 	    (void)scale_(&x2w,&i,domain_slope,domain_intercept,&spval);
 	    sprintf(buffx,"window=%f,%f", x1w,x2w);
 	    break;
-	case 2:
+	  case 2:
 	    i=1;
 	    (void)scale_(&x1w,&i,domain_slope+1,domain_intercept+1,&spval);
 	    (void)scale_(&x2w,&i,domain_slope+1,domain_intercept+1,&spval);
 	    sprintf(buffx,"window=,,%f,%f", x1w,x2w);
 	    break;
-	 case 3:
+	  case 3:
 	    i=1;
 	    (void)scale_(&x1w,&i,domain_slope+2,domain_intercept+2,&spval);
 	    (void)scale_(&x2w,&i,domain_slope+2,domain_intercept+2,&spval);
 	    sprintf(buffx,"window=,,,,%f,%f", x1w,x2w);
 	    break;
-	case 4:
+	  case 4:
 	    i=1;
 	    (void)scale_(&x1w,&i,domain_slope+3,domain_intercept+3,&spval);
 	    (void)scale_(&x2w,&i,domain_slope+3,domain_intercept+3,&spval);
 	    sprintf(buffx,"window=,,,,,,%f,%f", x1w,x2w);
 	    break;
-	case 5:
-	    (void)scale_(&x1w,&i,domain_slope+3,domain_intercept+(ax[0]-1),
-			 &spval);
-	    (void)scale_(&x2w,&i,domain_slope+3,domain_intercept+(ax[0]-1),
-			 &spval);
-	    (void)scale_(&x3w,&i,domain_slope+3,domain_intercept+(ax[1]-1),
-			 &spval);
-	    (void)scale_(&x4w,&i,domain_slope+3,domain_intercept+(ax[1]-1),
-			 &spval);
+	  case 5:
+	    (void)scale_(&x1w,&i,domain_slope+3,domain_intercept+(ax[0]-1),&spval);
+	    (void)scale_(&x2w,&i,domain_slope+3,domain_intercept+(ax[0]-1),&spval);
+	    (void)scale_(&x3w,&i,domain_slope+3,domain_intercept+(ax[1]-1),&spval);
+	    (void)scale_(&x4w,&i,domain_slope+3,domain_intercept+(ax[1]-1),&spval);
 	    sprintf(buffx,"window=");
 	    switch (ax[0]){
 	    case 1:
-		switch(ax[1]){
-		case 2:
-	    sprintf(buffx,"%s%f,%f,%f,%f",buffx,x1w,x2w,x3w,x4w);
+		  switch(ax[1]){
+		  case 2:
+			sprintf(buffx,"%s%f,%f,%f,%f",buffx,x1w,x2w,x3w,x4w);
 		    break;
-		case 3:
+		  case 3:
 		    sprintf(buffx,"%s%f,%f,,,%f,%f",buffx,x1w,x2w,x3w,x4w);
 		    break;
-		case 4:
+		  case 4:
 		    sprintf(buffx,"%s%f,%f,,,,,%f,%f",buffx,x1w,x2w,x3w,x4w);
 		    break;
-		}
-		break;
+		  }
+		  break;
 	    case 2:
-		switch(ax[1]){
-		case 3:
+		  switch(ax[1]){
+		  case 3:
 		    sprintf(buffx,"%s,,%f,%f,%f,%f",buffx,x1w,x2w,x3w,x4w);
 		    break;
-		case 4:
+		  case 4:
 		    sprintf(buffx,"%s,,%f,%f,,,%f,%f",buffx,x1w,x2w,x3w,x4w);
 		    break;
-		}
-		break;
+		  }
+		  break;
 	    case 3:
-		switch(ax[1]){
-		case 4:
+		  switch(ax[1]){
+		  case 4:
 		    sprintf(buffx,"%s,,,,%f,%f,%f,%f",buffx,x1w,x2w,x3w,x4w);
 		    break;
-		}
-		break;
+		  }
+		  break;
 	    }
 	    break;
-	}
-	switch(yaxis){
-	case 0: 
+	  }
+
+	  switch(yaxis){
+	  case 0: 
 /*	    (void)getavar_('field', buffy, &error, 256);
 	    (void)make_help_widget_("Sorry, mouse windowing the field is not yet supported"); */
 	    buffy[0] = '\0';
 	    break;
-	case 1:
+	  case 1:
 	    i=1;
 	    (void)scale_(&y1w,&i,domain_slope,domain_intercept,&spval);
 	    (void)scale_(&y2w,&i,domain_slope,domain_intercept,&spval);
 	    sprintf(buffy,"window=%f,%f", y1w,y2w);
 	    return;
 	    break;
-	 case 2:
+	  case 2:
 	    i=1;
 	    (void)scale_(&y1w,&i,domain_slope+1,domain_intercept+1,&spval);
 	    (void)scale_(&y2w,&i,domain_slope+1,domain_intercept+1,&spval);
 	    sprintf(buffy,"window=,,%f,%f", y1w,y2w);
 	    break;
-	case 3:
+	  case 3:
 	    i=1;
 	    (void)scale_(&y1w,&i,domain_slope+2,domain_intercept+2,&spval);
 	    (void)scale_(&y2w,&i,domain_slope+2,domain_intercept+2,&spval);
 	    sprintf(buffy,"window=,,,,%f,%f", y1w,y2w);
 	    break;
-	case 4:
+	  case 4:
 	    i=1;
 	    (void)scale_(&y1w,&i,domain_slope+3,domain_intercept+3,&spval);
 	    (void)scale_(&y2w,&i,domain_slope+3,domain_intercept+3,&spval);
 	    sprintf(buffy,"window=,,,,,,%f,%f", y1w,y2w);
 	    break;
-	case 5:
+	  case 5:
 	    sprintf(buffy,"window=");
 	    switch (ax[0]){
 	    case 1:
-		switch(ax[1]){
-		case 2:
+		  switch(ax[1]){
+		  case 2:
 		    sprintf(buffy,"%s%f,%f,%f,%f",buffy,x1w,x2w,x3w,x4w);
 		    break;
-		case 3:
+		  case 3:
 		    sprintf(buffy,"%s%f,%f,,,%f,%f",buffy,x1w,x2w,x3w,x4w);
 		    break;
-		case 4:
+		  case 4:
 		    sprintf(buffy,"%s%f,%f,,,,,%f,%f",buffy,x1w,x2w,x3w,x4w);
 		    break;
-		}
-		break;
+		  }
+		  break;
 	    case 2:
-		switch(ax[1]){
-		case 3:
+		  switch(ax[1]){
+		  case 3:
 		    sprintf(buffy,"%s,,%f,%f,%f,%f",buffy,x1w,x2w,x3w,x4w);
 		    break;
-		case 4:
+		  case 4:
 		    sprintf(buffy,"%s,,%f,%f,,,%f,%f",buffy,x1w,x2w,x3w,x4w);
 		    break;
-		}
-		break;
+		  }
+		  break;
 	    case 3:
-		switch(ax[1]){
-		case 4:
+		  switch(ax[1]){
+		  case 4:
 		    sprintf(buffy,"%s,,,,%f,%f,%f,%f",buffy,x1w,x2w,x3w,x4w);
 		    break;
-		}
-		break;
+		  }
+		  break;
 	    }
 	    break;
-	}
-	if(buffx[0] != '\0')driver_notwin(buffx);
-	if(buffy[0] != '\0')driver_notwin(buffy);
+	  }
+	  if(buffx[0] != '\0')driver_notwin(buffx);
+	  if(buffy[0] != '\0')driver_notwin(buffy);
     }
 }
 
