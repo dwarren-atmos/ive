@@ -38,7 +38,7 @@ extern void srandom (unsigned int __seed) __THROW;
 extern long int random (void) __THROW;
 #endif
 
-int *genran_ (limit)
+int genran_ (limit)
      int *limit;
 {
     long divisor ;
@@ -49,8 +49,9 @@ int *genran_ (limit)
     t = (unsigned long)time(&now);
     srandom (t) ;
     divisor = LONG_MAX / (long) *limit ;
-    myiverandomnum = (int)(random() / divisor);
-    return (&myiverandomnum) ;
+    //    myiverandomnum = (int)(random() / divisor);
+    myiverandomnum = (int)(random() % *limit);
+    return (myiverandomnum) ;
 
 }
 
