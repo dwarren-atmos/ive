@@ -70,8 +70,19 @@ static char ident[] = "$Id: colormix.c,v 1.10 2002/12/09 18:03:08 warren Exp $";
 #include <xgks.h>
 #include <string.h>
 #include <stdlib.h>
+#if (LSB == 5)
+#include <lsb5/math.h>
+#elif (LSB == 4)
+#include <lsb4/math.h>
+#elif (LSB == 3)
+#include <lsb3/math.h>
+#elif (LSB == 2)
+#include <lsb2/math.h>
+#elif (LSB == 1)
+#include <lsb1/math.h>
+#else
 #include <math.h>
-
+#endif
 #include <ive_gks.h>
 #include <ive_color.h>
 #include <ive_macros.h>
@@ -93,6 +104,9 @@ static    GC gc_original, gc_new;
 static    float saturation,value,hue;
 static    Bool Truecolor=FALSE, RMOD = FALSE;
 
+extern void ginqcolourrep(),gsetcolourrep(),gupdatews(),ive_update_colorbar(),
+  update_all_(),getivar_(),make_help_widget_();
+extern unsigned long IveGetPixel();
 
 float
 getmax(a,b,c)
@@ -663,20 +677,29 @@ void gks_color_mixer(parent,min,max,RGB)
 				       XmATTACH_WIDGET,
 				       XmNrightAttachment,XmATTACH_FORM,
 					 XmNbottomWidget,done,NULL);
-      
-      XtAddCallback(red, XmNvalueChangedCallback, slide_changed,"red");
-      XtAddCallback(red, XmNdragCallback, slide_changed,"red");
-      XtAddCallback(green, XmNvalueChangedCallback, slide_changed,"green");
-      XtAddCallback(green, XmNdragCallback, slide_changed,"green");
-      XtAddCallback(blue, XmNvalueChangedCallback, slide_changed,"blue");
-      XtAddCallback(blue, XmNdragCallback, slide_changed,"blue");
-      XtAddCallback(entry, XmNvalueChangedCallback,new_entry,NULL);
-      XtAddCallback(entry, XmNdragCallback,new_entry,NULL);
-      XtAddCallback(apply,XmNactivateCallback,apply_color,NULL);
-      XtAddCallback(reset,XmNactivateCallback,do_reset_colors,NULL);
-      XtAddCallback(done,XmNactivateCallback,quit_color,NULL);
-      XtAddCallback(insert,XmNactivateCallback,insert_color,&entry);
-      XtAddCallback(delete,XmNactivateCallback,delete_color,&entry);
+      XtAddCallback(red, XmNvalueChangedCallback,  
+		    (XtCallbackProc)slide_changed,"red");
+      XtAddCallback(red, XmNdragCallback,  (XtCallbackProc)slide_changed,"red");
+      XtAddCallback(green, XmNvalueChangedCallback,  
+		    (XtCallbackProc)slide_changed,"green");
+      XtAddCallback(green, XmNdragCallback,  
+		    (XtCallbackProc)slide_changed,"green");
+      XtAddCallback(blue, XmNvalueChangedCallback,
+		    (XtCallbackProc) slide_changed,"blue");
+      XtAddCallback(blue, XmNdragCallback,  (XtCallbackProc)slide_changed,"blue");
+      XtAddCallback(entry, XmNvalueChangedCallback, 
+		    (XtCallbackProc)new_entry,NULL);
+      XtAddCallback(entry, XmNdragCallback, 
+		    (XtCallbackProc)new_entry,NULL);
+      XtAddCallback(apply,XmNactivateCallback, 
+		    (XtCallbackProc)apply_color,NULL);
+      XtAddCallback(reset,XmNactivateCallback, 
+		    (XtCallbackProc)do_reset_colors,NULL);
+      XtAddCallback(done,XmNactivateCallback, (XtCallbackProc)quit_color,NULL);
+      XtAddCallback(insert,XmNactivateCallback, 
+		    (XtCallbackProc)insert_color,&entry);
+      XtAddCallback(delete,XmNactivateCallback, 
+		    (XtCallbackProc)delete_color,&entry);
       
       
       XtVaGetValues(parent,XmNcolormap,&map,NULL);

@@ -119,6 +119,9 @@ static char ident[] = "$Id: file_callbacks.c,v 1.16 2002/08/09 19:57:25 warren E
 #include <file_widgets.h>
 #include <loop.h>
 
+extern void getivar_(),setivar_();
+extern int open_var_();
+
 /*
   cdf_temp is set up in open_var_
   */
@@ -441,7 +444,7 @@ void dump_ok_callback(w, client, call)
     sprintf(buff,"%s=%s,%s",what, choice, dump_widget.type);
     driver(buff);
     free((choice));
-    dump_done_callback(w, client, call);
+    dump_done_callback(w, (caddr_t)client, (XmAnyCallbackStruct *)call);
 }
 
 void dump_help_callback(w, client, call)
@@ -595,7 +598,8 @@ void dir_start_type_in(widg,data,ev)
     w=XtVaCreateManagedWidget("VALUE",xmTextFieldWidgetClass,XtParent(widg),
                               XmNcolumns,5,XmNx,x-15,XmNy,y-15,
                               NULL);
-    XtAddCallback(w,XmNactivateCallback,dir_start_type_call,&w);
+    XtAddCallback(w,XmNactivateCallback,(XtCallbackProc)dir_start_type_call,
+		  &w);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2,NULL);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion,NULL);
 
@@ -620,7 +624,8 @@ void dir_end_type_in(widg,data,ev)
     w=XtVaCreateManagedWidget("VALUE",xmTextWidgetClass,XtParent(widg),
                               XmNcolumns,5,XmNx,x-15,XmNy,y-15,
                               NULL);
-    XtAddCallback(w,XmNactivateCallback,dir_endv_type_call,&w);
+    XtAddCallback(w,XmNactivateCallback,(XtCallbackProc)dir_endv_type_call,
+		  &w);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2,NULL);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion,NULL);
 

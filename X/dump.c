@@ -57,13 +57,15 @@
 
 static char ident[] = "$Id: dump.c,v 1.7 2000/12/07 19:50:14 harry Exp $";
 
+#include <strings.h>
 #include <stdio.h>
 #include <Xm/XmAll.h>
-#include <ive.h>
 #include <ive_macros.h>
+#include <ive.h>
 #include <file_widgets.h>
 #include <cmndlst.h>
 #include <loop.h>
+#include <malloc.h>
 #ifndef MAX
 #define MAX(x, y) (x) > (y)? (x):(y) 
 #endif
@@ -72,6 +74,8 @@ static char ident[] = "$Id: dump.c,v 1.7 2000/12/07 19:50:14 harry Exp $";
 #endif
 
 extern Widget xgks_widget, Toplevel;
+extern void expand_path_();
+extern int Window_Dump();
 
 static char lastfile[256] = {'\0'};
 static int  file_number;
@@ -155,10 +159,10 @@ int *key, *iflag;
     if (*iflag == 0 && dump_widget.List) {
 	str = XmStringCreate(dump_widget.what, XmSTRING_DEFAULT_CHARSET);
 	XtVaSetValues(dump_widget.What, XmNlabelString, str, NULL);
-	XtFree(str);
+	XmStringFree(str);
 	str = XmStringCreate(dump_widget.type, XmSTRING_DEFAULT_CHARSET);
 	XtVaSetValues(dump_widget.Type, XmNlabelString, str, NULL);
-	XtFree(str);
+	XmStringFree(str);
     }	
     for (i=0; i < end; ++i) {
 	if (end > 99 && num_loc) {
