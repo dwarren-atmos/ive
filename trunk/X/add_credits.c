@@ -348,6 +348,7 @@
 ****************************************************************************/
 static char ident[] = "$Id: add_credits.c,v 1.87 2007-07-30 22:28:42 warren Exp $";
 
+#include <stdlib.h>
 #include <Xm/Xm.h>
 #include <X11/Xlib.h>
 #include <stdio.h>

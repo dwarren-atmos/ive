@@ -108,17 +108,20 @@ static char ident[] = "$Id: color_cb.c,v 1.12 2002/12/09 18:03:08 warren Exp $";
 #include <ive_gks.h>
 #include <ive_for.h>
 #include <ive_color.h>
+#include <malloc.h>
 
 extern Pixel IveGetPixel();
 extern Widget Box;
-extern void im_gone_callback();
+extern void im_gone_callback(),make_help_widget_(),IVE_TO_X(),gredrawsegws(),
+  ginqcolourrep(),gsetcolourrep(),gupdatews();
+extern XmString NewString();
 extern Colormap cmap; 
-static repress=0;
+static int repress=0;
 
 static Widget colorholder=(Widget)NULL;
 static Widget *colorholdercells=(Widget *)NULL;
-static moved=0;
-static colortabletodo=0;
+static int moved=0;
+static int colortabletodo=0;
 void cleanup_color_bar(w, data, call)
      Widget w;
      char *data;
@@ -412,7 +415,8 @@ void color_bar_callback(w, data, call)
 					 XmNautoUnmanage,FALSE,
 					 XmNallowShellResize,True,NULL);
 	
-	XtAddCallback(color_bar,XmNdestroyCallback,cleanup_color_bar,
+	XtAddCallback(color_bar,XmNdestroyCallback,
+		      (XtCallbackProc)cleanup_color_bar,
 		      (XtPointer)NULL);
 	
 	colorholder = XtVaCreateManagedWidget("Color Holder",
