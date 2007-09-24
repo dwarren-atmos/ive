@@ -57,7 +57,7 @@ extern void tic_decimals_call();
 extern void tic_widthmaj_call();
 extern void tic_widthmin_call();
 extern Widget Box;
-
+extern void getivar_();
 /**********
    This structure contains all the annotation widgets.
    **********/

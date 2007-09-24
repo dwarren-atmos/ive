@@ -131,14 +131,18 @@ static char ident[] = "$Id: Window_Dump.c,v 1.10 2003/07/02 20:23:02 warren Exp 
 #include <X11/Xutil.h>
 #include <X11/XWDFile.h>
 #include <X11/Intrinsic.h>
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
 #include <ive_gks.h>
 #ifdef MEMDBG
 #include <mnemosyne.h>
+#else
+#include <malloc.h>
 #endif
 
+extern void update_all_(),GifEncode();
+extern unsigned long IveGetPixel();
 
 extern Dimension loop_height, loop_width; /* Loop window dimensions */
 
@@ -200,13 +204,22 @@ int _swaplong (bp, n)
     return(1);
 }
 
+int Image_Size(image)
+     XImage *image;
+{
+/*     if (format != ZPixmap)
+      return(image->bytes_per_line * image->height * image->depth); */
+
+    return(image->bytes_per_line * image->height);
+}
+
 /*
  * Window_Dump: dump a window to a file which must already be open for
  *              writting.
  */
 
 #ifndef MEMDBG
-char *calloc();
+void *calloc();
 #endif
 
 
@@ -296,24 +309,25 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
     x = absx - win_info.x;
     y = absy - win_info.y;
     if (pixmap == 0) {
-
-	/* Treat all windows as unmapped to handle case when 
-	   window is partially off the screen.
-	   */
+      
+      /* Treat all windows as unmapped to handle case when 
+	 window is partially off the screen.
+      */
       /* 	if (win_info.map_state != IsViewable || absx+width > dwidth
-		|| absy-height < 0) {*/
-	    /*
-	     * If window is unmapped, cannot use XGetImage directly.  Try to
-	     * create a pixmap and copy the image into it first, then perform
-	     * a GetImage on the pixmap.
-	     */
-	    
+	 || absy-height < 0) {*/
+      /*
+       * If window is unmapped, cannot use XGetImage directly.  Try to
+       * create a pixmap and copy the image into it first, then perform
+       * a GetImage on the pixmap.
+       */
+      
       if (win_info.backing_store != Always) {
 	sprintf(buf, "Window must be mapped to get image\n");
 	signal(SIGIO, func);
 	return(1);
       }
       XRaiseWindow(dpy, window);
+      (void)update_all_();
       XSync(dpy, False);
       XSync(dpy, False);
       XSync(dpy, False);
@@ -630,14 +644,6 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
  * Determine the pixmap size.
  */
 
-int Image_Size(image)
-     XImage *image;
-{
-/*     if (format != ZPixmap)
-      return(image->bytes_per_line * image->height * image->depth); */
-
-    return(image->bytes_per_line * image->height);
-}
 
 #define lowbit(x) ((x) & (~(x) + 1))
 

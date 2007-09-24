@@ -97,7 +97,7 @@ void add_filelist_(char *filename)
 					      XmNlabelString, str,
 					      NULL);
 	XmStringFree(str);
-	XtAddCallback(filelist[i], XmNactivateCallback, filelist_call,
+	XtAddCallback(filelist[i], XmNactivateCallback, (XtCallbackProc)filelist_call,
 		      names[i]);
     }
     return;

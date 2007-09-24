@@ -59,6 +59,7 @@
  ****************************************************************************/
 static char ident[] = "$Id: background.c,v 1.13 2006/04/24 21:36:00 warren Exp $";
 
+#include <strings.h>
 #include <Xm/XmAll.h>
 #include <X11/Intrinsic.h>
 #include <ive.h>
@@ -66,8 +67,7 @@ static char ident[] = "$Id: background.c,v 1.13 2006/04/24 21:36:00 warren Exp $
 #include <ive_text_enum.h>
 #include <ive_macros.h>
 
-void getrvar_();
-void getlvar_();
+extern void getrvar_(),getlvar_(),getavar_(),call_defmap_();
 XmString NewString();
 /*
    This structure contains all the map widgets.
