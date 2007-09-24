@@ -46,7 +46,8 @@ static char ident[] = "$Id: control_c.c,v 1.9 1998/01/07 15:55:21 warren Exp $";
 
 #define app_con XtWidgetToApplicationContext(ive_widget)
 extern Widget ive_widget;
-  
+extern void   ginqopst(),getivar_(),delseg_(),setlvar_(),melt_dpy_(),comment_log_();
+
 jmp_buf env;	/* longjmp environment for interruped plots. */
 /*
    "ask_quit" puts up the "Quit" widget.
@@ -75,7 +76,7 @@ void ask_quit(data)
    It calls ask_quit via XtAppAddTimeOut to put up the "Quit" widget.
    */
 void quit_query(){
-    XtAppAddTimeOut(app_con,0,ask_quit,NULL);
+  XtAppAddTimeOut(app_con,0,(XtTimerCallbackProc)ask_quit,NULL);
     return;
 }
 /*

@@ -92,6 +92,7 @@ static char ident[] = "$Id: file_windows.c,v 1.18 2006-10-05 16:50:08 reinecke E
 #include <sys/param.h>
 #include <stdio.h>
 #include <file_widgets.h>
+#include <stdlib.h>
 
 #ifndef LIBDIR
 #define LIBDIR "/usr/local/lib/ive/"
