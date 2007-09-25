@@ -88,9 +88,6 @@
  */
 
 /*LINTLIBRARY*/
-#ifdef Linux
-typedef void * caddr_t;
-#endif
 
 
 #include <stdlib.h>

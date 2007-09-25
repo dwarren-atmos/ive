@@ -20,9 +20,6 @@ static char rcsid[] = "$Id: XgksWidget.c,v 1.5 2002/08/09 19:57:38 warren Exp $"
 === AUTHOR	: Neil Bowers, University of Leeds.		===
 ===								===
 =================================================================*/
-#ifdef Linux
-typedef void * caddr_t;
-#endif
 
 #include <stdio.h>
 
