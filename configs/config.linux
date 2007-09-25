@@ -77,9 +77,12 @@ FCPP =
 #FDEC =   -w95 -cm -align -auto -u -ip -zero
 FDEC =   -cm -align -auto -u -ip -zero
 
-DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
-	-DLSB=${LSB} -I/usr/include \
-	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE \
+#DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
+#	-DLSB=${LSB} -I/usr/include \
+#	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE \
+#	-DLinux
+DEC =	-DLSB=${LSB} -I/usr/include \
+	-I/usr/local/include -I/usr/X11R6/include \
 	-DLinux
 
 BROWSER='-DBROWSER=\"firefox\"'
