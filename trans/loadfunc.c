@@ -205,10 +205,6 @@ static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" 
 #ifdef __osf__
 #define memalign(size1,size2) malloc(size2)
 #endif
-#ifdef linux
-#undef _POSIX_SOURCE
-#define __USE_BSD
-#endif
 #if (LSB == 5)
 #include <lsb5/math.h>
 #elif (LSB == 4)
