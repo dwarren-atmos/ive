@@ -177,6 +177,9 @@ static char ident[] = "$Id: gks_widgets.c,v 1.37 2002/12/26 22:48:11 warren Exp 
 #include <GL/glx.h>
 #include <GL/gl.h>
 #include <X11/Xcms.h>
+#include <malloc.h>
+#include <stdlib.h>
+
 GLXContext IveGlxContext;
 XVisualInfo *IveGlxVisInfo;
 static int snglBuf[] = {GLX_RGBA, GLX_DEPTH_SIZE, 8, None};
@@ -187,8 +190,12 @@ static struct{
     int id;
 }g_widg[10]={NULL,0,NULL,0,NULL,0,NULL,0,NULL,0,NULL,0,NULL,0,NULL,0,NULL,0,NULL,0};
 
+extern void make_help_widget_(),XtConfigureWidget(),gupdatews(),gsetcolorrep(),
+  ginqcolorrep(),getivar_(),gopengks(),gescsetCTB(),gescsetAllocColour(),
+  gopenws(),xXgksFillArea();
+extern int gactivatews();
 Widget gl_widget;
-static GL_window_ID=99;
+static int GL_window_ID=99;
 
 extern Colormap cmap;
 int count_colors(w,cmap)
