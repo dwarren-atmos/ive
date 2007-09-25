@@ -175,6 +175,7 @@ static SEG_STATE_PTR segtable[SHSIZE];
 OUT_PRIMI      *XgksDuplicatePrimi();
 static void    psHeader();
 static FILE *fp; /*file for postscript*/
+static void XgksClearWs();
 
 extern struct {
 int isopen;
@@ -566,7 +567,6 @@ XgksDrawSegToWs(ws)
 XgksReDrawSegWs(ws)
     WS_STATE_PTR    ws;
 {
-  void XgksClearWs();
   XgksIDevDisable(ws);
 
   XgksClearWs(ws);
