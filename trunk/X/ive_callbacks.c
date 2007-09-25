@@ -163,7 +163,8 @@ extern double rint();
 #include <ive_gks.h>
 #include <ive_macros.h>
 
-XmString NewString();
+extern void getivar_(),getavar_(),getaarr_(),getrarr_(),ui_update_(),XtMoveWidget();
+extern XmString NewString();
 
 /***************************************************************************
   Widgets declared globally so that they can be set from the FORTRAN
@@ -201,7 +202,8 @@ void check_default_handler(w,data,ev)
 	event.time = ev->time;
 	event.state = 0;
 	event.keycode = XKeysymToKeycode(XtDisplay(w), XK_Return);
-	XSendEvent(XtDisplay(w), ev->window, False, KeyPressMask, &event);
+	XSendEvent(XtDisplay(w), ev->window, False, KeyPressMask, 
+		   (XEvent *)&event);
     }
 }
 
@@ -327,14 +329,18 @@ void make_help_widget_(s, dummy)
     hbox=XmCreateMessageBox(popup,"help",args,1);
     if (warn > 0) {
 	lwarn = 1000*warn;
-	timer = XtAppAddTimeOut(XtWidgetToApplicationContext(hbox),
-				lwarn, timeout_widget, hbox);
-	XtAddCallback(hbox,XmNokCallback,del_callback,(XtPointer)timer);
+	timer = XtAppAddTimeOut(XtWidgetToApplicationContext(hbox),lwarn, 
+			       (XtTimerCallbackProc)timeout_widget, hbox);
+	XtAddCallback(hbox,XmNokCallback,
+		      (XtCallbackProc)del_callback,(XtPointer)timer);
     }
-    else XtAddCallback(hbox,XmNokCallback,del_callback,NULL);
-    XtAddCallback(hbox,XmNokCallback,del_parent_callback,NULL);
-    XtUnmanageChild(XmMessageBoxGetChild(hbox,XmDIALOG_HELP_BUTTON));    
-    XtUnmanageChild(XmMessageBoxGetChild(hbox,XmDIALOG_CANCEL_BUTTON));
+    else XtAddCallback(hbox,XmNokCallback,(XtCallbackProc)del_callback,NULL);
+    XtAddCallback(hbox,XmNokCallback,
+		  (XtCallbackProc)del_parent_callback,NULL);
+    XtUnmanageChild(XmMessageBoxGetChild(hbox,
+				       XmDIALOG_HELP_BUTTON));    
+    XtUnmanageChild(XmMessageBoxGetChild(hbox,
+				       XmDIALOG_CANCEL_BUTTON));
     XtManageChild(hbox);
     XmStringFree(xs);
 /*XtAddGrab(hbox,TRUE,TRUE);*/
@@ -354,8 +360,8 @@ void make_value_widget_(s)
     XtSetArg(args[0], XmNmessageString, xs);  
     XtSetArg(args[1], XmNdialogType, XmDIALOG_WARNING);  
     hbox=XmCreateMessageBox(popup,"help",args,2);
-    XtAddCallback(hbox,XmNokCallback,del_callback,NULL);
-    XtAddCallback(hbox,XmNokCallback,del_parent_callback,NULL);
+    XtAddCallback(hbox,XmNokCallback,(XtCallbackProc)del_callback,NULL);
+    XtAddCallback(hbox,XmNokCallback,(XtCallbackProc)del_parent_callback,NULL);
     XtUnmanageChild(XmMessageBoxGetChild(hbox,XmDIALOG_HELP_BUTTON));    
     XtUnmanageChild(XmMessageBoxGetChild(hbox,XmDIALOG_CANCEL_BUTTON));
     XtManageChild(hbox);
@@ -375,8 +381,8 @@ void make_result_widget_(s)
     XtSetArg(args[0], XmNmessageString, xs);  
     XtSetArg(args[1], XmNdialogType, XmDIALOG_WARNING);  
     hbox=XmCreateMessageBox(popup,"help",args,2);
-    XtAddCallback(hbox,XmNokCallback,del_callback,NULL);
-    XtAddCallback(hbox,XmNokCallback,del_parent_callback,NULL);
+    XtAddCallback(hbox,XmNokCallback,(XtCallbackProc)del_callback,NULL);
+    XtAddCallback(hbox,XmNokCallback,(XtCallbackProc)del_parent_callback,NULL);
     XtUnmanageChild(XmMessageBoxGetChild(hbox,XmDIALOG_HELP_BUTTON));    
     XtUnmanageChild(XmMessageBoxGetChild(hbox,XmDIALOG_CANCEL_BUTTON));
     XtManageChild(hbox);
@@ -402,7 +408,7 @@ void make_info_widget_(s)
     xs = NewString(s);
     XtSetArg(args[0], XmNmessageString, xs);  
     ibox=XmCreateWarningDialog(Box,"info",args,1);
-    XtAddCallback(ibox,XmNokCallback,del_callback,NULL);
+    XtAddCallback(ibox,XmNokCallback,(XtCallbackProc)del_callback,NULL);
     XtUnmanageChild(XmMessageBoxGetChild(ibox,XmDIALOG_HELP_BUTTON));    
     XtUnmanageChild(XmMessageBoxGetChild(ibox,XmDIALOG_CANCEL_BUTTON));
     XtUnmanageChild(XmMessageBoxGetChild(ibox,XmDIALOG_OK_BUTTON));
@@ -457,7 +463,7 @@ void set_units_cb(w,data,ev)
 	    XmStringFree(tmp);
 	    XmStringFree(tmp2);
 	    XtAddCallback(ask,XmNhelpCallback,call_driver,(XtPointer)"help data_units");
-	    XtAddCallback(ask,XmNokCallback,set_data_units,NULL);
+	    XtAddCallback(ask,XmNokCallback,(XtCallbackProc)set_data_units,NULL);
 	}
     }
 }
@@ -535,7 +541,7 @@ void domain_units_call(w,data,ev)
 	XmStringFree(tmp);
 	XmStringFree(tmp2);
 	XtAddCallback(ask,XmNhelpCallback,call_driver,(XtPointer)"help domain_units");
-	XtAddCallback(ask,XmNokCallback,set_domain_units_cb,(XtPointer)data);
+	XtAddCallback(ask,XmNokCallback,(XtCallbackProc)set_domain_units_cb,(XtPointer)data);
     }
 }
 
@@ -582,9 +588,11 @@ void make_field_buttons_(string,parent)
 					     xmToggleButtonWidgetClass,
 					     holder,args,1);
 		XtAddCallback(buttons2[k],XmNarmCallback,
-			      set_field,(XtPointer)*(string+j));
+			      (XtCallbackProc)set_field,
+			      (XtPointer)*(string+j));
 		XtAddEventHandler(buttons2[k],ButtonPressMask,FALSE,
-				  set_units_cb,*(string+j));
+				  (XtEventHandler)set_units_cb,
+				  *(string+j));
 		k++;
 	    }
 	}
@@ -1371,9 +1379,8 @@ void window_value_call(w, data, call)
     else{
 	XtDestroyWidget(w);
 	XtManageChild(widg);
-	sprintf(buff,"One of the widgets slicer_widget.mins[%d] or slicer_widget.maxs[%d] is missing\n\
-Please notify the IVE support group of this error");
-	make_help_widget(buff);
+	sprintf(buff,"One of the widgets slicer_widget.mins[%d] or slicer_widget.maxs[%d] is missing\nPlease notify the IVE support group of this error",data,data);
+make_help_widget(buff);
 
     }
     window_typein_stuff.inuse=0;
@@ -1387,7 +1394,7 @@ void window_scale_type_in(widg,data,ev)
     Widget w;
     void check_num2();
     void text_box_motion();
-    int root,child;
+    unsigned long root,child;
     int x,y, rx,ry;
     unsigned int ret;
     if(window_typein_stuff.inuse == 1)return;
@@ -1402,10 +1409,12 @@ void window_scale_type_in(widg,data,ev)
     w=XtVaCreateManagedWidget("VALUE",xmTextFieldWidgetClass,XtParent(widg),
 			      XmNcolumns,5,XmNx,x-15,XmNy,y-15,
 			      NULL);
-    XtAddCallback(w,XmNactivateCallback,window_value_call,(XtPointer)data);
+    XtAddCallback(w,XmNactivateCallback,(XtCallbackProc)window_value_call,
+		  (XtPointer)data);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2,(XtPointer)0);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion,(XtPointer)0);
-    XtAddEventHandler(w, ButtonPressMask, FALSE, check_default_handler, (XtPointer)0);
+    XtAddEventHandler(w, ButtonPressMask, FALSE, 
+		      (XtEventHandler)check_default_handler, (XtPointer)0);
     /*note 0 for data is to avoid reverse videoing the type in box. It is
       not necessary in this case.*/
 
@@ -1426,7 +1435,7 @@ void add_win_handler(w)
 {
     XtAddEventHandler(XtParent(w), ButtonPressMask|ButtonMotionMask, 
 		      FALSE, 
-		      ive_move_win_handler,NULL);
+		      (XtEventHandler)ive_move_win_handler,NULL);
     XGrabPointer(XtDisplay(w), XtWindow(XtParent(w)), TRUE,
 		 ButtonPressMask|ButtonMotionMask,
 		 GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
@@ -1437,7 +1446,8 @@ void ive_beg_tear_call(w, data, call)
      int data;
      XmAnyCallbackStruct *call;
 {
-    XtAppAddTimeOut(XtWidgetToApplicationContext(w),0,add_win_handler,w);
+    XtAppAddTimeOut(XtWidgetToApplicationContext(w),0,
+		    (XtTimerCallbackProc)add_win_handler,w);
 }
 
 void ive_end_tear_call(w, data, call)
@@ -1446,7 +1456,7 @@ void ive_end_tear_call(w, data, call)
      XmAnyCallbackStruct *call;
 {
     XtRemoveEventHandler(w, ButtonPressMask|ButtonMotionMask, FALSE, 
-			 ive_move_win_handler,NULL);
+			 (XtEventHandler)ive_move_win_handler,NULL);
     XUngrabPointer(XtDisplay(w),CurrentTime);
 }
 
