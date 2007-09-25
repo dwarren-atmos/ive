@@ -105,7 +105,7 @@ static char ident[] = "$Id: forms_setup.c,v 1.23 2001/08/15 22:23:20 davidive Ex
 #include <properties.h>
 
 #define bigone 1.0E37
-
+extern void getivar_(),getrarr_(),getrvar_(),getlvar_(),getavar_();
 extern struct {
   int plot_axis;
   int rec_axis;

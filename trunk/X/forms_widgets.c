@@ -234,16 +234,14 @@ static char ident[] = "$Id: forms_widgets.c,v 1.64 2002/11/27 00:30:51 warren Ex
 #include <ive_macros.h>
 #include <ive_widgets.h>
 #include <stdio.h>
+#include <malloc.h>
 
-void getrvar_();
-void getivar_();
-void getlvar_();
-void call_driver();
-void  form_flip_call_l(),  form_flip_call_c();
-void numlines_scale_type_in(), vint_scale_type_in();
-void point_axis_call();
-void form_traj_step_call(), form_traj_val_call();
-void form_traj_background_call();
+extern void getrvar_(),getivar_(),getlvar_(),getavar_(),getiarr_(),
+  setup_contour_form(),setup_line_form(),setup_skewt_form(),setup_traj_form(),
+  setup_vector_form(), call_driver(),form_flip_call_l(),  form_flip_call_c(),
+  numlines_scale_type_in(), vint_scale_type_in(),point_axis_call(),
+  form_traj_step_call(), form_traj_val_call(), form_traj_background_call();
+extern int get_button_name();
 
 XmString NewString();
 
@@ -2728,7 +2726,7 @@ void do_props(force)
     static char old_type[16]=
       {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0',
 	 '\0','\0','\0'};
-    static old_fix[4]= {0,0,0,0};
+    static int old_fix[4]= {0,0,0,0};
     
     for (ivar = 0; ivar<10; ivar++)
 	plot_type1[ivar] = plot_type2[ivar] = '\0';
