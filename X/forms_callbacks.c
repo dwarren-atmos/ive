@@ -264,14 +264,27 @@ static char ident[] = "$Id: forms_callbacks.c,v 1.55 2002/08/09 19:57:26 warren 
 /*
  #define DBG 1
 */
-#include<stdlib.h>
 #include<stdio.h>
+#include<stdlib.h>
+#include <ctype.h>
 #include <string.h>
+#include <unistd.h>
 #include <Xm/XmAll.h>
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
+#if (LSB == 5)
+#include <lsb5/math.h>
+#elif (LSB == 4)
+#include <lsb4/math.h>
+#elif (LSB == 3)
+#include <lsb3/math.h>
+#elif (LSB == 2)
+#include <lsb2/math.h>
+#elif (LSB == 1)
+#include <lsb1/math.h>
+#else
 #include <math.h>
-
+#endif
 #define use_text_arrays 1
 #include <ive.h>
 #include <ive_for.h>
@@ -283,7 +296,7 @@ static char ident[] = "$Id: forms_callbacks.c,v 1.55 2002/08/09 19:57:26 warren 
 XmString NewString();
 
 static XmString on=NULL,off=NULL;
-
+extern void update_all_(),getrvar_(),getivar_(),getrarr_();
 char * float_nozero(number)
     float number;
 {
@@ -1897,10 +1910,12 @@ void numlines_scale_type_in(widg,data,ev)
                   &rx,&ry,&x,&y,&ret);
     XtUnmanageChild(widg);
     
-    w=XtVaCreateManagedWidget("VALUE",xmTextFieldWidgetClass,XtParent(widg),
-                              XmNcolumns,5,XmNx,x-15,XmNy,y-15,
-                              NULL);
-    XtAddCallback(w,XmNactivateCallback,numlines_type_call,&w);
+    w=XtVaCreateManagedWidget("VALUE",
+			      xmTextFieldWidgetClass,XtParent(widg),
+			      XmNcolumns,5,XmNx,x-15,XmNy,y-15,
+			      NULL);
+    XtAddCallback(w,XmNactivateCallback,
+		  (XtCallbackProc)numlines_type_call, &w);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2,NULL);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion,NULL);
     XtAddEventHandler(w, ButtonPressMask, FALSE, check_default_handler, 0);
@@ -1922,10 +1937,12 @@ void numterr_scale_type_in(widg,data,ev)
                   &rx,&ry,&x,&y,&ret);
     XtUnmanageChild(widg);
     
-    w=XtVaCreateManagedWidget("VALUE",xmTextFieldWidgetClass,XtParent(widg),
+    w=XtVaCreateManagedWidget("VALUE",
+			      xmTextFieldWidgetClass,XtParent(widg),
                               XmNcolumns,5,XmNx,x-15,XmNy,y-15,
                               NULL);
-    XtAddCallback(w,XmNactivateCallback,numterr_type_call,&w);
+    XtAddCallback(w,XmNactivateCallback,
+		  (XtCallbackProc)numterr_type_call,&w);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2,NULL);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion,NULL);
     XtAddEventHandler(w, ButtonPressMask, FALSE, check_default_handler, 0);
@@ -2004,7 +2021,8 @@ void vint_scale_type_in(widg,data,ev)
     w=XtVaCreateManagedWidget("VALUE",xmTextFieldWidgetClass,XtParent(widg),
                               XmNcolumns,5,XmNx,x-15,XmNy,y-15,
                               NULL);
-    XtAddCallback(w,XmNactivateCallback,vint_type_call,data);
+    XtAddCallback(w,XmNactivateCallback,
+		  (XtCallbackProc)vint_type_call,data);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2, NULL);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion, NULL);
     XtAddEventHandler(w, ButtonPressMask, FALSE, check_default_handler, 0);
@@ -2029,7 +2047,8 @@ void traj_scale_type_in(widg,data,ev)
     w=XtVaCreateManagedWidget("VALUE",xmTextFieldWidgetClass,XtParent(widg),
                               XmNcolumns,5,XmNx,x-15,XmNy,y-15,
                               NULL);
-    XtAddCallback(w,XmNactivateCallback,traj_type_call,data);
+    XtAddCallback(w,XmNactivateCallback,
+		  (XtCallbackProc)traj_type_call,data);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2, NULL);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion, NULL);
     XtAddEventHandler(w, ButtonPressMask, FALSE, check_default_handler, 0);
