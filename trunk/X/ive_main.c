@@ -225,12 +225,17 @@ static char ident[] = "@(#)$Id: ive_main.c,v 1.34 2002/12/13 23:35:35 harryive E
 #include <udunits.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <malloc.h>
+#include <stdlib.h>
 
 #define IVEMAIN
 #include <ive_macros.h>
 #include <ive_for.h>
 #include <ive_gks.h>
 
+extern void cpinrc_(),setavar_(),setdef_(),add_credits(),init_cursors(),
+  make_help_widget_(),comment_log_(),getavar_();
+extern int count_colors();
 /*
   Command line options.
   */

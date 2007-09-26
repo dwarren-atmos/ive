@@ -150,7 +150,7 @@ static char ident[] = "$Id: ive_main_widget.c,v 1.40 2006-10-05 16:48:22 reineck
 #include <strings.h>
 #endif
 #include <locale.h>
-
+#include <stdlib.h>
 
 #include <ive.h>
 #include <ive_for.h>

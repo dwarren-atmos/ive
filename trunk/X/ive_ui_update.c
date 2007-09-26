@@ -251,23 +251,21 @@ static char ident[] = "$Id: ive_ui_update.c,v 1.68 2002/11/27 00:30:52 warren Ex
  *
  *****************************************************************************/
 #include <X11/Intrinsic.h>
-#include <Xm/Xm.h>
-#include <Xm/PushB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/ToggleBG.h>
-#include <Xm/BulletinB.h>
-#include <Xm/Label.h>
-#include <Xm/Text.h>
-#include <Xm/CascadeB.h>
+#include <Xm/XmAll.h>
 #include <string.h>
 #include <ive_widgets.h>
 #include <properties.h>
 #include <loop_setup.h>
 #include <ive_text_enum.h>
 #include <file_widgets.h>
+#include <malloc.h>
+#include <stdlib.h>
 
 extern int fixed_index[4]; /*for slicing use*/
 extern double epsilon_();
+extern void getavar_(),getivar_(),getrarr_(),getrvar_(),getivar_(),getlvar_(),
+  init_points_(),getiarr_(),getdarr_(),scale_(),set_landscape_widgets();
+extern int get_button_name();
 #define bigone 1.0E37
 #ifndef MAX
 #define MAX(x, y) (((x) > (y))? (x):(y)) 

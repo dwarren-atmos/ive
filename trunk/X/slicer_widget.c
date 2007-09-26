@@ -135,6 +135,7 @@
 #ifdef Linux
 extern double rint();
 #endif
+#include <malloc.h>
 
 #include <ive.h>
 #include <ive_for.h>
@@ -150,6 +151,8 @@ static char ident[] = "$Id: slicer_widget.c,v 1.36 2002/08/09 19:57:28 warren Ex
 #define app_con XtWidgetToApplicationContext(slicer_widget.info_2d)
 
 extern XmString NewString();
+extern void getdarr_(),scale_(),setivar_(),setiarr_(),getavar_(),getrarr_(),getaarr_();
+
 struct {
     Widget info_2d, mins[4], maxs[4], fix[4], fix_lab[4];
 }slicer_widget = {NULL,
@@ -292,8 +295,8 @@ void info_2d_(min,max,dim)
 							XmNwidth, 381,
 							XmNautoUnmanage,FALSE,
 							NULL);
-	XtAddCallback(popup,XmNdestroyCallback,slicer_gone_callback,
-		      NULL);
+	XtAddCallback(popup,XmNdestroyCallback,
+		      (XtCallbackProc)slicer_gone_callback,NULL);
 	XtAddCallback(slicer_widget.info_2d, XmNhelpCallback,
                   check_help_call,NULL);
 
