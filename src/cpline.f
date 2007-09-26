@@ -1162,6 +1162,7 @@ c
 c        Print the constant field message.
 c
          call cpcldr (dat, rwrk1, iwrk1)
+         ncl=0
       else
 c
 c
