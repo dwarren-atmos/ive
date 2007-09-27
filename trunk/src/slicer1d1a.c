@@ -741,24 +741,29 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    float first_stepby;
 
 		    phpta[0].v[dimavg] = min[dimavg];
+
 		    if (*surface) phpta[0].v[2] = MISSING;
 		    else cmpta[0].v[locked] = MISSING;
+
 		    cmpta[0].v[dimavg] = MISSING;
+
 		    if (icounter == 0) {
-			phpta[0].v[stepby] = pt1[stepby];
-			cmpta[0].v[stepby] = cmpta[0].v[other] = MISSING;
+			  phpta[0].v[stepby] = pt1[stepby];
+			  cmpta[0].v[stepby] = cmpta[0].v[other] = MISSING;
+		      first_stepby = floor(cmpta[0].v[stepby]);
 		    }
 		    else if (icounter == nis-1) {
-			phpta[0].v[stepby] = pt2[stepby];
-			cmpta[0].v[stepby] = cmpta[0].v[other] = MISSING;
+			  phpta[0].v[stepby] = pt2[stepby];
+			  cmpta[0].v[stepby] = cmpta[0].v[other] = MISSING;
 		    }
 		    else {
-			cmpta[0].v[stepby] = first_stepby + icounter;
-			iflag[locked] = iflag[other] = iflag[dimavg] = 0;
-			cmpta[0].v[other] = MISSING;
-			phpta[0].v[other] = phpta[0].v[stepby] = MISSING;
-			convert(phpt, cmpt, iflag, *dims, coord_dep, 1);
+			  cmpta[0].v[stepby] = first_stepby + icounter;
+			  iflag[locked] = iflag[other] = iflag[dimavg] = 0;
+			  cmpta[0].v[other] = MISSING;
+			  phpta[0].v[other] = phpta[0].v[stepby] = MISSING;
+			  convert(phpt, cmpt, iflag, *dims, coord_dep, 1);
 		    }
+
 		    phpta[0].v[other] = slope*phpta[0].v[stepby] + intercept;
 		    iflag[locked] = iflag[other] = iflag[dimavg] = 1;
 		    cmpta[0].v[dimavg] = MISSING;
@@ -766,24 +771,22 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    cmpta[1] = cmpta[0];
 		    phpta[1].v[dimavg] = max[dimavg];
 		    convert(phpt, cmpt, iflag, *dims, coord_dep, 2);
-		    if (icounter == 0)
-		      first_stepby = floor(cmpta[0].v[stepby]);
+
 		    if (cmpta[0].v[dimavg] < cpmin[dimavg]) {
 			cmpta[0].v[dimavg] = cpmin[dimavg];
 			phpta[0].v[dimavg] = MISSING;
 			convert(phpta, cmpta, iflag, *dims, coord_dep, 1);
 		    }
 		    cmin = cmpta[0].v[dimavg];
-		    if (cmpta[1].v[dimavg] < 0 ||
-			cmpta[1].v[dimavg] > cpmax[dimavg]) {
+		    if (cmpta[1].v[dimavg] < 0 || cmpta[1].v[dimavg] > cpmax[dimavg]) {
 			cmpta[1].v[dimavg] = cpmax[dimavg];
 			phpta[1].v[dimavg] = MISSING;
 			convert(phpta+1, cmpta+1, iflag, *dims, coord_dep, 1);
 		    }
 		    cmax = cmpta[1].v[dimavg];
 		    if (cmin == cmax) {
-			slab_l.slab[icounter] = 
-			    (float)interp_(data,nx,ny,nz,nt,		
+			  slab_l.slab[icounter] = 
+				(float)interp_(data,nx,ny,nz,nt,		
 					   &cmpt[0].x,&cmpt[0].y,
 					   &cmpt[0].z,&cmpt[0].t,
 					   special);

@@ -909,20 +909,24 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni, *nj, *phys, *surface;
 	    /*
 	      See if this slice is possible.
 	    */
+	    stepby = slab_d.stepby;
+	    other = slab_d.other;
+
 	    for (icounter = 0; icounter < 4; icounter++) iflag[icounter] = 1;
+
 	    ctest[stepby] = ctest[other] = ctest[rconst] = MISSING;
 	    ptest[dimavg] = MISSING;
 	    ptest[stepby] = dfmin[stepby];
 	    ptest[other] = dfmin[other];
 	    ptest[rconst] = dfmin[rconst];
 	    ctest[dimavg] = cpmin[dimavg];
+
 	    if (!convert(ptest, ctest,iflag, *dims, coord_dep, 1)) {
 		(void) make_help_widget
 		    ("slicer2d1a: cannot do this slice - notify developers");
 		return((float *) 0);
 	    }		
-	    stepby = slab_d.stepby;
-	    other = slab_d.other;
+
 	    ntda = cpmax[dimavg] - cpmin[dimavg] + 1;
 	    nis = phpts.numx;
 	    njs = phpts.numy;

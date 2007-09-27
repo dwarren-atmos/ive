@@ -908,19 +908,20 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    phpta2[0].v[dimavg2] = min[dimavg2];
 		    cmpta2[0].v[dimavg1] = cmpta2[0].v[dimavg2] = MISSING;
 		    if (icounter == 0) {
-			phpta2[0].v[stepby] = pt1[stepby];
-			cmpta2[0].v[stepby] = cmpta2[0].v[other] = MISSING;
+			  phpta2[0].v[stepby] = pt1[stepby];
+			  cmpta2[0].v[stepby] = cmpta2[0].v[other] = MISSING;
+			  first_stepby = floor(cmpta2[0].v[stepby]);
 		    }
 		    else if (icounter == nis-1) {
-			phpta2[0].v[stepby] = pt2[stepby];
-			cmpta2[0].v[stepby] = cmpta2[0].v[other] = MISSING;
+			  phpta2[0].v[stepby] = pt2[stepby];
+			  cmpta2[0].v[stepby] = cmpta2[0].v[other] = MISSING;
 		    }
 		    else {
-			cmpta2[0].v[stepby] = first_stepby + icounter;
-			iflag2[other] = iflag2[dimavg1] = iflag2[dimavg2] = 0;
-			cmpta2[0].v[other] = MISSING;
-			phpta2[0].v[other] = phpta2[0].v[stepby] = MISSING;
-			convert(phpta2, cmpta2, iflag2, *dims, coord_dep, 1);
+			  cmpta2[0].v[stepby] = first_stepby + icounter;
+			  iflag2[other] = iflag2[dimavg1] = iflag2[dimavg2] = 0;
+			  cmpta2[0].v[other] = MISSING;
+			  phpta2[0].v[other] = phpta2[0].v[stepby] = MISSING;
+			  convert(phpta2, cmpta2, iflag2, *dims, coord_dep, 1);
 		    }
 		    /* 
 		       Find the first and last point in average2.
@@ -934,20 +935,17 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    cmpta2[1] = cmpta2[0];
 		    phpta2[1].v[dimavg1] = max[dimavg1];
 		    convert(phpta2, cmpta2, iflag2, *dims, coord_dep, 2);
-		    if (icounter == 0)
-			first_stepby = floor(cmpta2[0].v[stepby]);
+
 		    if (cmpta[0].v[dimavg2] < cpmin[dimavg2]) {
 			cmpta[0].v[dimavg2] = cpmin[dimavg2];
 			phpta[0].v[dimavg2] = MISSING;
 			convert(phpta2, cmpta2, iflag, *dims, coord_dep, 1);
 		    }
 		    cmin2 = cmpta[0].v[dimavg2];
-		    if (cmpta[1].v[dimavg2] < 0 ||
-			cmpta[1].v[dimavg2] > cpmax[dimavg2]) {
+		    if (cmpta[1].v[dimavg2] < 0 || cmpta[1].v[dimavg2] > cpmax[dimavg2]) {
 			cmpta[1].v[dimavg2] = cpmax[dimavg2];
 			phpta[1].v[dimavg2] = MISSING;
-			convert(phpta2+1, cmpta2+1, iflag, *dims,
-				coord_dep, 1);
+			convert(phpta2+1, cmpta2+1, iflag, *dims, coord_dep, 1);
 		    }
 		    cmax2 = cmpta[1].v[dimavg2];
 		    if (cmin2 == cmax2) nda2 = 2;
