@@ -191,7 +191,8 @@ void loop_ready_call(w, data, call)
 void loop_setup_rescale_()
 {
     if (loop_setup_form && XtIsManaged(loop_setup.endv_widget)) {
-      loop_coord_call((Widget)NULL, loop_setup.coord, NULL);
+      loop_coord_call((Widget)NULL, loop_setup.coord, 
+		      (XmToggleButtonCallbackStruct *)NULL);
     }
 }
 
@@ -207,7 +208,8 @@ void loop_setup_update_(dim, start, inc, endnum)
 	if (*dim) {
 	    XtVaSetValues(loop_setup.button[*dim-1], XmNset, TRUE, NULL);
 	}
-	loop_coord_call((Widget)NULL, *dim, NULL);
+	loop_coord_call((Widget)NULL, *dim, 
+			(XmToggleButtonCallbackStruct *)NULL);
 	XtVaSetValues(loop_setup.start_widget, XmNvalue, (int) *start, NULL);
 	XtVaSetValues(loop_setup.incr_widget, XmNvalue, float_nozero(*inc),
 		      NULL);
