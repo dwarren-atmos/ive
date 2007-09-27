@@ -65,6 +65,7 @@ static char ident[] = "$Id: loop_calls.c,v 1.4 2002/08/09 19:57:27 warren Exp $"
 
 extern Widget ive_widget;
 extern XmString NewString();
+extern void init_dump();
 
 void update_all_()
 {
