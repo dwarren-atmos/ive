@@ -144,13 +144,15 @@ c
       call getlvar ('drstrmln', drstrmln, error)
 c
       if ( drstrmln ) then
+c         call dr2dstrmln (data1, data2, nu, nv, imap, VECT_SPVAL)
+         call physuv_2_lonlatuv_trans(data1,data2,nu,nv,imap)
          call dr2dstrmln (data1, data2, nu, nv, imap, VECT_SPVAL)
+c         call dr2dstrmln (data1, data2, nu, nv, imap, VECT_ORVAL)
       else
 c     Rotational transform from atmos.umnw.ethz.ch
          call physuv_2_lonlatuv_trans(data1,data2,nu,nv,imap)
          call dr2dv (data1, data2, nu, nv, imap)
       endif
-c
 c
 c     If the vector routines encountered any errors, then return.
 c
@@ -161,18 +163,20 @@ c
 c
 c     Draw either a map foreground or perimeter, whichever is 
 c     appropriate.
-c
+c     
       if ( .not. savflg ) then
          if ( mapflg ) then
+            call getset ( vleft, vrght, vbot, vtop, 
+     &           wleft, wrght, wbot, wtop, axes)
             call mapdrw_dl
-            if (defmap .and. exact_fit) then
-               call getset ( vleft, vrght, vbot, vtop, 
-     &              wleft, wrght, wbot, wtop, axes)
+            if (defmap) then
                call set ( vleft, vrght, vbot, vtop,
-     &              x1, x2, y1, y2, axes)
+     &           wleft, wrght, wbot, wtop, axes)
+c     &              x1, x2, y1, y2, axes)
             endif
-	 endif
-	 if ( .not. mapflg .or. (defmap .and. exact_fit)) then
+c         endif
+         else
+c         if ( .not. mapflg .or. (defmap)) then
             xmajr = xmajor
             xminr = xminor
             ymajr = ymajor
