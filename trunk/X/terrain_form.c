@@ -37,9 +37,12 @@ static char ident[] = "$Id: terrain_form.c,v 1.8 2006/03/03 18:17:26 warren Exp 
 #include <ive_text_enum.h>
 #include <ive_macros.h>
 
-void getrvar_();
-void getlvar_();
-void getivar_();
+extern void getrvar_();
+extern void getlvar_();
+extern void getivar_();
+extern void getrarr_();
+extern void getrarr_();
+
 XmString NewString();
 /*
    This structure contains all the map widgets.

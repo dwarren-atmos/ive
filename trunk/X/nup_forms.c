@@ -31,7 +31,13 @@ static char ident[] = "$Id: nup_forms.c,v 1.7 1997/06/27 21:06:28 harry Exp $";
 #include <ive_for.h>
 #include <ive_text_enum.h>
 #include <ive_macros.h>
-XmString NewString();
+#include <stdlib.h>
+#include <malloc.h>
+#include <ctype.h>
+
+extern XmString NewString();
+extern void getivar_();
+
 extern struct {
     int curseg, curoverlay[15], curlist, curplot, segs[8*15], maxplot;
   }segments_;
@@ -378,27 +384,27 @@ void do_2up(w, data, call)
 				  
 
     XtAddCallback(twoup.two_1,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(twoup.two_1,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)T1);
     XtAddCallback(twoup.two_1,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)T1);
+                  (XtCallbackProc)print_check_num,(XtPointer)T1);
     XtAddCallback(twoup.two_1,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)T1);
 
     XtAddCallback(twoup.two_2,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(twoup.two_2,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)T2);
     XtAddCallback(twoup.two_2,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)T2);
+                  (XtCallbackProc)print_check_num,(XtPointer)T2);
     XtAddCallback(twoup.two_2,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)T2);
 
     XtAddCallback(twoup.print, XmNactivateCallback,
-		  form_print_callback, (XtPointer)"2");
+		  (XtCallbackProc)form_print_callback, (XtPointer)"2");
     XtAddCallback(twoup.landscape, XmNactivateCallback,
-		  form_landscape_callback, NULL);
+		  (XtCallbackProc)form_landscape_callback, NULL);
     XtManageChild(popup);
 }
 
@@ -517,45 +523,45 @@ void do_4up(w, data, call)
 				  
 
     XtAddCallback(fourup.four_1,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(fourup.four_1,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)F1);
     XtAddCallback(fourup.four_1,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)F1);
+                  (XtCallbackProc)print_check_num,(XtPointer)F1);
     XtAddCallback(fourup.four_1,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)F1);
 
     XtAddCallback(fourup.four_2,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(fourup.four_2,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)F2);
     XtAddCallback(fourup.four_2,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)F2);
+                  (XtCallbackProc)print_check_num,(XtPointer)F2);
     XtAddCallback(fourup.four_2,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)F2);
 
     XtAddCallback(fourup.four_3,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(fourup.four_3,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)F3);
     XtAddCallback(fourup.four_3,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)F3);
+                  (XtCallbackProc)print_check_num,(XtPointer)F3);
     XtAddCallback(fourup.four_3,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)F3);
 
     XtAddCallback(fourup.four_4,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(fourup.four_4,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)F4);
     XtAddCallback(fourup.four_4,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)F4);
+                  (XtCallbackProc)print_check_num,(XtPointer)F4);
     XtAddCallback(fourup.four_4,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)F4);
 
     XtAddCallback(fourup.print, XmNactivateCallback,
-		  form_print_callback, (XtPointer)"4");
+		  (XtCallbackProc)form_print_callback, (XtPointer)"4");
     XtAddCallback(fourup.landscape, XmNactivateCallback,
-		  form_landscape_callback, NULL);
+		  (XtCallbackProc)form_landscape_callback, NULL);
     XtManageChild(popup);
 }
 
@@ -705,61 +711,61 @@ void do_6up(w, data, call)
 				  
 
     XtAddCallback(sixup.six_1,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(sixup.six_1,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)S1);
     XtAddCallback(sixup.six_1,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)S1);
+                  (XtCallbackProc)print_check_num,(XtPointer)S1);
     XtAddCallback(sixup.six_1,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)S1);
 
     XtAddCallback(sixup.six_2,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(sixup.six_2,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)S2);
     XtAddCallback(sixup.six_2,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)S2);
+                  (XtCallbackProc)print_check_num,(XtPointer)S2);
     XtAddCallback(sixup.six_2,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)S2);
 
     XtAddCallback(sixup.six_3,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(sixup.six_3,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)S3);
     XtAddCallback(sixup.six_3,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)S3);
+                  (XtCallbackProc)print_check_num,(XtPointer)S3);
     XtAddCallback(sixup.six_3,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)S3);
 
     XtAddCallback(sixup.six_4,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(sixup.six_4,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)S4);
     XtAddCallback(sixup.six_4,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)S4);
+                  (XtCallbackProc)print_check_num,(XtPointer)S4);
     XtAddCallback(sixup.six_4,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)S4);
 
     XtAddCallback(sixup.six_5,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(sixup.six_5,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)S5);
     XtAddCallback(sixup.six_5,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)S5);
+                  (XtCallbackProc)print_check_num,(XtPointer)S5);
     XtAddCallback(sixup.six_5,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)S5);
 
     XtAddCallback(sixup.six_6,XmNactivateCallback,
-                  printbox_callback,NULL);
+                  (XtCallbackProc)printbox_callback,NULL);
     XtAddCallback(sixup.six_6,XmNactivateCallback,
                   cleanup_box_call,(XtPointer)S6);
     XtAddCallback(sixup.six_6,XmNmodifyVerifyCallback,
-                  print_check_num,(XtPointer)S6);
+                  (XtCallbackProc)print_check_num,(XtPointer)S6);
     XtAddCallback(sixup.six_6,XmNmotionVerifyCallback,
                   text_box_motion,(XtPointer)S6);
     XtAddCallback(sixup.landscape, XmNactivateCallback,
-		  form_landscape_callback, NULL);
+		  (XtCallbackProc)form_landscape_callback, NULL);
 
-    XtAddCallback(sixup.print, XmNactivateCallback, form_print_callback, (XtPointer)"6");
+    XtAddCallback(sixup.print, XmNactivateCallback, (XtCallbackProc)form_print_callback, (XtPointer)"6");
     XtManageChild(popup);
 }
