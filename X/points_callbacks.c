@@ -52,7 +52,7 @@ static char ident[] = "$Id: points_callbacks.c,v 1.10 2005/09/06 20:21:58 warren
 #include <ive_widgets.h>
 #include <ive_text_enum.h>
 
-extern XmString NewString;
+extern XmString NewString();
 extern void getrarr_(),info_2d_(),setiarr_(),do_props(),getiarr_(),init_points_(),
   ui_update_();
 
