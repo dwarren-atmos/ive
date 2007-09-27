@@ -87,6 +87,7 @@ extern double rint();
 #define MIN(a,b) (a<b ? a:b)
 
 extern Widget loop_setup_form;
+extern void getdarr_(),getrvar_(),scale_(),getrarr_();
 
 void loop_coord_call(w, data, call)
     Widget w;
@@ -190,7 +191,7 @@ void loop_ready_call(w, data, call)
 void loop_setup_rescale_()
 {
     if (loop_setup_form && XtIsManaged(loop_setup.endv_widget)) {
-	loop_coord_call(NULL, loop_setup.coord, NULL);
+      loop_coord_call((Widget)NULL, loop_setup.coord, NULL);
     }
 }
 
@@ -206,7 +207,7 @@ void loop_setup_update_(dim, start, inc, endnum)
 	if (*dim) {
 	    XtVaSetValues(loop_setup.button[*dim-1], XmNset, TRUE, NULL);
 	}
-	loop_coord_call(NULL, *dim, NULL);
+	loop_coord_call((Widget)NULL, *dim, NULL);
 	XtVaSetValues(loop_setup.start_widget, XmNvalue, (int) *start, NULL);
 	XtVaSetValues(loop_setup.incr_widget, XmNvalue, float_nozero(*inc),
 		      NULL);
@@ -267,7 +268,8 @@ void loop_start_type_in(widg,data,ev)
     w=XtVaCreateManagedWidget("VALUE",xmTextFieldWidgetClass,XtParent(widg),
                               XmNcolumns,5,XmNx,x-15,XmNy,y-15,
                               NULL);
-    XtAddCallback(w,XmNactivateCallback,loop_start_type_call,&w);
+    XtAddCallback(w,XmNactivateCallback,
+		  (XtCallbackProc)loop_start_type_call,&w);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2,NULL);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion,NULL);
 
@@ -292,7 +294,8 @@ void loop_end_type_in(widg,data,ev)
     w=XtVaCreateManagedWidget("VALUE",xmTextWidgetClass,XtParent(widg),
                               XmNcolumns,5,XmNx,x-15,XmNy,y-15,
                               NULL);
-    XtAddCallback(w,XmNactivateCallback,loop_endv_type_call,&w);
+    XtAddCallback(w,XmNactivateCallback,
+		  (XtCallbackProc)loop_endv_type_call,&w);
     XtAddCallback(w,XmNmodifyVerifyCallback,check_num2,NULL);
     XtAddCallback(w,XmNmotionVerifyCallback,text_box_motion,NULL);
 

@@ -73,6 +73,7 @@ extern void loop_ldir_call();
 extern void loop_scale_call();
 extern void loop_dump_call();
 extern void loop_quit_call();
+extern void Display_Pixmap();
 
 static Widget toggle, backs, fors, ldir;
 Widget loop_form = NULL;
@@ -94,14 +95,14 @@ void loop_input_call(w, data, call)
 	      label = XmStringCreateLocalized("Backward ");
 
 		XtVaSetValues(ldir, XmNlabelString, label, NULL);
-		XtFree(label);
+		XmStringFree(label);
 		loop_step_start_call(w, "B", call);
 		break;
 	    case Button3:
 	      label = XmStringCreateLocalized(" Forward ");
 
 		XtVaSetValues(ldir, XmNlabelString, label, NULL);
-		XtFree(label);
+		XmStringFree(label);
 		loop_step_start_call(w, "F", call);
 	    }
 	}
@@ -244,7 +245,7 @@ void do_loop_()
 				xmLabelWidgetClass, loop_form,
 				XmNy, 95,
 				XmNx, 60,NULL);
-	XtFree(str);
+	XmStringFree(str);
 	str = XmStringCreateLocalized("Beginning Pause (ms)");
 	
 	XtSetArg(args[0], XmNy, 120);
@@ -259,7 +260,7 @@ void do_loop_()
 	
 	XtAddCallback(startp,XmNvalueChangedCallback,loop_scale_call,"B");
 	
-	XtFree(str);
+	XmStringFree(str);
 	XtUnmanageChild(XtNameToWidget(startp,"Title"));
 	XtVaCreateManagedWidget("Beginning Pause (ms)", 
 				xmLabelWidgetClass, loop_form,
@@ -283,7 +284,7 @@ void do_loop_()
 				xmLabelWidgetClass, loop_form,
 				XmNy, 215,
 				XmNx, 60,NULL);
-	XtFree(str);
+	XmStringFree(str);
 	
 	XtManageChild(popup);
 	XtPopup(popup,XtGrabNone);

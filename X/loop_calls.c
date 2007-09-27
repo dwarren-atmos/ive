@@ -64,7 +64,7 @@ static char ident[] = "$Id: loop_calls.c,v 1.4 2002/08/09 19:57:27 warren Exp $"
 #define app_con XtWidgetToApplicationContext(ive_widget)
 
 extern Widget ive_widget;
-extern NewString();
+extern XmString NewString();
 
 void update_all_()
 {
@@ -138,7 +138,7 @@ XtPointer *data;
 	    if (loop_status == 0) return;
 	}
 	else {
-	    loop_timer = XtAppAddTimeOut(app_con, time, loop_alarm, NULL);
+	    loop_timer = XtAppAddTimeOut(app_con, time, (XtTimerCallbackProc)loop_alarm, NULL);
 	    return;
 	}
     }
@@ -152,7 +152,7 @@ void loop_toggle_call(w, data, call)
 
     if(call->set){
 	loop_run = loop_status = 1;
-	loop_timer = XtAppAddTimeOut(app_con, 100, loop_alarm, NULL);
+	loop_timer = XtAppAddTimeOut(app_con, 100, (XtTimerCallbackProc)loop_alarm, NULL);
     }
     else{
 	XtRemoveTimeOut(loop_timer);
@@ -180,7 +180,7 @@ void loop_step_start_call(w, data, call)
     }
     Display_Pixmap(loop_frame);
     loop_status = 1;
-    loop_timer = XtAppAddTimeOut(app_con, 500, loop_alarm, NULL);
+    loop_timer = XtAppAddTimeOut(app_con, 500, (XtTimerCallbackProc)loop_alarm, NULL);
 }
 
 void loop_step_stop_call(w, data, call)

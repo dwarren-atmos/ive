@@ -64,6 +64,7 @@ static char ident[] = "$Id: loop_setup.c,v 1.10 1997/04/15 17:19:42 harry Exp $"
 #include <ive_text_enum.h>
 
 extern Widget loop_form;
+extern void getaarr_(),ui_update_(),loop_setup_update_();
 Widget loop_setup_form=NULL;
 void loop_coord_call(), loop_start_call(), loop_inc_call(),
     loop_endv_call(), loop_ready_call();
