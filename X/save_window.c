@@ -22,6 +22,8 @@ static char ident[] = "$Id: save_window.c,v 1.4 2006/08/01 19:55:08 warren Exp $
 
 #ifdef MEMDBG
 #include <mnemosyne.h>
+#else
+#include <malloc.h>
 #endif
 #include <Xm/XmAll.h>
 #include <X11/Xmu/Xmu.h>
@@ -36,6 +38,7 @@ static Pixmap pm_arr[20]={(Pixmap)NULL,(Pixmap)NULL,(Pixmap)NULL,(Pixmap)NULL,
 			  (Pixmap)NULL,(Pixmap)NULL,(Pixmap)NULL,(Pixmap)NULL};
 
 extern Widget xgks_widget, Toplevel;
+extern void getivar_(),update_all_();
 
 void save_quit_call(w, data, call)
     Widget w;
@@ -130,9 +133,11 @@ void save_window_()
 				     Toplevel, XmNheight, height+30,
 				     XmNwidth, width, XmNx, x, XmNy, y,
 				     NULL);
-    XtAddCallback(*save_win, XmNdestroyCallback, save_destroy_call,
+    XtAddCallback(*save_win, XmNdestroyCallback, 
+		  (XtCallbackProc)save_destroy_call,
 		  save_win);
-    XtAddCallback(*save_win, XmNdestroyCallback, save_cleanup_call,
+    XtAddCallback(*save_win, XmNdestroyCallback, 
+		  (XtCallbackProc)save_cleanup_call,
 		  (void *)i);
     form = XtVaCreateManagedWidget("saveform", xmFormWidgetClass,
 				   *save_win, NULL);
@@ -147,8 +152,10 @@ void save_window_()
 				      XmNtopAttachment, XmATTACH_WIDGET,
 				      XmNtopWidget, widget,
 				      NULL);
-    XtAddCallback(bwidget, XmNactivateCallback, save_quit_call, save_win);
-    XtAddCallback(widget, XmNexposeCallback, save_repaint_call, (void *)i);
+    XtAddCallback(bwidget, XmNactivateCallback, 
+		 (XtCallbackProc) save_quit_call, save_win);
+    XtAddCallback(widget, XmNexposeCallback, 
+		  (XtCallbackProc)save_repaint_call, (void *)i);
     XtManageChild(*save_win);
     XtPopup(*save_win, XtGrabNone);
     XSync(dpy, 0);

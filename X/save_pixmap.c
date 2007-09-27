@@ -69,6 +69,8 @@ static char ident[] = "$Id: save_pixmap.c,v 1.9 2001/12/28 23:43:25 davidive Exp
 
 #ifdef MEMDBG
 #include <mnemosyne.h>
+#else
+#include <malloc.h>
 #endif
 #include <Xm/Xm.h>
 #include <Xm/DrawingA.h>
@@ -76,6 +78,7 @@ static char ident[] = "$Id: save_pixmap.c,v 1.9 2001/12/28 23:43:25 davidive Exp
 #include <loop.h>
 #include <ive.h>
 #include <stdio.h>
+#include <unistd.h>
 
 int num_pixmaps=0;
 int max_pixmaps=0;
@@ -84,6 +87,7 @@ GC loop_gc=NULL;
 extern Widget xgks_widget, Toplevel;
 extern void loop_input_call();
 extern void loop_quit_call();
+extern void update_all_();
 
 void save_pixmap_(int *batch)
 
