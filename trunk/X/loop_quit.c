@@ -42,7 +42,7 @@ static char ident[] = "$Id: loop_quit.c,v 1.3 2001/03/23 19:35:29 harryive Exp $
 #include <X11/Intrinsic.h>
 #include <signal.h>
 #include <loop.h>
-
+extern void do_loop_(),clear_loop_flags_();
 Widget xgks_widget;
 
 void loop_quit_()
