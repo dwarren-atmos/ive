@@ -54,7 +54,7 @@ static char ident[] = "$Id: points_widget.c,v 1.6 2002/08/09 19:57:28 warren Exp
 #include <ive_text_enum.h>
 
 Widget point_form=NULL;
-
+extern void getrarr_(),getrvar_(),getiarr_(),getdarr_(),scale_(),unscale_(),setrarr_();
 struct { 
   Widget point_form, p1x,p1y,p2x,p2y,
     x1lab,y1lab,x2lab,y2lab,boxx1,boxy1,boxx2,boxy2,
@@ -190,7 +190,7 @@ void init_points_()
 	  point3[i]=loc[i];
 	}
 	else{
-	  if(lock[i] =2){
+	  if(lock[i] ==2){
 	    sprintf(lock1,"Avg   ");
 	    val1=(int)0xFFFFFF;
 	    point1[i]=dminus[i];
@@ -228,7 +228,7 @@ void init_points_()
 	  point3[i]=loc[i];
 	}
 	else{
-	  if(lock[i] =2){
+	  if(lock[i] ==2){
 	    sprintf(lock2,"Avg   ");
 	    val2=(int)0xFFFFFF;
 	    point1[i]=dminus[i];
@@ -533,12 +533,12 @@ void init_points_()
 			point_fix_call,(XtPointer)1);
 
 	  XtAddCallback(point_slicer.slide1l,XmNvalueChangedCallback,
-			point_min_window_check_callback,
-			(XtPointer)point_slicer.slide1r);
+		(XtCallbackProc)point_min_window_check_callback,
+		(XtCallbackProc)(XtPointer)point_slicer.slide1r);
 	  XtAddCallback(point_slicer.slide1l,XmNvalueChangedCallback,
-			point_window_callback,(XtPointer)1);
+		(XtCallbackProc)point_window_callback,(XtPointer)1);
 	  XtAddCallback(point_slicer.slide1l,XmNdragCallback,
-			point_min_window_check_callback,
+		(XtCallbackProc)point_min_window_check_callback,
 			(XtPointer)point_slicer.slide1r);
 	  /* for poping boxes on top*/
 	  /*      XtAddRawEventHandler(point_slicer.slide1l.mins[i],
@@ -547,12 +547,12 @@ void init_points_()
 		  */
 
 	  XtAddCallback(point_slicer.slide1r,XmNvalueChangedCallback,
-			point_max_window_check_callback,
+		       (XtCallbackProc)point_max_window_check_callback,
 			(XtPointer)point_slicer.slide1l);
 	  XtAddCallback(point_slicer.slide1r,XmNvalueChangedCallback,
-			point_window_callback,(XtPointer)1);
+		       (XtCallbackProc)point_window_callback,(XtPointer)1);
 	  XtAddCallback(point_slicer.slide1r,XmNdragCallback,
-			point_max_window_check_callback,
+		       (XtCallbackProc)point_max_window_check_callback,
 			(XtPointer)point_slicer.slide1l);
 	  /* for poping boxes on top*/
 	  /*      XtAddRawEventHandler(point_slicer.slide1r.mins[i],
@@ -649,12 +649,12 @@ void init_points_()
 			point_fix_call,(XtPointer)2);
 
 	  XtAddCallback(point_slicer.slide2l,XmNvalueChangedCallback,
-			point_min_window_check_callback,
+		(XtCallbackProc)point_min_window_check_callback,
 			(XtPointer)point_slicer.slide2r);
 	  XtAddCallback(point_slicer.slide2l,XmNvalueChangedCallback,
-			point_window_callback,(XtPointer)2);
+		(XtCallbackProc)point_window_callback,(XtPointer)2);
 	  XtAddCallback(point_slicer.slide2l,XmNdragCallback,
-			point_min_window_check_callback,
+		(XtCallbackProc)point_min_window_check_callback,
 			(XtPointer)point_slicer.slide2r);
 	  /* for poping boxes on top*/
 	  /*      XtAddRawEventHandler(point_slicer.slide2l.mins[i],
@@ -663,12 +663,12 @@ void init_points_()
 
 			   */
 	  XtAddCallback(point_slicer.slide2r,XmNvalueChangedCallback,
-			point_min_window_check_callback,
+		(XtCallbackProc)point_min_window_check_callback,
 			(XtPointer)point_slicer.slide2l);
 	  XtAddCallback(point_slicer.slide2r,XmNvalueChangedCallback,
-			point_window_callback,(XtPointer)2);
+		(XtCallbackProc)point_window_callback,(XtPointer)2);
 	  XtAddCallback(point_slicer.slide2r,XmNdragCallback,
-			point_min_window_check_callback,
+		(XtCallbackProc)point_min_window_check_callback,
 			(XtPointer)point_slicer.slide2l);
 	  /* for poping boxes on top*/
 	  /*      XtAddRawEventHandler(point_slicer.slide2r.mins[i],
