@@ -89,12 +89,20 @@ consisting of xy pairs:\n draw_line=x1, y1, x2, yx ....");
     (void)makseg_(&yes);
 /*    (void)curved_(x, y, &npts); */
 
-    if(mapflg & !(defmap)){
-
+    if(mapflg){
       xt = (float *)malloc((sizeof(float))*((argc-1)/2));
       yt = (float *)malloc((sizeof(float))*((argc-1)/2));
       (void)phys_2_lonlat_trans_(x,y,xt,yt,&npts);
 
+	  printf("draw_line_map=%f,%f,%f,%f\n",xt[0],yt[0],xt[1],yt[1]);
+	}
+
+    if(mapflg & !(defmap)){
+
+/*      xt = (float *)malloc((sizeof(float))*((argc-1)/2));
+      yt = (float *)malloc((sizeof(float))*((argc-1)/2));
+      (void)phys_2_lonlat_trans_(x,y,xt,yt,&npts);
+*/
       for(i=0; i<npts;i++){
 		(void)maptrn_(yt+i,xt+i,x+i,y+i);
       }
