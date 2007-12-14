@@ -197,7 +197,7 @@ c
             if (fix(3) .ne. 0 .and. fix(4) .ne. 0) then
                call cptopo (%val(topoad), ni, ni, nj, error)
             elseif (surface .and. (fix(4) .ne. 0)) then
-               call cptopo (%val(topoad), ni, ni, nj, error)
+               call cptopo (%val(topoad),  ni, ni, nj, error)
             else
                if(buttons .ne. 0) then
                   if(fix(4) .ne. 0 .and. 
@@ -259,7 +259,6 @@ c
       double precision epsilon
 
       call getrvar('spval',spval,error)
-      write(6,*)'spval:',spval
       b1=.true.
       b2=.true.
       check_vect_slabs=.false.
