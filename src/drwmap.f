@@ -264,6 +264,7 @@ c
 c     Turn on perimeter:
 c
       call mapsti ('PE', 1)
+      call mapdrw_dl
 
 
 c

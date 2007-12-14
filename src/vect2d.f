@@ -132,7 +132,12 @@ c
 c
 c     Make appropriate set call.
 c
-      call set2d (nu, mapflg, savflg, lolim, uplim, error)
+      if(defmap .and. savflg) then
+c     need to call set as if no overlay
+         call set2d (nu, mapflg, .false., lolim, uplim, error)
+      else
+         call set2d (nu, mapflg, savflg, lolim, uplim, error)
+      endif
       if (error) then
          return
       endif
@@ -162,13 +167,13 @@ c
 c
 c
 c     Draw either a map foreground or perimeter, whichever is 
-c     appropriate.
+c     appropriate. Done in mak2dv
 c     
       if ( .not. savflg ) then
          if ( mapflg ) then
             call getset ( vleft, vrght, vbot, vtop, 
      &           wleft, wrght, wbot, wtop, axes)
-            call mapdrw_dl
+c            call mapdrw_dl
             if (defmap) then
                call set ( vleft, vrght, vbot, vtop,
      &           wleft, wrght, wbot, wtop, axes)
