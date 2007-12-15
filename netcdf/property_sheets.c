@@ -204,7 +204,7 @@ void init_dim_atts_()
     dim_atts[0].maj_tic = 0.0;
     dim_atts[0].lmin = bigone;
     dim_atts[0].lmax = bigone;
-    dim_atts[0].v_interval = 3.0;
+    dim_atts[0].v_interval = 3;
     dim_atts[0].disp_units[0] = '\0';
     
     sprintf(dim_atts[1].name,"%s",  "Y");
@@ -213,7 +213,7 @@ void init_dim_atts_()
     dim_atts[1].maj_tic = 0.0;
     dim_atts[1].lmin = bigone;
     dim_atts[1].lmax = bigone;
-    dim_atts[1].v_interval = 3.0;
+    dim_atts[1].v_interval = 3;
     dim_atts[1].disp_units[0] = '\0';
     
     sprintf(dim_atts[2].name,"%s",  "Z");
@@ -222,7 +222,7 @@ void init_dim_atts_()
     dim_atts[2].maj_tic = 0.0;
     dim_atts[2].lmin = bigone;
     dim_atts[2].lmax = bigone;
-    dim_atts[2].v_interval = 3.0;
+    dim_atts[2].v_interval = 3;
     dim_atts[2].disp_units[0] = '\0';
     
     sprintf(dim_atts[3].name,"%s",  "T");
@@ -231,7 +231,7 @@ void init_dim_atts_()
     dim_atts[3].maj_tic = 0.0;
     dim_atts[3].lmin = bigone;
     dim_atts[3].lmax = bigone;
-    dim_atts[3].v_interval = 3.0;
+    dim_atts[3].v_interval = 3;
     dim_atts[3].disp_units[0] = '\0';
     
     sprintf(dim_atts[4].name,"%s",  "XY");
@@ -240,7 +240,7 @@ void init_dim_atts_()
     dim_atts[4].maj_tic = 0.0;
     dim_atts[4].lmin = bigone;
     dim_atts[4].lmax = bigone;
-    dim_atts[4].v_interval = 3.0;
+    dim_atts[4].v_interval = 3;
     dim_atts[4].disp_units[0] = '\0';
     
     sprintf(dim_atts[5].name,"%s",  "XZ");
@@ -249,7 +249,7 @@ void init_dim_atts_()
     dim_atts[5].maj_tic = 0.0;
     dim_atts[5].lmin = bigone;
     dim_atts[5].lmax = bigone;
-    dim_atts[5].v_interval = 3.0;
+    dim_atts[5].v_interval = 3;
     dim_atts[5].disp_units[0] = '\0';
     
     sprintf(dim_atts[6].name,"%s",  "YZ");
@@ -258,7 +258,7 @@ void init_dim_atts_()
     dim_atts[6].maj_tic = 0.0;
     dim_atts[6].lmin = bigone;
     dim_atts[6].lmax = bigone;
-    dim_atts[6].v_interval = 3.0;
+    dim_atts[6].v_interval = 3;
     dim_atts[6].disp_units[0] = '\0';
 
     sprintf(dim_atts[7].name,"%s",  "XT");
@@ -267,7 +267,7 @@ void init_dim_atts_()
     dim_atts[7].maj_tic = 0.0;
     dim_atts[7].lmin = bigone;
     dim_atts[7].lmax = bigone;
-    dim_atts[7].v_interval = 3.0;
+    dim_atts[7].v_interval = 3;
     dim_atts[7].disp_units[0] = '\0';
     
     sprintf(dim_atts[8].name,"%s",  "YT");
@@ -276,7 +276,7 @@ void init_dim_atts_()
     dim_atts[8].maj_tic = 0.0;
     dim_atts[8].lmin = bigone;
     dim_atts[8].lmax = bigone;
-    dim_atts[8].v_interval = 3.0;
+    dim_atts[8].v_interval = 3;
     dim_atts[8].disp_units[0] = '\0';
 
     sprintf(dim_atts[9].name,"%s",  "ZT");
@@ -285,7 +285,7 @@ void init_dim_atts_()
     dim_atts[9].maj_tic = 0.0;
     dim_atts[9].lmin = bigone;
     dim_atts[9].lmax = bigone;
-    dim_atts[9].v_interval = 3.0;
+    dim_atts[9].v_interval = 3;
     dim_atts[9].disp_units[0] = '\0';
 }
 
@@ -552,7 +552,7 @@ void get_dim_atts_()
 
     dim = get_dim(0); /*horizontal*/ 
     if(dim < NUMDIMS && dim>=0){
-	setrvar_("incx",&DIM.v_interval,&i,4);
+	setivar_("incx",&DIM.v_interval,&i,4);
 	linlog[0] = DIM.lin;
 	setrvar_("xmajor",&DIM.maj_tic,&i,6);
 	setrvar_("xminor",&DIM.min_tic,&i,6);
@@ -567,7 +567,7 @@ void get_dim_atts_()
 	/*	sprintf(dp_units,"%s",DIM.disp_units); */
 	dim = get_dim(1); /*vertical*/
 	if(dim < NUMDIMS && dim>=0){
-	    setrvar_("incy",&DIM.v_interval,&i,4);
+	    setivar_("incy",&DIM.v_interval,&i,4);
 	    linlog[1] = DIM.lin;
 	    setrvar_("ymajor",&DIM.maj_tic,&i,6);
 	    setrvar_("yminor",&DIM.min_tic,&i,6);
@@ -611,7 +611,7 @@ void get_dim_atts_()
 	/*	sprintf(dp_units,"%s",DIM.disp_units); */
 	dim = get_dim(1); /*vertical*/
 	if(dim < NUMDIMS && dim>=0){
-	    setrvar_("incy",&DIM.v_interval,&i,4);
+	    setivar_("incy",&DIM.v_interval,&i,4);
 	    linlog[1] = DIM.lin;
 	    setrvar_("ymajor",&DIM.maj_tic,&i,6);
 	    setrvar_("yminor",&DIM.min_tic,&i,6);
@@ -692,7 +692,7 @@ void set_dim_atts_()
    }
     dim = get_dim(0); /*horizontal*/
     if(dim < NUMDIMS && dim>=0){
-	getrvar_("incx",&DIM.v_interval,&i,4);
+	getivar_("incx",&DIM.v_interval,&i,4);
 	DIM.lin = linlog[0];
 	getrvar_("xmajor",&DIM.maj_tic,&i,6);
 	getrvar_("xminor",&DIM.min_tic,&i,6);
@@ -701,7 +701,7 @@ void set_dim_atts_()
 /*	sprintf(dp_units,"%s",DIM.disp_units); */
 	dim = get_dim(1); /*vertical*/
 	if(dim < NUMDIMS && dim>=0){
-	    getrvar_("incy",&DIM.v_interval,&i,4);
+	    getivar_("incy",&DIM.v_interval,&i,4);
 	    DIM.lin = linlog[1];
 	    getrvar_("ymajor",&DIM.maj_tic,&i,6);
 	    getrvar_("yminor",&DIM.min_tic,&i,6);
@@ -725,7 +725,7 @@ void set_dim_atts_()
 	/*	sprintf(dp_units,"%s",DIM.disp_units); */
 	dim = get_dim(1); /*vertical*/
 	if(dim < NUMDIMS && dim>=0){
-	    getrvar_("incy",&DIM.v_interval,&i,4);
+	    getivar_("incy",&DIM.v_interval,&i,4);
 	    DIM.lin = linlog[1];
 	    getrvar_("ymajor",&DIM.maj_tic,&i,6);
 	    getrvar_("yminor",&DIM.min_tic,&i,6);

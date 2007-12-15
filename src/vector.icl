@@ -44,7 +44,8 @@ c
 c-----------------------------------------------------------------------
 c
 c
-      real vmax, incx, incy
+      real vmax
+      integer incx, incy
       integer vecpos
       logical scale_vector
       COMMON /ive_vect/   vmax, incx, incy, vecpos, scale_vector

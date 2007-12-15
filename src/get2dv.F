@@ -299,16 +299,16 @@ c     &     varptr1, nx, ny, nz, nt)
       do i = 1, 4
          if (lock(i).eq.2) num_avg = num_avg + 1
       enddo
-      if (incx .gt. 0) then
-         pt1(5) = 1./incx
-      else
+c      if (incx .gt. 0) then
+c         pt1(5) = 1./incx
+c      else
          pt1(5) = 1.
-      endif
-      if (incy .gt. 0) then
-         pt2(5) = 1./incy
-      else
+c      endif
+c      if (incy .gt. 0) then
+c         pt2(5) = 1./incy
+c      else
          pt2(5) = 1.
-      endif
+c      endif
 c     
 c     Get cross sections.
 c     

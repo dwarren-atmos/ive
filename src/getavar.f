@@ -1133,6 +1133,10 @@ c     vector variables.
 c
       elseif ( string(ibeg:iend) .eq. 'vecpos' ) then
          value = vecpos
+      elseif ( string(ibeg:iend) .eq. 'incx' ) then
+         value = incx
+      elseif ( string(ibeg:iend) .eq. 'incy' ) then
+         value = incy
 c
 c     Warning timeout
 c
@@ -1821,10 +1825,6 @@ c     Vector variables.
 c
       elseif ( string(ibeg:iend) .eq. 'vect_spval' ) then
          value = vect_spval
-      elseif ( string(ibeg:iend) .eq. 'incx' ) then
-         value = incx
-      elseif ( string(ibeg:iend) .eq. 'incy' ) then
-         value = incy
 c
 c     actually, it's multiplicative coeff. for vectors
 c
@@ -2637,6 +2637,10 @@ c     vector variables.
 c
       elseif (string(ibeg:iend) .eq. 'vecpos' ) then
          vecpos = value
+      elseif ( string(ibeg:iend) .eq. 'incx' ) then
+         incx = value
+      elseif ( string(ibeg:iend) .eq. 'incy' ) then
+         incy = value
 c
 c     Warning timeout
 c
@@ -3282,10 +3286,6 @@ c
 c     
 c     vector vars
 c
-      elseif ( string(ibeg:iend) .eq. 'incx' ) then
-         incx = value
-      elseif ( string(ibeg:iend) .eq. 'incy' ) then
-         incy = value
       elseif ( string(ibeg:iend) .eq. 'vmax' ) then
          vmax = value
       elseif ( string(ibeg:iend) .eq. 'veclockmax' ) then

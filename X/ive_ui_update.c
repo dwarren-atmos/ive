@@ -1025,14 +1025,12 @@ void ui_update_(window)
 */
       case VINT:
 	if (Properties.dep_form_v&&XtIsManaged(Properties.dep_form_v)){
-	    (void)getrvar_ ("incx", &rvar, &error, 4);
+	    (void)getivar_ ("incx", &ival, &error, 4);
 	    if (error) break;
-	    ival = (int)rvar;
 	    XmScaleSetValue(Properties.vintx, ival);
 
-	    (void)getrvar_ ("incy", &rvar, &error, 4);
+	    (void)getivar_ ("incy", &ival, &error, 4);
 	    if (error) break;
-	    ival = (int)rvar;
 	    XmScaleSetValue(Properties.vinty,ival);
 	}
 	break;
