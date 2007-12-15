@@ -106,8 +106,8 @@ c
 c
 c        Set the grid intervals.
 c
-         if ( val(1) .gt. 0 ) incx = val(1)
-         if ( val(2) .gt. 0 ) incy = val(2)
+         if ( val(1) .gt. 0 ) incx = int(val(1))
+         if ( val(2) .gt. 0 ) incy = int(val(2))
       endif
 c
 c

@@ -5,7 +5,7 @@ typedef struct {
     float maj_tic;                /*major tick mark interval */
     float lmin;                   /* min value for line plots */
     float lmax;                   /* max value for line plots */ 
-    float v_interval;             /* number of points to skip in vectors */
+    int v_interval;             /* number of points to skip in vectors */
     char disp_units[ UT_NAMELEN ];/* display unit name */
              /* added to track trajectories*/
     float traj_val;               /* midpoint value for colors */
