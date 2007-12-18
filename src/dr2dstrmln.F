@@ -40,13 +40,16 @@ c
 c
       include 'strmln.icl'
       include 'color.icl'
+      include 'message.icl'
+      include 'plotops.icl'
 c
 c
 c     Argument declarations.
 c
-      integer        nu, nv, imap
+      integer        nu, nv, imap, incx, incy
       real           u, v, spval
       dimension u(nu,nv), v(nu,nv)
+      logical error
 c
 c
 c     Local variable declarations.
@@ -80,7 +83,24 @@ c     Set line color
 c
       call gqplci (ier, line_index)
       call gsplci (hicolor)
+      call gslwsc(linwdth)
 c      
+      error=.false.
+      call getivar('incx',incx,error)
+      if(error) then
+         write (message, *)' error getting incx'
+         return
+      endif
+      call getivar('incy',incy,error)
+      if(error) then
+         write (message, *)' error getting incx'
+         return
+      endif
+c     Using our strmline based on older strmline module - in STR03 common block
+      INITA= incx * 2
+      INITB= incy * 2
+      if(incx .lt. 2) INITA= 2
+      if(incy .lt. 2) INITB= 2
       call strmln1 (u, v, %val(work), nu, nu, nv, 1, ier, imap)
 c
 c

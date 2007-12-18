@@ -396,6 +396,7 @@ c      COMMON /STR02/  EXT , SIDE , XLT , YBT
 c      COMMON /STR03/  INITA , INITB , AROWL , ITERP , ITERC , IGFLG
 c     1             ,  IMSG , UVMSG , ICYC , DISPL , DISPC , CSTOP
       include 'strmln.icl'
+      include 'plotops.icl'
 C
       SAVE
 C
@@ -404,9 +405,9 @@ C
       XLT       = 0.05
       YBT       = 0.05
 C
-      INITA     = 2
-      INITB     = 2
-      AROWL     = 0.33
+c      INITA     = 2
+c      INITB     = 2
+      AROWL     = 0.33 *linwdth*4
       ITERP     = 35
       ITERC     = -99
       IGFLG     = 0
