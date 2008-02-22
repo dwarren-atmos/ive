@@ -437,8 +437,6 @@ setup_line_form(fix, buttons)
       sprintf(buff, "Independent Variable");
       if(!XtIsManaged(Properties.direction_radio_box))
 	XtManageChild(Properties.direction_radio_box);
-      XtVaSetValues (Properties.lvarlab,XmNrightAttachment,
-		     Properties.direction_radio_box,NULL);
     }
     str = NewString(buff);
     XtVaSetValues (Properties.lvarlab, XmNlabelString, str, NULL);
