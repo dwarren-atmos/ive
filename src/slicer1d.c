@@ -176,8 +176,12 @@ int *dims, *nx, *ny, *nz, *nt, *ni, *surface;
     }
     if (strcmp(slab_l.datfil, datfil) == 0 &&
 	strcmp(slab_l.field, field) == 0 && slab_l.dimavg1 == -1 &&
-        slab_l.dimavg2 == -1 && same)
-	same_slice = 1;
+        slab_l.dimavg2 == -1 && same){
+      same_slice = 1;
+      stepby = angle_plot.rec_axis;
+      intercept = angle_plot.intercept;
+      slope = angle_plot.slope;
+    }
     else {
 	if (slab_l.slab != 0) {
 	    free(slab_l.slab);
