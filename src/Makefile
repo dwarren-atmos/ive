@@ -635,7 +635,7 @@ write_frame.o : incommands.icl message.icl \
 		    segments.icl
 write_message.o : ../h/message.h write_message.c
 write_log.o: ../h/log.h
-write_1d.o:  incommands.icl message.icl segments.icl slices.icl
+write_1d.o:  incommands.icl message.icl segments.icl slices.icl pltwin.icl
 
 #
 
