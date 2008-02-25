@@ -225,6 +225,10 @@ c
 c
       error = .false.
 c
+      topopt = 0
+      topoad = 0
+      nter = 0
+      slabad = 0
       call chk2d (error)
       if ( error ) then
          go to 900
@@ -237,9 +241,6 @@ c
       fix(3) = 0
       fix(4) = 0
 c
-      topopt = 0
-      topoad = 0
-      nter = 0
 C
 c     May be slice determined by points instead of window?
 c
