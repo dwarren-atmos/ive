@@ -316,7 +316,7 @@ void make_help_widget_(s, dummy)
     XmString xs;
     XtIntervalId timer;
     int warn, error;
-    long lwarn;
+    unsigned long lwarn;
       
     fprintf(stderr, "IVE ERROR - %s\n", s);
     xs = NewString(s);
@@ -324,13 +324,12 @@ void make_help_widget_(s, dummy)
     getivar_("warn_timeout", &warn, &error, 12);
     if (warn == 0) return;
     popup = XmCreateDialogShell(Box, "Error Message", NULL, 0);
-    XtSetArg(args[0], XmNmessageString, xs);  
-/*    XtSetArg(args[1], XmNdialogType, XmDIALOG_WARNING);  */
-    hbox=XmCreateMessageBox(popup,"help",args,1);
+    hbox=XtVaCreateManagedWidget("help", xmMessageBoxWidgetClass, popup,
+				 XmNmessageString, xs,NULL);
     if (warn > 0) {
 	lwarn = 1000*warn;
 	timer = XtAppAddTimeOut(XtWidgetToApplicationContext(hbox),lwarn, 
-			       (XtTimerCallbackProc)timeout_widget, hbox);
+				(XtTimerCallbackProc)timeout_widget, (XtPointer)hbox);
 	XtAddCallback(hbox,XmNokCallback,
 		      (XtCallbackProc)del_callback,(XtPointer)timer);
     }
@@ -341,9 +340,7 @@ void make_help_widget_(s, dummy)
 				       XmDIALOG_HELP_BUTTON));    
     XtUnmanageChild(XmMessageBoxGetChild(hbox,
 				       XmDIALOG_CANCEL_BUTTON));
-    XtManageChild(hbox);
     XmStringFree(xs);
-/*XtAddGrab(hbox,TRUE,TRUE);*/
 		 
 }
 
@@ -451,7 +448,7 @@ void set_units_cb(w,data,ev)
 	if(!strcmp(data,old)){
 	    (void)getavar_("data_display_units",old,&error,18,256);
 	    if(error){
-		(void)make_help_widget("Can't get current units");
+	      make_help_widget_("Can't get current units",23);
 		return;
 	    }
 	    tmp = NewString("Display Units");
@@ -514,7 +511,7 @@ void domain_units_call(w,data,ev)
 	count=4;
 	(void)getaarr_("domain_display_units",old,&count,&error,20,80);
 	if(error){
-	    (void)make_help_widget("Can't get current domain units");
+	  make_help_widget_("Can't get current domain units",30);
 	    return;
 	}
 	tmp = NewString("Display Units");
@@ -1255,7 +1252,7 @@ void im_gone_callback(w, client, call)
 
     
 void not_implemented(){
-    make_help_widget("This function is not currently implemented");
+  make_help_widget_("This function is not currently implemented",42);
 }
 
 
@@ -1380,7 +1377,7 @@ void window_value_call(w, data, call)
 	XtDestroyWidget(w);
 	XtManageChild(widg);
 	sprintf(buff,"One of the widgets slicer_widget.mins[%d] or slicer_widget.maxs[%d] is missing\nPlease notify the IVE support group of this error",data,data);
-make_help_widget(buff);
+	make_help_widget_(buff,(int)strlen(buff));
 
     }
     window_typein_stuff.inuse=0;

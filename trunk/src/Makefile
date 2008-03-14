@@ -614,9 +614,9 @@ setwin.o  :  incommands.icl data.icl units.icl \
 setxti.o  :  incommands.icl message.icl plotops.icl attributes.icl
 set_units.o : incommands.icl message.icl units.icl data.icl
 slicer.o  :  ../h/ive_macros.h ../h/missing.h ../h/window.h
-slicer1d.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h
-slicer1d1a.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h
-slicer1d2a.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h
+slicer1d.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h ../h/ive_slices.h
+slicer1d1a.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h ../h/ive_slices.h
+slicer1d2a.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h ../h/ive_slices.h
 slicer2d1a.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h
 slicer2d2a.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h
 slicer3d.o  :  ../h/ive_macros.h ../h/missing.h  ../h/window.h
@@ -636,7 +636,8 @@ write_frame.o : incommands.icl message.icl \
 write_message.o : ../h/message.h write_message.c
 write_log.o: ../h/log.h
 write_1d.o:  incommands.icl message.icl segments.icl slices.icl pltwin.icl
-
+ ../h/ive_slices.h: slices.icl
+	perl make_slices
 #
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
