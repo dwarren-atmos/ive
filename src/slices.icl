@@ -20,8 +20,9 @@ c
      &        slabad_2d		! 2d slice
       integer ni_1d,		! Size of 1d slice
      &        ni_2d, nj_2d,	! Size of 2d slice
-     &        axes		! Which dimension is the indep. var in 1d
-
+     &        axes,		! Which dimension is the indep. var in 1d
+     &        ind, dep          ! Independant and dependant direction for line
+       real slope,intercept 	! slope and intercept for line plot 
       common/slice_com/slabad_1d, slabloc_1d, slabad_2d, ni_1d,
-     &     ni_2d, nj_2d, axes
+     &     ni_2d, nj_2d, axes,ind,dep,slope,intercept
 

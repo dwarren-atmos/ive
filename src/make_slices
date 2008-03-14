@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+my @curline;
+open(INPUT, "slices.icl");
+open(OUTPUT, ">../h/ive_slices.h");
+$i=0;
+$pt=0;
+while(<INPUT>){
+  chomp;
+  if(substr($_,0,1) eq "c"){next;}
+  @line=split;
+  if ($line[0] eq "ive_ptr"){
+    $curline[$i] = "float ";
+    $pt=1;
+    shift @line;
+    while($#line > 0 && $line[0] ne "!"){
+      $curline[$i] = $curline[$i] . " *" . shift @line; 
+    }
+  }
+  elsif ($line[0] eq "integer"){
+    $i++;
+    $pt=0;
+    $curline[$i] = "int ";
+    shift @line;
+    while($#line > 0 && $line[0] ne "!"){
+      $curline[$i] = $curline[$i] . " " . shift @line; 
+    }
+  }
+  elsif ($line[0] eq "real"){
+    $i++;
+    $pt=0;
+    $curline[$i] = "float ";
+    shift @line;
+    while($#line > 0 && $line[0] ne  "!"){
+      $curline[$i] = $curline[$i] . " " . shift @line; 
+    }
+  }
+  elsif ($line[0] eq "&"){
+    shift @line;
+    while($#line > 0 && $line[0] ne  "!"){
+      if($pt==1){
+	$curline[$i] = $curline[$i] . " *" . shift @line; 
+      }
+      else{
+	$curline[$i] = $curline[$i] . " " . shift @line; 
+      }
+    }
+  }
+  else{
+    last;
+  }
+}
+print OUTPUT "extern struct {\n";
+for ($j=0; $j<=$i; $j++){
+  print OUTPUT $curline[$j],";\n";
+}
+print OUTPUT "} slice_com_;\n";
+
+

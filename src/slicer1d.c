@@ -74,6 +74,7 @@ static char rcsid[] = "$Id: slicer1d.c,v 1.13 2001/08/15 22:25:49 davidive Exp $
 #include <ive_macros.h>
 #include <missing.h>
 #include <window.h>
+#include <ive_slices.h>
 
 float find_min(), find_max();
 
@@ -356,6 +357,10 @@ int *dims, *nx, *ny, *nz, *nt, *ni, *surface;
 	    free(phpt);
 	    slab_l.xaxis = dfree+1;
 	    slab_l.yaxis = 0;
+	    slice_com_.slope=0.;
+	    slice_com_.intercept=0.;
+	    slice_com_.ind=dfree+1;
+	    slice_com_.dep=0;
 	}
 	/*
 	   Figure out where in the slice is the window.
@@ -654,6 +659,10 @@ int *dims, *nx, *ny, *nz, *nt, *ni, *surface;
 	    slab_l.intercept = intercept;
 	    slab_l.stepby = stepby;
 	    slab_l.other = other;
+	    slice_com_.slope=slope;
+	    slice_com_.intercept=intercept;
+	    slice_com_.ind=stepby+1;
+	    slice_com_.dep=other+1;
 	}
 	/*
 	   Figure out where in the slice is the window.

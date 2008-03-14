@@ -95,39 +95,40 @@ c
 c
 c
 c
-c
-c
+c     
+c     
       error = .false.
-c
+c     
 c     Is the slice location set and does the location fall within the
 c     data domain?
-c
+c     
       error = .false.
-c
+c     
       if (surface) then
-
+         
       elseif (use_buttons .ne. 0) then
          lock_count = 0
          do i = 1, MAXDIM
-            if ( lock(i) .eq. 1 ) lock_count = lock_count + 1
+            if ( lock(i) .gt. 0 ) lock_count = lock_count + 1
          enddo
-         if (lock_count .gt. 3) then
+         if (lock_count .ne. 2) then
             error = .true.
             write (message, 110)
             call write_message
          endif
       else 
-c
-c        This means that points were specified
-c
+c     
+c     This means that points were specified
+c     
          lock_count = 0
-c         if((point_1(4) .eq. point_2(4)) .and. 
-c     &      (point_1(4) .eq. point_3(4))) then
+         do i = 1, MAXDIM
+            if ( lock(i) .eq. 2 ) lock_count = lock_count + 1
+         enddo         
          do i = 1, 3
             if ((point_1(i) .eq. point_2(i)) .and. 
      &           (point_1(i) .eq. point_3(i))) lock_count=lock_count+1
          enddo
-         if (lock_count .eq. 3) then
+         if (lock_count .ne. 2) then
             error = .true.
             write (message, 110)
             call write_message

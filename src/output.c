@@ -12,31 +12,32 @@
 static char ident [] = "$Id: output.c,v 1.1 1995/05/11 22:15:08 harry Exp $";
 
 #include <stdio.h>
+#include <ive_macros.h>
 
 void
-output_1d_(filename, slice, sloc, ni, axes, field, fillen, fieldlen)
+output_1d_(filename, x, y, z, t, f,ni,field,netcdf,fillen, fieldlen)
 
-char *filename;			/* File to open for writing. */
-char *field;			/* Field name */
-float *slice, *sloc;		/* Slice to write and locations. */
-int *ni, *axes;			/* Number of points and  indep. var */
+char *filename;		/* File to open for writing. */
+char *field;		/* Field name */
+float *x,*y,*z,*t,*f;		/* Slice to write and locations. */
+int *ni;			/* Number of points*/
 int fillen, fieldlen;		/* Length of character variables */
+int *netcdf;                                        /*1 if netcdf 0 if not*/
 
 {
-    FILE *out;
-    int i;
-    static char *lab[5] = {"X", "Y", "Z", "T", ""};
-
+  FILE *out;
+  int i;
+  if(!*netcdf){
     out = fopen(filename, "w");
-
-    fprintf(out, "%15.15s %15.15s\n", lab[*axes-1], field);
-    if (*axes == 3) {
-	for (i=0; i < *ni; i++)
-	    fprintf(out, "%15.5g %15.5g\n", sloc[i], slice[i]);
+    
+    fprintf(out, "%15.15s %15.15s %15.15s %15.15s %15.15s\n", "X","Y","Z","T", field);
+    for (i=0; i < *ni; i++){
+      fprintf(out, "%15.5g %15.5g %15.5g %15.5g %15.5g\n", x[i], y[i],z[i],t[i],f[i]);
     }
-    else {
-	for (i=0; i < *ni; i++)
-	    fprintf(out, "%15.5g %15.5g\n", slice[i], sloc[i]);
-    }
+    
     fclose(out);
+  }
+  else{
+    make_help_widget("We do not yet support 1d netcdf outputs");
+  }
 }

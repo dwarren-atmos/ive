@@ -1106,15 +1106,13 @@ c
 
 c      character buff*256
 
+      point1=point_1
+      point2=point_2
+      point3=point_3
       do i = 1, 4
          if (lock(i) .eq. 2) then
-            point1(i) = point_1(i)
-            point2(i) = point_1(i)
-            point3(i) = point_1(i)
-         else
-            point1(i) = point_1(i)
-            point2(i) = point_2(i)
-            point3(i) = point_3(i)
+            point2(i) = point1(i)
+            point3(i) = point1(i)
          endif
       enddo
       count_same = 0
@@ -1208,6 +1206,9 @@ c      character buff*256
 c     this yields Ax - By + Cz -D = 0 
 c     Find out how many of A, B and C are zero. 
 
+      write(6,*)'p1',p1
+      write(6,*)'p2',p2
+      write(6,*)'p3',p3
       num_zero = 0
       if(A .eq. 0) num_zero = num_zero + 1
       if(B .eq. 0) num_zero = num_zero + 1
