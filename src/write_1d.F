@@ -268,6 +268,8 @@ C
                   case(2)
                      call ive_fill_line(%val(y),%val(x),slope,
      &                    intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(x),%val(y),ind,
+     &                    dep,ni_1d)
                      if(lock(3) .eq. 1) then
                         call getrvar('zloc',zloc,error)
                      else
@@ -291,6 +293,8 @@ C
                   case(3)
                      call ive_fill_line(%val(z),%val(x),slope,
      &                    intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(x),%val(z),ind,
+     &                    dep,ni_1d)
                      if(lock(2) .eq. 1) then
                         call getrvar('yloc',yloc,error)
                      else
@@ -314,6 +318,8 @@ C
                   case(4)
                      call ive_fill_line(%val(t),%val(x),slope,
      &                    intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(x),%val(t),ind,
+     &                    dep,ni_1d)
                      if(lock(2) .eq. 1) then
                         call getrvar('yloc',yloc,error)
                      else
@@ -344,6 +350,8 @@ C
                   case(1)
                      call ive_fill_line(%val(x),%val(y),slope,
      &                    intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(y),%val(x),ind,
+     &                    dep,ni_1d)
                      if(lock(3) .eq. 1) then
                         call getrvar('zloc',zloc,error)
                      else
@@ -367,6 +375,8 @@ C
                   case(3)
                      call ive_fill_line(%val(z),%val(y),slope,
      &                    intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(y),%val(z),ind,
+     &                    dep,ni_1d)
                      if(lock(1) .eq. 1) then
                         call getrvar('xloc',xloc,error)
                      else
@@ -390,6 +400,8 @@ C
                   case(4)
                      call ive_fill_line(%val(t),%val(y),slope,
      &                    intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(y),%val(t),ind,
+     &                    dep,ni_1d)
                      if(lock(1) .eq. 1) then
                         call getrvar('xloc',xloc,error)
                      else
@@ -420,6 +432,8 @@ C
                  case(2)
                     call ive_fill_line(%val(y),%val(z),slope,
      &                   intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(z),%val(y),ind,
+     &                   dep,ni_1d)
                     if(lock(3) .eq. 1) then
                        call getrvar('xloc',xloc,error)
                     else
@@ -443,6 +457,8 @@ C
                  case(1)
                     call ive_fill_line(%val(x),%val(z),slope,
      &                   intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(z),%val(x),ind,
+     &                   dep,ni_1d)
                     if(lock(2) .eq. 1) then
                        call getrvar('yloc',yloc,error)
                     else
@@ -466,6 +482,8 @@ C
                  case(4)
                     call ive_fill_line(%val(t),%val(z),slope,
      &                   intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(z),%val(t),ind,
+     &                   dep,ni_1d)
                     if(lock(2) .eq. 1) then
                        call getrvar('yloc',yloc,error)
                     else
@@ -496,6 +514,8 @@ C
                  case(2)
                     call ive_fill_line(%val(y),%val(t),slope,
      &                   intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(t),%val(y),ind,
+     &                   dep,ni_1d)
                     if(lock(3) .eq. 1) then
                        call getrvar('zloc',zloc,error)
                     else
@@ -519,6 +539,8 @@ C
                  case(3)
                     call ive_fill_line(%val(z),%val(t),slope,
      &                   intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(t),%val(z),ind,
+     &                   dep,ni_1d)
                     if(lock(2) .eq. 1) then
                        call getrvar('yloc',yloc,error)
                     else
@@ -542,6 +564,8 @@ C
                  case(1)
                     call ive_fill_line(%val(x),%val(t),slope,
      &                   intercept,ni_1d)
+                     call  ive_1d_make_phys(%val(t),%val(x),ind,
+     &                   dep,ni_1d)
                     if(lock(2) .eq. 1) then
                        call getrvar('yloc',yloc,error)
                     else
@@ -566,7 +590,7 @@ C
              end select
           endif
           call output_1d(file, %val(x), %val(y),%val(z),%val(t),%val(f),
-     1         ni_1d, field,netcdf)
+     &         ni_1d, field,netcdf)
           select case (ind)
        case(1) 
           call freemem(y)
@@ -590,11 +614,11 @@ c     Format statements.
 c
   100 format (1x,'Command ',a,' requires a value.')
 c
-      return
+      return 
       end
 
 
-      subroutine  ive_fill_line(x,y,slope,int,ni)
+      subroutine  ive_fill_line(y,x,slope,int,ni)
       real x,y
       real slope,int
       integer ni, i
@@ -604,3 +628,33 @@ c
       end do
       end
 
+      subroutine ive_1d_make_phys(x,y,ind,dep,ni)
+
+      include 'units.icl'
+
+       real x,y,lat,lon
+       integer ind,dep,ni, i,iflag
+       logical mapflg,error
+       dimension x(ni), y(ni),lat(ni),lon(ni),iflag(4)
+       
+       iflag=0
+       iflag(ind)=1
+       iflag(dep)=1
+       
+       call getlvar('mapflg',mapflg,error)
+       
+       if(mapflg) then
+          if((ind.eq.1) .and. (dep .eq. 2)) then
+             call phys_2_lonlat_trans (x,y,lon,lat,ni)
+             x=lon
+             y=lat
+          elseif((ind.eq.2) .and. (dep .eq. 1)) then
+             call phys_2_lonlat_trans (y,x,lon,lat,ni)
+             y=lon
+             x=lat
+          endif
+       else
+       call scale(x,ni,domain_slope(ind),domain_intercept(ind),0.0)
+       call scale(y,ni,domain_slope(dep),domain_intercept(dep),0.0)
+       endif
+       end
