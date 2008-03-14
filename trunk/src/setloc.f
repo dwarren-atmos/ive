@@ -1206,9 +1206,6 @@ c      character buff*256
 c     this yields Ax - By + Cz -D = 0 
 c     Find out how many of A, B and C are zero. 
 
-      write(6,*)'p1',p1
-      write(6,*)'p2',p2
-      write(6,*)'p3',p3
       num_zero = 0
       if(A .eq. 0) num_zero = num_zero + 1
       if(B .eq. 0) num_zero = num_zero + 1
