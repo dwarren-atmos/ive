@@ -623,7 +623,9 @@ c
        else
           call scale(x,ni,domain_slope(1),domain_intercept(1),0.0)
           call scale(y,ni,domain_slope(2),domain_intercept(2),0.0)
-          call scale(z,ni,domain_slope(3),domain_intercept(3),0.0)
-          call scale(t,ni,domain_slope(4),domain_intercept(4),0.0)
        endif
+
+       call scale(z,ni,domain_slope(3),domain_intercept(3),0.0)
+       call scale(t,ni,domain_slope(4),domain_intercept(4),0.0)
+
        end
