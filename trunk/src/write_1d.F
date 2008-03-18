@@ -68,10 +68,10 @@ c
       error = .false.
       ibeg  = strbeg(comand(FSTVAL))
       iend  = strend(comand(FSTVAL))
-c     we don't output netcdfs yet. future upgrade.
+c     default to text output
       netcdf=0
 c
-c     Make sure a value is given.
+c     Make sure a value is g`iven.
 c
       if ( nblank(comand(FSTVAL)) .eq. 0 ) then
         write (message, 100) comand(FSTVAL)(ibeg:iend)
@@ -84,11 +84,15 @@ c
         file(1:len(file)) = ' '
         file = comand(FSTVAL)(ibeg:iend)
       endif
-
+      
       file(iend+1:iend+1) = char(0)
+      if((file(iend-2:iend) .eq. ".nc").or.
+     &     (file(iend-3:iend) .eq. ".cdf")) netcdf=1
+         
       call expand_path(file)
       call getavar('field', field, error)
       call catnull(field, len(field), error)
+      
       x=0
       y=0
       z=0
