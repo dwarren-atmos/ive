@@ -89,7 +89,7 @@ c
 c
 c     Local variable declarations.
 c
-      integer lock_count, i
+      integer lock_count, i, match_count
       real    EPSLON 
       parameter ( EPSLON = 1.0e-4 )
 c
@@ -121,14 +121,20 @@ c
 c     This means that points were specified
 c     
          lock_count = 0
+         match_count=0
          do i = 1, MAXDIM
-            if ( lock(i) .eq. 2 ) lock_count = lock_count + 1
-         enddo         
-         do i = 1, 3
             if ((point_1(i) .eq. point_2(i)) .and. 
-     &           (point_1(i) .eq. point_3(i))) lock_count=lock_count+1
+     &           (point_1(i) .eq. point_3(i))) then
+               lock_count=lock_count+1
+            elseif((point_1(i) .eq. point_2(i)) .or.
+     &              (point_1(i) .eq. point_3(i)) .or.
+     &              ( point_2(i).eq. point_3(i))) then
+               match_count = match_count +1
+            endif
          enddo
-         if (lock_count .ne. 2) then
+         write(6,*)lock_count,match_count
+         if (lock_count .ne. 2 .and. .not.
+     &        (lock_count .eq. 1 .and. match_count .eq. 3)) then
             error = .true.
             write (message, 110)
             call write_message
