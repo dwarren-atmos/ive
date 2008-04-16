@@ -132,7 +132,7 @@ c
                match_count = match_count +1
             endif
          enddo
-         write(6,*)lock_count,match_count
+c         write(6,*)lock_count,match_count
          if (lock_count .ne. 2 .and. .not.
      &        (lock_count .eq. 1 .and. match_count .eq. 3)) then
             error = .true.
