@@ -56,8 +56,9 @@ void scale_ (data, npts, slope, intercept, spval)
     if ( *spval == 0.0 ) 
       /* Case where special value feature is not used.
        */
-      for ( i = 0 ; i < *npts ; i++)
+      for ( i = 0 ; i < *npts ; i++){
 	data[i] = data[i] * (*slope) + (*intercept) ;
+      }
     else 
       /* Case where special value feature is used.
        */
