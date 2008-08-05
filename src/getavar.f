@@ -904,6 +904,11 @@ c
       logical         error
       dimension value(dim)
 c
+c     Only in netcdf/open_var.c and newfile trans
+      real data(4)
+      integer size(4)
+      common /cdf_dimvar/data,size
+c
 c
 c     Local variable declarations.
 c
@@ -961,6 +966,11 @@ c
             do i = 1, MAXDIM
                value(MAXDIM*(j-1)+i) = coord_dep(i,j)
             enddo
+         enddo
+c     CDFINFO
+      elseif ( string(ibeg:iend) .eq. 'dimvar_size' ) then
+         do i = 1, MAXDIM
+            value(i) = size(i)
          enddo
       else
          write (message, 210) string(ibeg:iend)
@@ -1364,6 +1374,13 @@ c
       real            value
       logical         error
       dimension value(dim)
+
+c
+c     Only in netcdf/open_var.c and newfile trans
+      real data(4)
+      integer size(4)
+      common /cdf_dimvar/data,size
+c
 c
 c     Local variable declarations.
 c
@@ -1660,6 +1677,17 @@ c
          else
             do i = 1, MAXDIM
                value(i) = scaled_loc(i)
+            enddo
+         endif
+c     CDFINFO
+      elseif ( string(ibeg:iend) .eq. 'dimvar_data' ) then
+         if ( dim .ne. MAXDIM ) then
+            write (message, 200) string(ibeg:iend), MAXDIM
+            call write_message 
+            error = .true.
+         else
+            do i = 1, MAXDIM
+               value(i) = data(i)
             enddo
          endif
       else
@@ -2445,6 +2473,12 @@ c
       dimension value(dim)
 c
 c
+c
+c     Only in netcdf/open_var.c and newfile trans
+      real data(4)
+      integer size(4)
+      common /cdf_dimvar/data,size
+c
 c     Local variable declarations.
 c
       integer         i, ibeg, iend
@@ -2479,6 +2513,10 @@ c
       elseif     ( string(ibeg:iend) .eq. 'ive_plock' ) then
          do i = 1, MAXDIM
             ive_plock(i) = value(i)
+         enddo
+      elseif     ( string(ibeg:iend) .eq. 'dimvar_size' ) then
+         do i = 1, MAXDIM
+            size(i) = value(i)
          enddo
        else
          write (message, 210) string(ibeg:iend)
@@ -2858,6 +2896,11 @@ c
       logical         error
       dimension value(dim)
 c
+c     Only in netcdf/open_var.c and newfile trans
+      real data(4)
+      integer size(4)
+      common /cdf_dimvar/data,size
+c
 c     Local variable declarations.
 c
       integer         i, ibeg, iend
@@ -3119,6 +3162,17 @@ c
          else
             do i = 1, MAX_UNITS
                domain_intercept(i) = value(i)
+            enddo
+         endif
+C     CDFINFO
+      elseif ( string(ibeg:iend) .eq. 'dimvar_data' ) then
+         if ( dim .ne. MAX_UNITS ) then
+            write (message, 200) string(ibeg:iend), MAX_UNITS
+            call write_message 
+            error = .true.
+         else
+            do i = 1, MAX_UNITS
+               data(i) = value(i)
             enddo
          endif
       else
