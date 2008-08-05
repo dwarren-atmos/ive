@@ -1,3 +1,8 @@
+#ifdef SIXTY_FOUR_bptr
+#define ive_ptr integer*8
+#else
+#define ive_ptr integer
+#endif
       subroutine getavar (string, value, error)
 c-----------------------------------------------------------------------
 c     $Id: getavar.f,v 1.65 2006/08/24 22:08:40 warren Exp $
@@ -1376,12 +1381,6 @@ c
       dimension value(dim)
 
 c
-c     Only in netcdf/open_var.c and newfile trans
-      real data(4)
-      integer size(4)
-      common /cdf_dimvar/data,size
-c
-c
 c     Local variable declarations.
 c
       integer         i, ibeg, iend
@@ -1677,17 +1676,6 @@ c
          else
             do i = 1, MAXDIM
                value(i) = scaled_loc(i)
-            enddo
-         endif
-c     CDFINFO
-      elseif ( string(ibeg:iend) .eq. 'dimvar_data' ) then
-         if ( dim .ne. MAXDIM ) then
-            write (message, 200) string(ibeg:iend), MAXDIM
-            call write_message 
-            error = .true.
-         else
-            do i = 1, MAXDIM
-               value(i) = data(i)
             enddo
          endif
       else
@@ -2896,11 +2884,6 @@ c
       logical         error
       dimension value(dim)
 c
-c     Only in netcdf/open_var.c and newfile trans
-      real data(4)
-      integer size(4)
-      common /cdf_dimvar/data,size
-c
 c     Local variable declarations.
 c
       integer         i, ibeg, iend
@@ -3162,17 +3145,6 @@ c
          else
             do i = 1, MAX_UNITS
                domain_intercept(i) = value(i)
-            enddo
-         endif
-C     CDFINFO
-      elseif ( string(ibeg:iend) .eq. 'dimvar_data' ) then
-         if ( dim .ne. MAX_UNITS ) then
-            write (message, 200) string(ibeg:iend), MAX_UNITS
-            call write_message 
-            error = .true.
-         else
-            do i = 1, MAX_UNITS
-               data(i) = value(i)
             enddo
          endif
       else
@@ -3523,3 +3495,82 @@ c
 c
       return
       end
+
+
+
+
+      subroutine getparr (string, value, dim, error) 
+c-----------------------------------------------------------------------
+c     Purpose:
+c        This routine returns the value of a pointer array stored
+c        in a common block.
+c     Arguments:
+c        string  char  input   the array name.
+c        value   real  output  the array of requested values.
+c        dim     int   input   the dimension of value in the calling
+c                              routine. If dim != the dimension of the
+c                              requested variable, the error flag is 
+c                              set to true and control is returned to
+c                              the calling routine.
+c        error   logi  output  indicates errors found in this routine.
+c                              error = .false.  no error detected.
+c                              error = .true.   error detected.
+c     History:
+c-----------------------------------------------------------------------
+c
+      include 'message.icl'
+c
+c     Argument declarations.
+c     
+      character *(*)  string
+      integer         dim
+      ive_ptr         value
+      logical         error
+      dimension value(dim)
+
+c
+c     Only in netcdf/open_var.c and newfile trans
+      ive_ptr data(4)
+      integer size(4)
+      common /cdf_dimvar/data,size
+c
+c
+c     Local variable declarations.
+c
+      integer         i, ibeg, iend
+c
+c
+c     External function declarations.
+c
+      integer         strbeg, strend
+c
+c
+c
+c
+      error = .false.
+c
+c
+      ibeg = strbeg (string)
+      iend = strend (string)
+c
+c     attribute array
+c
+      if     ( string(ibeg:iend) .eq. 'dimvar_data' ) then
+         do i = 1, 4
+            value(i) = data(i)
+         enddo
+      else
+         write (message, 410) string(ibeg:iend)
+         call write_message 
+         error = .true.
+      endif
+c     
+c
+c     Format statements.
+c
+ 400  format (1x, 'When calling getparr, the dimension of ',a,' must ',
+     &            'be equal to ',i2, '.')
+ 410  format (1x, 'The array ',a,' is not available to subroutine ',
+     &            'getparr.')
+
+end
