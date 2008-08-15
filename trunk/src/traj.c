@@ -2,6 +2,8 @@
 #include <string.h>
 #include <strings.h>
 
+#define MIN(A,B) ((A) < (B) ? (A):(B))
+#define MAX(A,B) ((A) > (B) ? (A):(B))
 static float wmin[4], wmax[4], dmin[4], dmax[4];
 static int xyaxis[2];
 extern double interp_();
@@ -24,7 +26,7 @@ int chk_point(pt)
 int checkoutbounds(float phys[4]){
   int i;
   for (i=0; i<4; i++){
-    if(phys[i] < dmin[i] || phys[i] > dmax[i]) return(1);
+    if(phys[i] < MIN(dmin[i],dmax[i]) || phys[i] > MAX(dmax[i],dmin[i])) return(1);
   }
   return(0);
 }
@@ -98,7 +100,6 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   phys[1]=y_cord[0]=traj_start_.start[1];
   phys[2]=z_cord[0]=traj_start_.start[2];
   phys[3]=t_cord[0]=traj_start_.start[3];
-//  printf("start_traj = %10.1f,%10.1f,%10.1f,%10.1f\n",phys[0]/1000,phys[1]/1000,phys[2]/1000,phys[3]/3600);
 
   num_pts=0;
   if(phys[3]>=traj_times_.trajbeg && phys[3]<=traj_times_.trajend)
