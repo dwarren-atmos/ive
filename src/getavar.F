@@ -910,7 +910,7 @@ c
       dimension value(dim)
 c
 c     Only in netcdf/open_var.c and newfile trans
-      real data(4)
+      ive_ptr data(4)
       integer size(4)
       common /cdf_dimvar/data,size
 c
@@ -977,6 +977,7 @@ c     CDFINFO
          do i = 1, MAXDIM
             value(i) = size(i)
          enddo
+c         write(6,*)'passed size:',size(1),size(2),size(3),size(4)
       else
          write (message, 210) string(ibeg:iend)
          call write_message 
@@ -2505,8 +2506,8 @@ c
       elseif     ( string(ibeg:iend) .eq. 'dimvar_size' ) then
          do i = 1, MAXDIM
             size(i) = value(i)
-         enddo
-       else
+         enddo 
+      else
          write (message, 210) string(ibeg:iend)
          call write_message 
          error = .true.
@@ -3506,7 +3507,7 @@ c        This routine returns the value of a pointer array stored
 c        in a common block.
 c     Arguments:
 c        string  char  input   the array name.
-c        value   real  output  the array of requested values.
+c        value   ive_ptr  output  the array of requested values.
 c        dim     int   input   the dimension of value in the calling
 c                              routine. If dim != the dimension of the
 c                              requested variable, the error flag is 
@@ -3559,6 +3560,7 @@ c
          do i = 1, 4
             value(i) = data(i)
          enddo
+c         write(6,*)'passed back:',data(1),data(2),data(3),data(4)
       else
          write (message, 410) string(ibeg:iend)
          call write_message 
