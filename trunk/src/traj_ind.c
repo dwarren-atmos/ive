@@ -1,7 +1,11 @@
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 extern int chk_point();
 extern int checkoutbounds();
 extern void getrarr_(),make_help_widget_(),huen_(),getivar_();
+extern void getavar_(), get_pointer_(), phys_2_index_trans_(), getrvar_();
+extern double interp_();
 static float wmin[4], wmax[4], dmin[4], dmax[4];
 static int xyaxis[2];
 #define MAXPTS 500

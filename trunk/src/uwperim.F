@@ -792,7 +792,8 @@ c
 c
 c        Tics are drawn at ticint intervals, beginning with ive_minval_per.
 c
-         point(1) = point(1) * 10.0**(tint)
+c         point(1) = point(1) * 10.0**(tint)
+         point(1) = point(1) +tint
          if(point(1) .le. EPSLON .and. point(1) .ge. 
      &                 (-1 * EPSLON)) point(1) = 0.0
          point(2) = point(1)
@@ -841,7 +842,7 @@ c     Purpose:
 c        This subroutine is used to draw tic marks around a plot
 c        perimeter.  It is called by subroutine uwperim.
 c     Arguments:
-c        ticint  real  input  The interval in warsd coordinates between
+c        ticint  real  input  The interval in world coordinates between
 c                             tic marks.
 c        tic1    real  input  The interval in world coordinates in 
 c                             which the tic will be drawn. This will 
@@ -896,9 +897,11 @@ c
       endif
 c
 c     
-      point(1) = ive_minval_per
-      if(point(1) .le. EPSLON .and. point(1) .ge. 
-     &                 (-1 * EPSLON)) point(1) = 0.0
+      if(abs(ive_minval_per) .le. EPSLON) then
+         point(1) = 0.0
+      else
+         point(1) = ive_minval_per
+      endif
       point(2) = point(1)
 c
 c     Account for the possibility that the minimum coordinate value
@@ -917,12 +920,17 @@ c
       done = .false.
 c
 c
- 5     if ( .not. done ) then
+      write(6,*)'lopt hipt tint',lopt,hipt,tint
+      do while( .not. done )
 c
 c        Tics are drawn at ticint intervals, beginning with ive_minval_per.
 c
-         point(1) = point(1) * 10.0**(tint)
-         if(point(1) .le. EPSLON .and. point(1) .ge. 
+c         point(1) = point(1) * 10.0**(tint)
+c     This doesn't make sense to users, 
+c     they think an interval is in height units.
+         point(1) = point(1)+tint
+         write(6,*)'point',point
+        if(point(1) .le. EPSLON .and. point(1) .ge. 
      &                 (-1 * EPSLON)) point(1) = 0.0
          point(2) = point(1)
 c
@@ -954,9 +962,8 @@ c
 c
          endif
 c
-         go to 5
-c
-      endif
+      enddo
+c     
 c
 c
       return
@@ -1284,38 +1291,39 @@ c     Scale tic interval based on the plot axes, BUT,
 c     only scale tics if the axis is linear (since we assume
 c     linear unit scaling.)
 c     
-      if ( (linlog .eq. 1) .or. (linlog .eq. 2) ) then
-         if (xaxis .eq. 0) then
-            slope = 1.
-            intercept = 0.
-         elseif (xaxis .lt. 5) then
-            status = convert_units (domain_units(xaxis), 
-     &           domain_display_units(xaxis), slope, intercept)
-         endif
-         if ( status .eq. 0 ) then
+c      if ( (linlog .eq. 1) .or. (linlog .eq. 2) ) then
+c         if (xaxis .eq. 0) then
+c            slope = 1.
+c            intercept = 0.
+c         elseif (xaxis .lt. 5) then
+c     doing log tics in x or y space so always scale
+      status = convert_units (domain_units(xaxis), 
+     &     domain_display_units(xaxis), slope, intercept)
+c     endif
+      if ( status .eq. 0 ) then
 c     
-c           We actually need to unscale the tic interval because
-c           the interval was specified in the domain display units, 
-c           but the set call is in terms of the domain units.  The 
-c           routine unscale is the inverse of the routine scale.
+c     We actually need to unscale the tic interval because
+c     the interval was specified in the domain display units, 
+c     but the set call is in terms of the domain units.  The 
+c     routine unscale is the inverse of the routine scale.
 c     
-            call unscale (xmajr, 1, slope, intercept, 0.0)
-            call unscale (xminr, 1, slope, intercept, 0.0)
-         endif
+         call unscale (xmajr, 1, slope, intercept, 0.0)
+         call unscale (xminr, 1, slope, intercept, 0.0)
       endif
-      if ( (linlog .eq. 1) .or. (linlog .eq. 3) ) then
-         if (yaxis .eq. 0) then
-            slope = 1.
-            intercept = 0.
-         elseif (yaxis .lt. 5) then
-            status = status + convert_units (domain_units(yaxis), 
-     &           domain_display_units(yaxis), slope, intercept)
-         endif
-         if ( status .eq. 0 ) then
-            call unscale (ymajr, 1, slope, intercept, 0.0)
-            call unscale (yminr, 1, slope, intercept, 0.0)
-         endif
+c     endif
+c     if ( (linlog .eq. 1) .or. (linlog .eq. 3) ) then
+c         if (yaxis .eq. 0) then
+c            slope = 1.
+c            intercept = 0.
+c         elseif (yaxis .lt. 5) then
+      status = status + convert_units (domain_units(yaxis), 
+     &     domain_display_units(yaxis), slope, intercept)
+c     endif
+      if ( status .eq. 0 ) then
+         call unscale (ymajr, 1, slope, intercept, 0.0)
+         call unscale (yminr, 1, slope, intercept, 0.0)
       endif
+c     endif
 c     
 c     
 c     Return scaled tic intervals only if no errors were encountered

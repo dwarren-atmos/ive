@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <strings.h>
 
@@ -214,6 +215,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
     phys[3]=traj_start_.start[3];
     grounded = 0;
     while(phys[3] <= traj_times_.trajend && !grounded){
+      printf("call huen f\n");
       (void)huen_(phys, u, v, w, &dims, unx, uny, unz, unt,
 		  vnx, wny, vnz, vnt, wnx, wny, wnz, wnt, &grounded, &delt, 
 		  &error);
