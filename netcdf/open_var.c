@@ -445,7 +445,7 @@ int len1, len2, len3, len4;
 	  whose dimensions have the same name as a variable, or lacking that
 	  the largest variable.
 	  */
-	int maxdim[4], dim_var, maxndim = 0;
+      int maxdim[4] = {0,0,0,0}, dim_var, maxndim = 0;
 
 	for (i=0; i < var_file.nvars; ++i) {
 	    if (var_file.vars[i].ndims > maxndim) {
