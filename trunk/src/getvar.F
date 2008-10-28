@@ -671,8 +671,11 @@ c     since the user might install a shortcut for some of the
 c     computations.
 c
       ndims = 0
-      getvar = calc_field_trans (var0, ndims, dims, stag, 
-     &      datmin, datmax, misdat, data_units, data_display_units,
+      call catnull (VAR0, len(VAR0), error)
+      getvar = calc_field_trans (var0(strbeg(var0):strend(var0)), 
+     &      ndims, dims, stag, 
+     &      datmin, datmax, misdat, data_units(1:UNIT_LEN), 
+     &      data_display_units(1:UNIT_LEN),
      &	    dim_names)  
       if (getvar .gt. 0 .and. ndims .gt.0 ) then
 c        -----------------------------------------------------------
@@ -1491,12 +1494,15 @@ c       assign dimensions
 c       get memory
         getexpr=getmem( dim0(1)*dim0(2)*dim0(3)*dim0(4) )
         if (getexpr.eq.0) then
-          if (message.eq.' ') then
-            write(message, 100) dim0(1)*dim0(2)*dim0(3)*dim0(4)
-          endif
-          goto 900
+!     Try again to see if we are on th verger and some came available
+           getexpr=getmem( dim0(1)*dim0(2)*dim0(3)*dim0(4) )
+           if (getexpr.eq.0) then
+              if (message.eq.' ') then
+                 write(message, 100) dim0(1)*dim0(2)*dim0(3)*dim0(4)
+              endif
+              goto 900
+           endif
         endif
-
 c       call routine to perform the operation
         call cmpexp2(
      &    %val(ptr1)   ,ndim1,dim1(1),dim1(2),dim1(3),dim1(4),misdat1,

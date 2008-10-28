@@ -27,7 +27,9 @@ int chk_point(pt)
 int checkoutbounds(float phys[4]){
   int i;
   for (i=0; i<4; i++){
-    if(phys[i] < MIN(dmin[i],dmax[i]) || phys[i] > MAX(dmax[i],dmin[i])) return(1);
+    if(phys[i] < MIN(dmin[i],dmax[i]) || phys[i] > MAX(dmax[i],dmin[i])){
+      return(1);
+    }
   }
   return(0);
 }
@@ -108,7 +110,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   
   /*Backwards integration*/
   if(traj_times_.trajbeg < traj_start_.start[3]){
-    delt = -100;
+    delt = -1.*abs(((traj_times_.trajbeg-traj_times_.trajend)/(2.*(*unt))));
     grounded = 0;
     while(phys[3] >= traj_times_.trajbeg && !grounded){
       (void)huen_(phys, u, v, w, &dims, unx, uny, unz, unt,
@@ -205,17 +207,15 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   }
   
   
-  
   /*Forwards integration*/
   if(traj_times_.trajend > traj_start_.start[3]){
-    delt = 100;
+    delt = abs((traj_times_.trajbeg-traj_times_.trajend)/(2.*(*unt)));
     phys[0]=traj_start_.start[0];
     phys[1]=traj_start_.start[1];
     phys[2]=traj_start_.start[2];
     phys[3]=traj_start_.start[3];
     grounded = 0;
-    while(phys[3] <= traj_times_.trajend && !grounded){
-      printf("call huen f\n");
+    while((phys[3] <= traj_times_.trajend) && !grounded){
       (void)huen_(phys, u, v, w, &dims, unx, uny, unz, unt,
 		  vnx, wny, vnz, vnt, wnx, wny, wnz, wnt, &grounded, &delt, 
 		  &error);
@@ -305,6 +305,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   }
   else
     *bfield = (float *)NULL;
+	 traj_times_.trajend, grounded);
   return(num_pts);
 }
 

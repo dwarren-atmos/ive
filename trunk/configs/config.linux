@@ -64,14 +64,24 @@
 #
 #
 LSB := ${shell ls -d /usr/include/lsb*|sort -n|tail -1|cut -f2 -db}
+ifndef LSB
+LSB := 0	
+endif
 MACH := ${shell uname -m}
-F77=ifort
+F77=ifort 
 KF77=ifort
 ACC=icc
-CC=icc
+CC=icc 
 #LD=ifc 
 LD=ifort
 RANLIB=ranlib
+ifeq (${MACH}, x86_64)
+ALPHA = -DLinux -DSIXTY_FOUR_bptr -D__alpha
+EXTRA=
+else
+ALPHA = -DLinux
+EXTRA=
+endif
 #NETCDF=/usr/local/netcdf-3.6.1
 FCPP =  
 #FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
@@ -84,7 +94,7 @@ FDEC =   -cm -align -auto -u -ip -zero
 #	-DLinux
 DEC =	-DLSB=${LSB} -I/usr/include \
 	-I/usr/local/include -I/usr/X11R6/include \
-	-DLinux
+	-DLinux ${EXTRA}
 
 BROWSER='-DBROWSER=\"firefox\"'
 #DEC = -D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE -I/usr/include \
@@ -94,23 +104,17 @@ BROWSER='-DBROWSER=\"firefox\"'
 
 #Includes there to premempt float.h in udposix.
 
-ifeq (${MACH}, x86_64)
-ALPHA = -DLinux -DSIXTY_FOUR_bptr -D__alpha
-else
-ALPHA = -DLinux
-endif
 
 #LIBS =       -threads -Vaxlib -L${NETCDF}/lib -L/usr/lib
-LIBS =       -static-intel -static-libgcc -threads -Vaxlib -L/usr/lib  \
+LIBS =	-threads -L/usr/lib  \
 	-L${NCARG_ROOT}/lib  \
-	-L/usr/X11R6/lib -L/usr/lib/gcc-lib/i486-linux/3.3.5 \
+	-L/usr/X11R6/lib  \
 	-lncarg -lngmath -lncarg_c -lXm \
 	-lxgks-ifort -ludunits -ludport -lm \
-	-lirc \
-	 -lGLU  -lGL  -lnetcdf \
+	 -lGLU  -lGL  -lnetcdf -lnetcdff\
 	-lXt -lXp -lXpm -lXext -lX11 \
 	-lSM -lICE  -lsvml -ldl -lc \
-	-lXm -lc -lifcore
+	-lXm -lc 
 
 
 #COPT = -O -w
