@@ -334,7 +334,6 @@ c     Go 1 below data_min
          endif
 
       endif
-
       do i=1,max_levs
          tmplevs(i) = 1E38
       enddo

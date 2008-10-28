@@ -60,8 +60,9 @@ c     external functions
       data iflag / 1,1,1,1/
       halved = .false.
       doubled = .false.
+      error= .false.
       call getrvar('spval', spval, error)
-c      spval = -999999.999
+      if(spval .eq. 0.) spval = -999999.999
       repeat = 0
       error = .false.
       grounded = 0
@@ -125,18 +126,17 @@ c     (less then a tenth grid point) redo it.
       d3=abs(tmpc(3)-tmpp(3))
 c     adjust the time step
 c     if ((.not.doubled).and.(abs(delt).gt.0.5)) then
-      if ((.not.doubled).and.(max(d1,d2,d3).gt.0.5)) then
-c         write(6,*) 'halved it'
+      if ((.not.doubled).and.(max(d1,d2,d3).gt.0.5) .and.
+     &     (.not. halved)) then
          delt = delt/2.
          halved= .true.
          goto 10
       endif
-      if (.not.halved) then
-         if ((max(d1,d2,d3).lt.0.25)) then 
-            delt = 2.*delt
-            doubled = .true.
-            goto 10
-         end if
+      if ((.not.halved) .and. (.not. doubled) .and.
+     &     (max(d1,d2,d3).lt.0.25)) then 
+         delt = 2.*delt
+         doubled = .true.
+         goto 10
       end if
       
 c     now find the u and v values at this intermediate time
