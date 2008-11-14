@@ -305,7 +305,6 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   }
   else
     *bfield = (float *)NULL;
-	 traj_times_.trajend, grounded);
   return(num_pts);
 }
 
