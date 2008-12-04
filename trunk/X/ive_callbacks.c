@@ -286,8 +286,9 @@ void done_parent_callback(w, client, call)
 void timeout_widget(w)
     Widget w;
 {
-    XtDestroyWidget(w);
-    XtDestroyWidget(XtParent(w));
+  Widget p=XtParent(w);
+  XtDestroyWidget(w);
+  XtDestroyWidget(p);
 }
 
 void del_callback(w, client, call)
