@@ -1539,7 +1539,7 @@ Widget init_ive(parent,file_widget)
     /*add the command option at the bottom*/
 
 
-    main_widget.command = XtVaCreateManagedWidget("Command",
+    main_widget.command = XtVaCreateManagedWidget("Commands",
 						  xmTextFieldWidgetClass,
 						  Box,
 						  /* XmNy,170,*/
