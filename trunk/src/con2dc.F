@@ -1335,6 +1335,12 @@ c
             ypos = cfuy (szsf + 0.03)
          endif
          call  gslwsc (linewdth)
+C     Initialize these first to opposite of what we might expect
+         call getivar ('locolor', lineclr1, error)
+         call getivar ('lopattern', linepat1, error)
+         call getivar ('hicolor', lineclr2, error)
+         call getivar ('hipattern', linepat2, error)
+C
          if ( curoverlay(curlist) .eq. 2 ) then
             if ( cmax .gt. 0.0 ) then
                offset = 0.025
