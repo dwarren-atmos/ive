@@ -1281,6 +1281,11 @@ C     &              minor_tic, lmin, lmax, num_vals,
 C     &              nulbll, cllab)
 C               call setavar('data_display_units', disp_units, error)
             end if
+         elseif (keynum .eq. P_TRAJ_2D) then
+            call set_traj_2d (error)
+            if (.not. error) then
+               call ui_update(TRAJ_2D_UI)
+            endif
          elseif (keynum .eq. P_TRAJ_IND .or.
      &           keynum .eq. P_TRAJECTORY_IND) then
             call set_traj_time_ind (error)

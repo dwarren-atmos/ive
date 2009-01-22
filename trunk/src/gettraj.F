@@ -124,12 +124,13 @@ c
          error = .true.
          goto 10
       endif
-      if(traj_component(3) .eq. ' ') then
+      if(traj_component(3) .eq. ' ' .and. .not. traj_2d) then
          write (message, 180)
          call write_message
          error = .true.
          goto 10
       endif
+         
 c     
 c     
 c     Get the value of the save flag.
@@ -291,7 +292,7 @@ c     &     strend(traj_component(1))), ptru, nx, ny, nz, nt)
       vdim(3) = nz
       vdim(4) = nt
       
-      if(nblank(traj_component(3)) .ne. 0) then
+      if(.not. traj_2d .and. (nblank(traj_component(3)) .ne. 0)) then
          call get_pointer(traj_component(3)(strbeg(traj_component(3)):
      &        strend(traj_component(3))), ptrw, nx, ny, nz, nt)
          if ( ptrw .le. 0 ) then

@@ -174,6 +174,7 @@ void form_numterr_call();
 void numterr_scale_type_in();
 void form_traj_call();
 void form_traj_ind_call();
+void form_traj_2d_call();
 void traj_scale_type_in();
 #ifdef Linux
 typedef char *caddr_t;

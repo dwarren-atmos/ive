@@ -262,8 +262,11 @@ c
          yminr = yminor
          call getivar ('xaxis', xaxis, error)
          call getivar ('yaxis', yaxis, error)
+         xaxis = mod(xaxis,10)
+         yaxis = mod(yaxis,10)
+         
          call scaletics (xmajr, xminr, ymajr, yminr,
-     &         mod(xaxis,10), mod(yaxis,10))
+     &         xaxis, yaxis)
             if (movielabs) then
                call pcseti ('QU', 0)            
                call pcsetc ('FN', 'HELVETICA-BOLD    ')

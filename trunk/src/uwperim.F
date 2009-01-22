@@ -1292,14 +1292,15 @@ c     only scale tics if the axis is linear (since we assume
 c     linear unit scaling.)
 c     
 c      if ( (linlog .eq. 1) .or. (linlog .eq. 2) ) then
-c         if (xaxis .eq. 0) then
-c            slope = 1.
-c            intercept = 0.
-c         elseif (xaxis .lt. 5) then
+      if (xaxis .eq. 0 .or. xaxis .eq. 5) then
+         slope = 1.
+         intercept = 0.
+c     elseif (xaxis .lt. 5) then
 c     doing log tics in x or y space so always scale
-      status = convert_units (domain_units(xaxis), 
-     &     domain_display_units(xaxis), slope, intercept)
-c     endif
+      else
+         status = convert_units (domain_units(xaxis), 
+     &        domain_display_units(xaxis), slope, intercept)
+      endif
       if ( status .eq. 0 ) then
 c     
 c     We actually need to unscale the tic interval because
@@ -1312,13 +1313,14 @@ c
       endif
 c     endif
 c     if ( (linlog .eq. 1) .or. (linlog .eq. 3) ) then
-c         if (yaxis .eq. 0) then
-c            slope = 1.
-c            intercept = 0.
+      if (yaxis .eq. 0 .or. yaxis .eq. 5) then
+         slope = 1.
+         intercept = 0.
 c         elseif (yaxis .lt. 5) then
-      status = status + convert_units (domain_units(yaxis), 
-     &     domain_display_units(yaxis), slope, intercept)
-c     endif
+      else
+         status = status + convert_units (domain_units(yaxis), 
+     &        domain_display_units(yaxis), slope, intercept)
+      endif
       if ( status .eq. 0 ) then
          call unscale (ymajr, 1, slope, intercept, 0.0)
          call unscale (yminr, 1, slope, intercept, 0.0)

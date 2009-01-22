@@ -1319,6 +1319,8 @@ c     Trajectory variables
 c
       elseif ( string(ibeg:iend) .eq.'time_ind' ) then
          value = time_ind
+      elseif ( string(ibeg:iend) .eq.'traj_2d' ) then
+         value = traj_2d
 c
 c
 c     color variables
@@ -2824,6 +2826,8 @@ c     Trajectory variables
 c
       elseif ( string(ibeg:iend) .eq.'time_ind' ) then
          time_ind = value
+      elseif ( string(ibeg:iend) .eq.'traj_2d' ) then
+         traj_2d = value
 c
 c
 c     color variables
