@@ -86,15 +86,27 @@ c
 c
 c     Local variable declarations.
 c
-      real       SPECIAL
-      parameter ( SPECIAL = -10.0**27 )
+      integer    i, j, k, t, ip1, jp1, kp1, tp1
+      logical    error
       double precision  fracti, fractim, fractj, fractjm, fractk, 
      &                  fractkm, fractt, fracttm
-      integer    i, ip1, j, jp1, k, kp1, t, tp1
-      logical    error
+      real       SPECIAL
+      parameter ( SPECIAL = -10.0**27 )
 c
 c
 c
+      if (spval .eq. 0.0) then
+c     
+c     Set a value for spval for use by the contouring routines.
+c     Also, set a flag indicating that spval has been set in
+c     the graphics routines, so we can unset spval after
+c     the next slice.
+c     
+         call setrvar('spval', SPECIAL, error)
+         call setlvar ('reset_spval', .true., error)
+         spval = SPECIAL
+      endif
+
 c     Make sure we are not under ground. Recall that the transforms
 c     return a negative value for compt if a point in physical space
 c     falls below topography. Test all points here for the most general
@@ -109,20 +121,7 @@ c        Point is outside computational grid space. In this case,
 c        set interp to the special value so contouring routines will 
 c        ignore this point. 
 c
-         if (spval .eq. 0.0) then
-c
-c           Set a value for spval for use by the contouring routines.
-c           Also, set a flag indicating that spval has been set in
-c           the graphics routines, so we can unset spval after
-c           the next slice.
-c
-            call setrvar('spval', SPECIAL, error)
-            call setlvar ('reset_spval', .true., error)
-            interp = SPECIAL
-            spval = SPECIAL
-         else
-            interp = spval
-         endif
+         interp = spval
          return
       endif
 c
@@ -282,6 +281,17 @@ c
       logical    error
 c
 c
+      if (spval .eq. 0.0) then
+c     
+c     Set a value for spval for use by the contouring routines.
+c     Also, set a flag indicating that spval has been set in
+c     the graphics routines, so we can unset spval after
+c     the plot is drawn.
+c
+         call setrvar('spval', SPECIAL, error)
+         call setlvar ('reset_spval', .true., error)
+         spval = SPECIAL
+      endif
 c
 c     Make sure we are not under ground. Recall that the transforms
 c     return a negative value for compt if a point in physical space
@@ -290,28 +300,15 @@ c     case.
 c
       if ( (reali .lt. 0.0) .or. (realj .lt. 0.0) .or. 
      &     (realk .lt. 0.0) .or. (realt .lt. 0.0)) then
-c
-c        Point is under ground. In this case, 
-c        set interp to the special value so contouring routines will 
-c        ignore this point. 
-c
-         if (spval .eq. 0.0) then
-c
-c           Set a value for spval for use by the contouring routines.
-c           Also, set a flag indicating that spval has been set in
-c           the graphics routines, so we can unset spval after
-c           the plot is drawn.
-c
-            call setrvar('spval', SPECIAL, error)
-            call setlvar ('reset_spval', .true., error)
-            extrap = SPECIAL
-            spval = SPECIAL
-         else
-            extrap = spval
-         endif
+c     
+c     Point is under ground. In this case, 
+c     set interp to the special value so contouring routines will 
+c     ignore this point. 
+c     
+         extrap = spval
          return
       endif
-c
+c     
 c
 c     Set up pointers so that we either interpolate between points or 
 c     extrapolate outside the data domain.

@@ -275,3 +275,4 @@ extern struct {
 #define VSCALE_UI  52
 #define TRAJ_STEP_VAL_UI 53
 #define TRAJ_BACKGROUND_UI 54
+#define TRAJ_2D_UI 55

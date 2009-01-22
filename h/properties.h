@@ -61,6 +61,7 @@ extern struct {
   Widget traj_ts_lab, traj_ts, traj_te_lab, traj_te;        /*trajectory*/
   Widget traj_ind_lab, traj_ind;                              /*trajectory*/
   Widget traj_expl_lab, traj_help;                           /*trajectory*/
+  Widget traj_2d;
   /* per plot */
   Widget vect_max, vect_lock, vect_maxlab, vect_locklab;   /*vector*/
   Widget vect_poslab, vect_pos;			     /*vector*/

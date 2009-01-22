@@ -819,12 +819,12 @@ void ui_update_(window)
 	getavar_("transform_path",avar,&error,14,256);
 	if(error)break;
 	junk = (char *)strrchr(avar,'/');
-	if(((int)junk - (int)avar) <= (int)strlen(avar)) *(junk+1)='\0';
+	if(((long)junk - (long)avar) <= (long)strlen(avar)) *(junk+1)='\0';
 	set_file_box(trans_widget.List, avar, &trans_widget.fsb);
 	if (!trans_widget.List) {
 	    if(envvar2){
 		junk = (char *)realloc(envvar2,strlen(avar)+1+9);
-		if((int)junk)envvar2=junk;
+		if((long)junk)envvar2=junk;
 		else break;
 	    }
 	    else{
@@ -839,12 +839,12 @@ void ui_update_(window)
 	getavar_("clrtab",avar,&error,6,256);
 	if(error)break;
 	junk = (char *)strrchr(avar,'/');
-	if(((int)junk - (int)avar) <= (int)strlen(avar)) *(junk+1)='\0';
+	if(((long)junk - (long)avar) <= (long)strlen(avar)) *(junk+1)='\0';
 	set_file_box(ctb_widget.List, avar, &ctb_widget.fsb);
 	if (!ctb_widget.List) {
 	    if(envvar3){
 		junk = (char *)realloc(envvar3,strlen(avar)+1+9);
-		if((int)junk)envvar3=junk;
+		if((long)junk)envvar3=junk;
 		else break;
 	    }
 	    else{
@@ -1283,8 +1283,9 @@ void ui_update_(window)
 
 	    if(get_button_name(fieldc,button)){
 		str = NewString("Free");
-		XtVaSetValues(Properties.lock_color_widget,XmNlabelString,
-			      str,NULL);
+		if(Properties.lock_color_widget)
+		  XtVaSetValues(Properties.lock_color_widget,XmNlabelString,
+				str,NULL);
 		XmStringFree(str);
 	    }
 	    else{
@@ -1540,6 +1541,20 @@ void ui_update_(window)
 	else{
 	  XtSetSensitive(Properties.traj_ts, TRUE);
 	  XtSetSensitive(Properties.traj_te, TRUE);
+	}
+      }
+      break;
+    case TRAJ_2D_UI: 
+      if(Properties.dep_form_t){
+	int traj_2d;
+	(void)getlvar_("traj_2d", &traj_2d, &error,7);
+	if(traj_2d && !error){
+	  XtSetSensitive(Properties.tcomp_3, FALSE);
+	  XtSetSensitive(Properties.tcomp_3, FALSE);
+	}
+	else{
+	  XtSetSensitive(Properties.tcomp_3, TRUE);
+	  XtSetSensitive(Properties.tcomp_3, TRUE);
 	}
       }
       break;

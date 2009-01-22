@@ -87,7 +87,7 @@ c     external functions
       else
          vold=0.0
       endif 
-      if(nblank(traj_component(3)) .ne. 0) then
+      if(.not. traj_2d .and. nblank(traj_component(3)) .ne. 0) then
          call get_pointer(traj_component(3)(strbeg(traj_component(3)):
      &        strend(traj_component(3))),tmp_ptr,wnx,wny,wnz,wnt)
          call phys_2_index_trans(phys, warr, iflag, maxdim, 1)

@@ -44,6 +44,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   extern struct {float ustag[4],  vstag[4], wstag[4];}traj_stag_;
   extern struct {char att_var_traj[80], traj_component[3][80], 
 		   traj_units[3][80];}traj_pointers_;
+  extern struct {int traj_2d;}traj_dim_2d_;
   int i, length, num_pts, dims, grounded, bx, by, bz, bt, bg, error;
   float phys[4], *tmp_cord, *flip, delt, *x_cord, *y_cord, *z_cord, *t_cord;
   float *bgptr;
@@ -103,6 +104,9 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   phys[1]=y_cord[0]=traj_start_.start[1];
   phys[2]=z_cord[0]=traj_start_.start[2];
   phys[3]=t_cord[0]=traj_start_.start[3];
+  if(traj_dim_2d_.traj_2d){
+    phys[3]=t_cord[0]=0;
+  }
 
   num_pts=0;
   if(phys[3]>=traj_times_.trajbeg && phys[3]<=traj_times_.trajend)

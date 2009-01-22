@@ -54,7 +54,7 @@ c	ANY CHANGES HERE MUST ALSO BE MADE IN TRAJ.C !!!!!!!!!!!
 c
       real start, trajend, trajbeg, ustag(4),  vstag(4), wstag(4)
       integer num_traj_comp
-      logical time_ind
+      logical time_ind, traj_2d
       dimension start(4)
       common /traj_start/ start
       common /traj_times/ trajend, trajbeg
@@ -68,6 +68,7 @@ c
      &			      traj_background_field, old_traj_background
       common/ traj_count / num_traj_comp
       common / traj_time_ind/ time_ind
+      common / traj_dim_2d/ traj_2d
 
       real traj_data_max, traj_data_min
       integer 	traj_depth

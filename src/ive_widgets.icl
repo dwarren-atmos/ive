@@ -133,7 +133,7 @@ c-----------------------------------------------------------------------
      &	      FILLPATTERN, TERR_UI, TERR_NUNLAB_UI, SKEWT_COMP_UI,
      &	      POINTS_UI, LANDSCAPE_UI, UI_TRAJ_COMP, UI_TRAJ_ENDS,
      &        TRAJ_IND_UI, VSCALE_UI, TRAJ_STEP_VAL_UI, 
-     &	      TRAJ_BACKGROUND_UI
+     &	      TRAJ_BACKGROUND_UI, TRAJ_2D_UI
 
 c
       parameter( DIR_UI       =   0,
@@ -194,6 +194,7 @@ c
       parameter(  TRAJ_IND_UI    =51,
      &	          VSCALE_UI     =52,
      &		  TRAJ_STEP_VAL_UI = 53,
-     &            TRAJ_BACKGROUND_UI =54)
+     &            TRAJ_BACKGROUND_UI =54,
+     &            TRAJ_2D_UI =55)
 
 

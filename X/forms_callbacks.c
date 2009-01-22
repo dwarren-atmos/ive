@@ -500,6 +500,32 @@ void form_traj_ind_call(w, data, call)
     XmStringFree(oldlab);
 }
 
+void form_traj_2d_call(w, data, call)
+     Widget w;
+     caddr_t data;
+     XmAnyCallbackStruct *call;
+{
+    Arg args[1];
+    XmString oldlab;
+    if(on==NULL)
+      on = NewString("2D");
+    if(off==NULL)
+      off = NewString("3D ");
+    XtSetArg(args[0],XmNlabelString,&oldlab);
+    XtGetValues(w,args,1);
+    if (XmStringCompare(off,oldlab)){
+	XtSetArg(args[0],XmNlabelString,on);
+	XtSetValues(w,args,1);
+	driver("traj_2d=yes");
+    }
+    else{
+	XtSetArg(args[0],XmNlabelString,off);
+	XtSetValues(w,args,1);
+	driver("traj_2d=no");
+    }
+    XmStringFree(oldlab);
+}
+
 void form_label_call(w, data, call)
      Widget w;
      caddr_t data;

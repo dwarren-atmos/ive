@@ -269,8 +269,9 @@ struct {
   Widget Tcomp_c_lab, tcomp_1_lab, tcomp_2_lab, tcomp_3_lab; /*trajectory*/
   Widget tcomp_1, tcomp_2, tcomp_3, Traj_c_lab, Wind_lab;    /*trajectory*/
   Widget traj_ts_lab, traj_ts, traj_te_lab, traj_te;         /*trajectory*/
-  Widget traj_ind_lab, traj_ind;                              /*trajectory*/
+  Widget traj_ind_lab, traj_ind;                             /*trajectory*/
   Widget traj_expl_lab, traj_help;                           /*trajectory*/
+  Widget traj_2d;                                             /*trajectory*/
 /* per plot */
   Widget vect_max, vect_lock, vect_maxlab, vect_locklab;     /*vector*/
   Widget vect_poslab, vect_pos;			             /*vector*/
@@ -2306,7 +2307,8 @@ void  do_traj(parent)
     Pixel bot,top;
 
     int error = 0, veclock = 0;
-    
+    unsigned int lvar;
+
     /*make form but don't manage*/
     
     /*DEP FORM*/
@@ -2324,7 +2326,7 @@ void  do_traj(parent)
 					     XmRESIZE_ANY,
 					     XmNmarginWidth,5,
 					     XmNborderWidth,1,
-					     XmNwidth, 266,
+					     XmNwidth, 278,
 					     NULL);
 
 
@@ -2343,6 +2345,7 @@ void  do_traj(parent)
 
 
     /*row 2*/
+
     str = NewString("Wind Componants along axis");
     Properties.Wind_lab =
       XtVaCreateManagedWidget("Traj_c_lab",xmLabelWidgetClass,
@@ -2354,6 +2357,7 @@ void  do_traj(parent)
 			      XmNrightAttachment,XmATTACH_FORM,
 			      NULL);
     XmStringFree(str);
+
 
 
     
@@ -2480,6 +2484,7 @@ void  do_traj(parent)
     XmStringFree(str);
 
 
+
     str = NewString("");
     Properties.traj_ts =       
       XtVaCreateManagedWidget("Traj_ts",xmScaleWidgetClass,
@@ -2569,8 +2574,31 @@ void  do_traj(parent)
 				XmNleftWidget, Properties.traj_ind_lab,
 				NULL);
     XmStringFree(str);
+
+    (void)getlvar_("traj_2d", &lvar, &error, 7);
+    if(lvar)
+	str = NewString("2D ");
+    else
+	str = NewString("3D ");
+
+    Properties.traj_2d =
+      XtVaCreateManagedWidget("Traj_2d",xmPushButtonWidgetClass,
+			      Properties.dep_form_t,
+			      XmNlabelString,str,
+			      XmNtopAttachment,XmATTACH_WIDGET,
+			      XmNtopWidget, Properties.traj_te,
+			      XmNleftAttachment, XmATTACH_WIDGET,
+			      XmNleftWidget, Properties.traj_ind,
+			      XmNtopOffset,10,
+			      XmNleftOffset,10,
+			      NULL);
+    XmStringFree(str);
+
     XtAddCallback(Properties.traj_ind, XmNactivateCallback,
 		  form_traj_ind_call,NULL);
+
+    XtAddCallback(Properties.traj_2d, XmNactivateCallback,
+		  form_traj_2d_call,NULL);
     
 
     str = NewString("Reference value");

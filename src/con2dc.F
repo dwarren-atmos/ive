@@ -312,6 +312,7 @@ c
 c     Local variable declarations.
 c
 c      integer         xaxis, yaxis ! which axes go which way (in pltwin.icl)
+      integer         xax, yax
       logical         local_err,   ! error flag
      &     movielabs            ! DW's stuff
       real            lolim, uplim ! min, max limits 
@@ -407,8 +408,10 @@ c
             yminr = yminor
 c            call getivar ('xaxis', xaxis, error)
 c            call getivar ('yaxis', yaxis, error)
+            xax = mod(xaxis,10)
+            yax = mod(yaxis,10)
             call scaletics (xmajr, xminr, ymajr, yminr,
-     &           mod(xaxis,10), mod(yaxis,10))
+     &           xax, yax)
             call uwperim (xmajr, xminr, ymajr, yminr)
          endif
       endif
@@ -486,7 +489,7 @@ c
 c
 c     Local variable declarations.
 c
-c      integer         xaxis, yaxis ! which axes go which way
+      integer         xax, yax ! which axes go which way
       logical         local_err,   ! error flag
      &     movielabs               ! DW's stuff
       real            lolim, uplim ! min, max limits 
@@ -601,8 +604,10 @@ c
             yminr = yminor
 c     call getivar ('xaxis', xaxis, error)
 c     call getivar ('yaxis', yaxis, error)
+            xax = mod(xaxis,10)
+            yax = mod(yaxis,10)
             call scaletics (xmajr, xminr, ymajr, yminr,
-     &           mod(xaxis,10), mod(yaxis,10))
+     &           xax, yax)
             call uwperim (xmajr, xminr, ymajr, yminr)
          endif
       endif

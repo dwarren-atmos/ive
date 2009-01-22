@@ -545,6 +545,7 @@ c
       traj_depth = 0
       traj_step_set = .false.
       traj_val_set = .false.
+      traj_2d = .false.
       traj_background_field = 'depth'
       old_traj_background = traj_background_field
       old_traj_min_color = max_traj_color
