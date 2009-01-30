@@ -86,16 +86,24 @@ endif
 FCPP =  
 #FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
 #FDEC =   -w95 -cm -align -auto -u -ip -zero
+ifeq (${MACH}, x86_64)
+FDEC =   -fPIE -cm -align -auto -u -ip -zero
+else
 FDEC =   -cm -align -auto -u -ip -zero
-
+endif
 #DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
 #	-DLSB=${LSB} -I/usr/include \
 #	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE \
 #	-DLinux
+ifeq (${MACH}, x86_64)
+DEC =	-fPIE -DLSB=${LSB} -I/usr/include \
+	-I/usr/local/include -I/usr/X11R6/include \
+	-DLinux ${EXTRA}
+else
 DEC =	-DLSB=${LSB} -I/usr/include \
 	-I/usr/local/include -I/usr/X11R6/include \
 	-DLinux ${EXTRA}
-
+endif
 BROWSER='-DBROWSER=\"firefox\"'
 #DEC = -D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE -I/usr/include \
 #	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE -ffast-math \
@@ -120,6 +128,10 @@ LIBS =	-threads -L/usr/lib  \
 #COPT = -O -w
 COPT = -O
 FOPT = -O 
+ifeq (${MACH}, x86_64)
+LDOPT =  -fPIE -Wl,--export-dynamic -nofor_main -ip
+else
 LDOPT =  -Wl,--export-dynamic -nofor_main -ip
+endif
 LDSTUFF = ${LDOPT} 
 
