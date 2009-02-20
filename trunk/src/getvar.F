@@ -682,7 +682,7 @@ c        -----------------------------------------------------------
 c        This is a variable which is provided by the user.
 c        -----------------------------------------------------------
 	 flag = .true.
-         goto 850
+c         goto 850
       endif
       
       
@@ -707,9 +707,11 @@ c        -----------------------------------------------------------
          if ( getvar.gt. 0 ) then
 c           Add the new variable to the data structure.
             flag=.true.
-            goto 850     
+c            goto 850     
          endif
       endif
+
+      if(flag) goto 850
       
 c     the variable was not found, go to exit
       goto 900
@@ -733,7 +735,7 @@ c       do not add scalers to the data-structure
           status = add_field (getvar, varid, var0, ndims, dims,
      &           stag, datmin, datmax, misdat, data_units,
      &           data_display_units, dim_names) 
-          if ( status .le. 0 ) then
+          if ( status .eq. 0 ) then
             if (flag) call freemem(getvar)
             flag=.false.
             getvar = 0
