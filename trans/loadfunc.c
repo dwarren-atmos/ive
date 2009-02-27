@@ -477,7 +477,7 @@ int *inmax1, *inmax2, *inmax3, *inmax4, len;
                If such a variable does not exist, coord[i] == NULL.
                */
 	    flag = 0;
-	    printf("i=%d varname=%s vid=%d\n",i,dnames[i],getvid_(dnames[i],strlen(dnames[i])));
+//	    printf("i=%d varname=%s vid=%d\n",i,dnames[i],getvid_(dnames[i],strlen(dnames[i])));
 	    varid=getvid_(dnames[i],strlen(dnames[i]));
             if ((coord[i] =
                  (float *)read_var_(&varid,  &nd, dims, stagger,  min, max, &missing,
