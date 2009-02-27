@@ -87,9 +87,9 @@ FCPP =
 #FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
 #FDEC =   -w95 -cm -align -auto -u -ip -zero
 ifeq (${MACH}, x86_64)
-FDEC =   -fPIE -cm -align -auto -u -ip -zero
+FDEC =   -fPIE -cm -align -auto -u -ip -zero -fp-model precise
 else
-FDEC =   -cm -align -auto -u -ip -zero
+FDEC =   -cm -align -auto -u -ip -zero -fp-model precise
 endif
 #DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
 #	-DLSB=${LSB} -I/usr/include \
@@ -98,11 +98,11 @@ endif
 ifeq (${MACH}, x86_64)
 DEC =	-fPIE -DLSB=${LSB} -I/usr/include \
 	-I/usr/local/include -I/usr/X11R6/include \
-	-DLinux ${EXTRA}
+	-DLinux ${EXTRA} -fp-model precise
 else
 DEC =	-DLSB=${LSB} -I/usr/include \
 	-I/usr/local/include -I/usr/X11R6/include \
-	-DLinux ${EXTRA}
+	-DLinux ${EXTRA} -fp-model precise
 endif
 BROWSER='-DBROWSER=\"firefox\"'
 #DEC = -D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE -I/usr/include \
