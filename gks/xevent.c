@@ -145,7 +145,7 @@ void slice_menu_call(w, data, call)
 		  XmNwidth,&location.width, NULL);
 
     
-    switch((int)data){
+    switch((unsigned long)data){
     case 0:
 	location.hor = location.vert = location.sandw = 0;
 	gks_mouse_menu_tracker=1;
