@@ -355,8 +355,8 @@ c     Go 1 below data_min
          do while (tmplevs(k-1) .lt. traj_levels(1)-2.0*step)
            if(k.lt.max_levs) then
              tmplevs(k) = tmplevs(k-1) + step ; k=k+1
-           else
-             write(message,400) max_levs ; call write_message
+c           else
+c             write(message,400) max_levs ; call write_message
            endif
          end do
          end if
@@ -367,9 +367,9 @@ c     Go 1 below data_min
             if(k.lt.max_levs) then
                tmplevs(k) = traj_levels(i)
                k = k + 1
-            else
-               write(message,400) max_levs
-               call write_message
+c            else
+c               write(message,400) max_levs
+c               call write_message
             endif
 
          enddo
@@ -378,8 +378,8 @@ c     Go 1 below data_min
          do while (tmplevs(k-1) .lt. depth_levels(1)-step)
            if(k.lt.max_levs) then
              tmplevs(k) = tmplevs(k-1) + step ; k=k+1
-           else
-             write(message,400) max_levs ; call write_message
+c           else
+c             write(message,400) max_levs ; call write_message
            endif
          end do
 
@@ -389,9 +389,9 @@ c     Go 1 below data_min
                if(k .lt.max_levs) then
                   tmplevs(k) = depth_levels(i)
                   k = k + 1
-               else
-                 write(message,400) max_levs
-                  call write_message
+c               else
+c                 write(message,400) max_levs
+c                  call write_message
                endif
             endif
 
