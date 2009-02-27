@@ -205,7 +205,7 @@ this field.\nPlease try again later.");
 		    = var_file.vars[i].data_display_units;	
     }
     *var_id = var_file.nvars++;
-    strcpy (VAR_INFO.name, varnam);
+    strncpy (VAR_INFO.name, varnam, MAX_NC_NAME);
     VAR_INFO.ndims = *ndims;
     VAR_INFO.in_file = 0;
     VAR_INFO.natts = 0;
@@ -219,40 +219,41 @@ this field.\nPlease try again later.");
        order here before loading into VAR_INFO.
        */
     for (i=0, j = (*ndims>4?3:*ndims-1); i < (*ndims>4?4:*ndims); ++i, j--) {
-	VAR_INFO.dims[i].id = -1;
-	for (k=0; k < var_file.ndims; ++k) {
+      VAR_INFO.dims[i].id = -1;
+      for (k=0; k < var_file.ndims; ++k) {
 	    if (strcmp(var_file.dims[k].name, dim_names+j*len4) == 0) {
-		VAR_INFO.dims[i].id = k;
-		break;
+	      VAR_INFO.dims[i].id = k;
+	      break;
 	    }
-	}
-	if (VAR_INFO.dims[i].id == -1) {
-	    dtes = (dim_info *) realloc(var_file.dims,
-					  sizeof(dim_info)*(var_file.ndims+1));
-	    if (!dtes) {
-		(void)make_help_widget_("Memory cannot currently be allocated\
+      }
+      if (VAR_INFO.dims[i].id == -1) {
+	dtes = (dim_info *) realloc(var_file.dims,
+				    sizeof(dim_info)*(var_file.ndims+1));
+	if (!dtes) {
+	  (void)make_help_widget_("Memory cannot currently be allocated\
  for this field.\nPlease try again later.");
-		if (*addr) free(*addr);
-		return((void *)NULL);
-	    }
-	    var_file.dims = dtes;
-	    strcpy(var_file.dims[var_file.ndims].name, dim_names+j*len4);
-	    var_file.dims[var_file.ndims].size = dims[j];
-	    VAR_INFO.dims[i].id = var_file.ndims++;
+	  if (*addr) free(*addr);
+	  return((void *)NULL);
 	}
-	VAR_INFO.dims[i].size = dims[j];
-	VAR_INFO.dims[i].stagger = stag[j];
-	VAR_INFO.dims[i].min = min[j];
-	VAR_INFO.dims[i].max = max[j];
+	var_file.dims = dtes;
+	strcpy(var_file.dims[var_file.ndims].name, dim_names+j*len4);
+	var_file.dims[var_file.ndims].size = dims[j];
+	VAR_INFO.dims[i].id = var_file.ndims++;
+      }
+      VAR_INFO.dims[i].size = dims[j];
+      VAR_INFO.dims[i].stagger = stag[j];
+      VAR_INFO.dims[i].min = min[j];
+      VAR_INFO.dims[i].max = max[j];
     }
     for ( k = 0; k < MAX_NC_NAME; k++ ) {
-	VAR_INFO.data_units[k] = '\0';
-	VAR_INFO.data_display_units[k] = '\0';
-	VAR_INFO.data_display_units_orig[k] = '\0';
+      VAR_INFO.data_units[k] = '\0';
+      VAR_INFO.data_display_units[k] = '\0';
+      VAR_INFO.data_display_units_orig[k] = '\0';
     }
-    strcpy (VAR_INFO.data_units, data_units);
-    strcpy (VAR_INFO.data_display_units, data_display_units);
-    strcpy (VAR_INFO.data_display_units_orig, data_display_units);
+    strncpy (VAR_INFO.data_units, data_units,MAX_NC_NAME);
+    strncpy (VAR_INFO.data_display_units, data_display_units,MAX_NC_NAME);
+    strncpy (VAR_INFO.data_display_units_orig, 
+	     data_display_units,MAX_NC_NAME);
     VAR_INFO.vatts.disp_units = VAR_INFO.data_display_units;
     
     for(j=0; VAR_INFO.name[j] != '\0'; j++)
