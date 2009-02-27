@@ -58,7 +58,7 @@ void freemem_ (ptr)
         /*Free memory only if ptr is not null.
          */
         free(*ptr);
-        *ptr = 0 ;
+        *ptr = NULL ;
     }
 }
 
