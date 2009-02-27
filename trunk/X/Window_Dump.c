@@ -373,8 +373,8 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
 	int *red, *green, *blue, tfile;
 	unsigned char B;
 	char *swap;
-	unsigned int rshift,gshift,bshift;
-	unsigned long rmask,gmask,bmask;
+	CARD32 rshift,gshift,bshift;
+	CARD32 rmask,gmask,bmask;
 	char *line;
 	char first = 0;
 	line = 
@@ -595,8 +595,8 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
       if (*(char *) &swaptest) {
 	_swaplong((char *) &header, sizeof(header));
 	for (i = 0; i < ncolors; i++) {
-	  _swaplong((char *) &colors[i].pixel, sizeof(long));
-	  _swapshort((char *) &colors[i].red, 3 * sizeof(short));
+	  _swaplong((char *) &colors[i].pixel, (unsigned)sizeof(long));
+	  _swapshort((char *) &colors[i].red, 3 * (unsigned)sizeof(short));
 	}
       }
       

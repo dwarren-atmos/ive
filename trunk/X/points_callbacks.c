@@ -71,7 +71,7 @@ void slicer_set_point(w, data, call)
   strv = XmTextGetString(w); 
   val = atof(strv); 
   XtFree(strv);
-  switch((int)data){
+  switch((unsigned long)data){
   case 1: 
     XtVaGetValues(point_slicer.x1lab, XmNlabelString, &str, NULL);
     XmStringGetLtoR(str, XmFONTLIST_DEFAULT_TAG, &lab);
@@ -113,7 +113,7 @@ void point_fix_call(w, data, call)
   int i,point,val; 
   char buff[256], *lab; 
      
-  switch((int)data){
+  switch((unsigned long)data){
   case 1:
     XtVaGetValues(point_slicer.slidelab1, XmNlabelString, &str, NULL);
     XtVaGetValues(w, XmNlabelString, &str2, NULL);
@@ -307,7 +307,7 @@ void switch_slicers(w, data, call)
     XmAnyCallbackStruct *call;
 {
   int dummy;
-  dummy = (int)data;
+  dummy = (unsigned long)data;
   switch_slicers_(&dummy);
 }
 
@@ -315,7 +315,7 @@ void point_window_callback(Widget w, caddr_t data, XmAnyCallbackStruct call){
   XmString str;
   char *dimention, buff[256];
   int val1, val2;
-  if((int)data == 1){ 
+  if((unsigned long)data == 1){ /*  */
     if(!point_slicer.slide1r)return;
     XtVaGetValues(point_slicer.slidelab1, XmNlabelString, &str, NULL);
     XmStringGetLtoR(str, XmFONTLIST_DEFAULT_TAG, &dimention);
