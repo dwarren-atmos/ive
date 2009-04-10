@@ -273,7 +273,7 @@ c
 c
 c     Local variable declarations.
 c
-      real       SPECIAL
+      real       SPECIAL, special_val
       parameter ( SPECIAL = -10.0**27 )
       double precision  fracti, fractim, fractj, fractjm, fractk, 
      &                  fractkm, fractt, fracttm
@@ -290,8 +290,11 @@ c     the plot is drawn.
 c
          call setrvar('spval', SPECIAL, error)
          call setlvar ('reset_spval', .true., error)
-         spval = SPECIAL
+         special_val = SPECIAL
+      else
+         special_val=spval
       endif
+      
 c
 c     Make sure we are not under ground. Recall that the transforms
 c     return a negative value for compt if a point in physical space
