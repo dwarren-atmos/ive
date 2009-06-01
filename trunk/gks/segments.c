@@ -3057,6 +3057,8 @@ float STANDARD_PAGE_W = 8.25;
 
 static double PS_scale;         /* devs/micron */
 static int PS_clipsave;
+static int minx=1200,miny=1200,maxx=0,maxy=0;
+static int EPSFILE=0;
 
 
 static void
@@ -3065,10 +3067,14 @@ psHeader()
  * Prints out a standard greeting to the Postscript file.
  */
 {
+  if(EPSFILE)
+    (void) fprintf(fp, "%%!PS-Adobe-3.0 EPSF-3.0\n");
   (void) fprintf(fp, "%%%% Creator: XGKS postscript output\n");
   (void) fprintf(fp, "%%%%+ Pete Miller, David Warren and Harry Edmon\n");
   (void) fprintf(fp, "%%%%+ University of Washington\n");
   (void) fprintf(fp, "%%%%DocumentNeededResources: font Times-Roman\n");
+  if(EPSFILE)
+    (void) fprintf(fp, "%%%%BoundingBox: (atend)\n");
   (void) fprintf(fp, "%%%%EndComments\n");
   (void) fprintf(fp, "/l {lineto} def\n");
   (void) fprintf(fp, "/m {moveto} def\n");
@@ -3145,8 +3151,6 @@ psHeader()
   (void) fprintf(fp, "x size sub y size add l closepath fill} def\n");
 }
 
-static int minx=1200,miny=1200,maxx=0,maxy=0;
-static int EPSFILE=0;
 void
 gps_init(file)
 char        *file;  /* Output file              */
@@ -3198,13 +3202,12 @@ char        *file;  /* Output file              */
 
     /* Postscript file identification */
     (void) fprintf(fp, "%%!PS-Adobe-3.0 EPSF-3.0\n");
+    EPSFILE=1;
     psHeader();
     
-    (void) fprintf(fp, "%%%%BoundingBox:                                            \n");
     
     /* Definitions */
 /*    psMarks();*/
-    EPSFILE=1;
     PS_clipsave = 0;
     is_eps_file_open_.isopen = 1;
 }
@@ -3763,12 +3766,10 @@ gps_end()
     if (fp != NULL){
 	fprintf(fp, "%% End of XGKS output\n");
 	if(EPSFILE){
-	    rewind(fp);
-    (void) fprintf(fp, "%%!PS-Adobe-3.0 EPSF-3.0\n");
-    psHeader();
-    
-	    fprintf(fp, "%%%%BoundingBox: %d %d %d %d",
-		    minx+18,miny+112,maxx+19,maxy+113);
+	  fprintf(fp,"%%%%Trailer\n");
+	  fprintf(fp, "%%%%BoundingBox: %d %d %d %d",
+		  minx+18,miny+112,maxx+19,maxy+113);
+	  fprintf(fp,"%%%%EOF\n");
 	}
 	fclose(fp);
 	fp = NULL;
