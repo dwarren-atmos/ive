@@ -494,6 +494,22 @@ void eps_ok_callback(w, client, call)
     done_callback(w, XtParent(XtParent(w)), call);
 }
 
+void pdf_ok_callback(w, client, call)
+     Widget w;
+     int *client;
+     XmFileSelectionBoxCallbackStruct *call;
+{
+    char buff[512];
+    char *choice;
+
+    update_fsb(&pdf_widget.fsb, call);
+    XmStringGetLtoR(call->value, XmSTRING_DEFAULT_CHARSET,&choice);
+    sprintf(buff,"write_pdf=%s",choice);
+    driver(buff);
+    XFree(choice);
+    done_callback(w, XtParent(XtParent(w)), call);
+}
+
 void eps_color_callback(w, client, call)
      Widget w;
      int *client;

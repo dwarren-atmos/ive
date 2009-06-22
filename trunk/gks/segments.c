@@ -107,7 +107,9 @@ n *		  - transformation, visibility, highlight, prioirty,
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <setjmp.h>
 #include "gks_implem.h"
+#include<hpdf.h>
 
 extern void xXgksInqTextExtent(),XgksMiniMax(),
   XgksDeletePrimi(),xXgksClearWs(),XgksUnpendPendingTrans(),
@@ -180,6 +182,10 @@ static void XgksClearWs();
 extern struct {
 int isopen;
 }is_eps_file_open_;
+
+static HPDF_UINT16 PDFDASH[] = {3};
+static HPDF_UINT16 PDFDOT[] = {1,1,1,1};
+static HPDF_UINT16 PDFDOTDASH[] = {1,1,3,1};
 
 XgksSetLineAttrMo(ws, lnattr)
     WS_STATE_PTR    ws;
@@ -2946,6 +2952,16 @@ gps_nprint_(ws_id, seg_id, BWPRINT, as, coltab)
         extern gps_print();
         return(gps_print(*ws_id, *seg_id, *BWPRINT, *as, coltab));
 }
+gpdf_nprint_(ws_id, seg_id,  as, coltab, overlay)
+Gint            *ws_id,*seg_id, *overlay; 
+     Gfloat          *as;
+     struct ive_color *coltab; /* color table to use */
+                   /*note: here ws_id refers to the X one*/
+{
+
+        extern gpdf_print();
+        return(gpdf_print(*ws_id, *seg_id, *as, coltab,*overlay));
+}
 
 /*
  * gps_print(wsid, seg_id, BWLINES, as, coltab) - Output a subset of possible segment 
@@ -3018,8 +3034,6 @@ gps_print(ws_id, seg_id, BWLINES, as, coltab)
 }
 
 
-
-
 /*
  *=============================================================================
  * Postscript Routines and Structures
@@ -3059,6 +3073,107 @@ static double PS_scale;         /* devs/micron */
 static int PS_clipsave;
 static int minx=1200,miny=1200,maxx=0,maxy=0;
 static int EPSFILE=0;
+static float xoff=0, yoff=0;
+static char *PDFFILE=NULL;
+static HPDF_Doc pdf;
+static HPDF_Page pdfpage;
+static jmp_buf myenv;
+static float oldxm,oldym,oldxmin,oldymin,oldxmax,oldymax;
+
+static int
+gpdf_print(ws_id, seg_id, as, coltab, overlay)
+     Gint            ws_id,seg_id, overlay; 
+     Gfloat          as; /* aspect ratio */
+     struct ive_color *coltab; /* color table to use */
+                   /*note: here ws_id refers to the X one*/
+{
+    /*
+     * declare local functions
+     */
+
+    SEG_STATE_PTR XgksFindSeg();
+    OUT_PRIMI *XgksSegPrimiTran();
+
+    SEG_STATE_PTR   seg;
+    WS_STATE_PTR    ws, wis;
+    WS_SEG_LIST    *WsSeg;
+    OUT_PRIMI      *clip, *primi, *tran, *sizeprimi;
+    Glimit          wsclip;
+    Gfloat         xm, ym, xmin, xmax, ymin, ymax;
+    int PdfInsertPrimi();
+    /* check for operating state */
+    GKSERROR((xgks_state.gks_state != GWSOP && xgks_state.gks_state != GWSAC),
+             6, errgcopysegws);
+
+    /* Check if ws_id is opened */
+    GKSERROR(((ws = OPEN_WSID(ws_id)) == NULL), 25, errgcopysegws);
+
+    /* Check if WISS ws is opened */
+    GKSERROR(((xgks_state.wiss_id == INVALID) ||
+                ((wis = OPEN_WSID(xgks_state.wiss_id)) == NULL)),
+             27, errgcopysegws);
+    /* check for valid seg_id */
+    GKSERROR((seg_id < 1), 120, errgcopysegws);
+
+    /* Check if Segment is on WISS */
+    WsSeg = wis->seglist;
+    while (WsSeg != NULL) {
+        if (WsSeg->seg == seg_id)
+	  break;
+        WsSeg = WsSeg->next;
+    }
+    GKSERROR((WsSeg == NULL), 124, errgcopysegws);
+    
+    /* Get ready to output all primitives in segment to file */
+    seg = XgksFindSeg(seg_id);
+    primi = &(seg->primi_list);
+    sizeprimi = &(seg->primi_list);
+    if(!overlay){
+      if(as <=0 ){
+	xm = ym = 1.0;
+      }
+      else if(as <= 1){
+	xm = as;
+	ym = 1.0;
+      }
+      else{
+	xm = 1.0;
+	ym = 1.0/as;
+      }
+      xmin=1.;ymin=1.;
+      xmax=0.; ymax=0.;
+      while (sizeprimi != NULL) {
+	tran = XgksSegPrimiTran(sizeprimi, seg->segattr.segtran);
+	Pdfgetsize(tran, ws_id, xm, ym, &xmin, &xmax, &ymin, &ymax);
+	sizeprimi = sizeprimi->next;
+      }
+
+      xm=xm/(xmax-xmin);
+      ym=ym/(ymax-ymin);
+    }
+    else{
+      xm = oldxm;
+      ym = oldym;
+      xmin = oldxmin;
+      ymin = oldymin;
+      xmax = oldxmax;
+      ymax = oldymax;
+    }
+    xoff = -xmin;
+    yoff = -ymin;
+    while (primi != NULL) {
+	tran = XgksSegPrimiTran(primi, seg->segattr.segtran);
+	PdfInsertPrimi(tran, ws_id, xm, ym, coltab);
+	primi = primi->next;
+    }
+    oldxm=xm;
+    oldym=ym;
+    oldxmin=xmin;
+    oldymin=ymin;
+    oldxmax=xmax;
+    oldymax=ymax;
+    return 0;
+}
 
 
 static void
@@ -3212,6 +3327,301 @@ char        *file;  /* Output file              */
     is_eps_file_open_.isopen = 1;
 }
 
+static int php_haru_status_to_errmsg(HPDF_STATUS status, char **msg) /* {{{ */
+{
+	if (status == HPDF_OK) {
+		*msg = strdup("No error");
+		return 0;
+	}
+	switch(status) { 
+		case HPDF_ARRAY_COUNT_ERR: 
+		case HPDF_ARRAY_ITEM_NOT_FOUND:
+		case HPDF_ARRAY_ITEM_UNEXPECTED_TYPE:
+		case HPDF_DICT_ITEM_NOT_FOUND:
+		case HPDF_DICT_ITEM_UNEXPECTED_TYPE:	
+		case HPDF_DICT_STREAM_LENGTH_NOT_FOUND:	
+		case HPDF_DOC_INVALID_OBJECT:
+		case HPDF_ERR_UNKNOWN_CLASS:
+		case HPDF_INVALID_FONTDEF_TYPE:
+		case HPDF_INVALID_OBJ_ID:
+		case HPDF_INVALID_STREAM:
+		case HPDF_ITEM_NOT_FOUND:
+		case HPDF_NAME_INVALID_VALUE:
+		case HPDF_NAME_OUT_OF_RANGE:
+		case HPDF_PAGES_MISSING_KIDS_ENTRY: 
+		case HPDF_PAGE_CANNOT_FIND_OBJECT:
+		case HPDF_PAGE_CANNOT_GET_ROOT_PAGES:
+		case HPDF_PAGE_CANNOT_SET_PARENT: 
+		case HPDF_PAGE_INVALID_INDEX: 
+		case HPDF_STREAM_READLN_CONTINUE: 
+		case HPDF_UNSUPPORTED_FONT_TYPE:
+		case HPDF_XREF_COUNT_ERR:
+			*msg = strdup("libharu internal error. The consistency of the data was lost");
+			break;
+		case HPDF_BINARY_LENGTH_ERR:
+			*msg = strdup("The length of the data exceeds HPDF_LIMIT_MAX_STRING_LEN");
+			break;
+		case HPDF_CANNOT_GET_PALLET:
+			*msg = strdup("Cannot get a pallet data from PNG image");
+			break;
+		case HPDF_DICT_COUNT_ERR:
+			*msg = strdup("The count of elements of a dictionary exceeds HPDF_LIMIT_MAX_DICT_ELEMENT");
+			break;
+		case HPDF_DOC_ENCRYPTDICT_NOT_FOUND:
+			*msg = strdup("HPDF_SetPermission() OR HPDF_SetEncryptMode() was called before a password is set");
+			break;
+		case HPDF_DUPLICATE_REGISTRATION:
+			*msg = strdup("Tried to register a font that has been registered");
+			break;
+		case HPDF_EXCEED_JWW_CODE_NUM_LIMIT:
+			*msg = strdup("Cannot register a character to the japanese word wrap characters list");
+			break;
+		case HPDF_ENCRYPT_INVALID_PASSWORD:
+			*msg = strdup("Tried to set the owner password to NULL or the owner password and user password are the same");
+			break;
+		case HPDF_EXCEED_GSTATE_LIMIT:
+			*msg = strdup("The depth of the stack exceeded HPDF_LIMIT_MAX_GSTATE");
+			break;
+		case HPDF_FAILD_TO_ALLOC_MEM:
+			*msg = strdup("Memory allocation failed");
+			break;
+		case HPDF_FILE_IO_ERROR:
+			*msg = strdup("File processing failed");
+			break;
+		case HPDF_FILE_OPEN_ERROR:
+			*msg = strdup("Cannot open a file");
+			break;
+		case HPDF_FONT_EXISTS:
+			*msg = strdup("Tried to load a font that has been registered");
+			break;
+		case HPDF_FONT_INVALID_WIDTHS_TABLE:
+			*msg = strdup("The format of a font-file is invalid");
+			break;
+		case HPDF_INVALID_AFM_HEADER:
+			*msg = strdup("Cannot recognize a header of an afm file");
+			break;
+		case HPDF_INVALID_ANNOTATION:
+			*msg = strdup("The specified annotation handle is invalid");
+			break;
+		case HPDF_INVALID_BIT_PER_COMPONENT:
+			*msg = strdup("Bit-per-component of a image which was set as mask-image is invalid");
+			break;
+		case HPDF_INVALID_CHAR_MATRICS_DATA:
+			*msg = strdup("Cannot recognize char-matrics-data  of an afm file");
+			break;
+		case HPDF_INVALID_COLOR_SPACE:
+			*msg = strdup("The color_space parameter of HPDF_LoadRawImage is invalid, or color-space of a image which was set as mask-image is invalid or the function which is invalid in the present color-space was invoked");
+			break;
+		case HPDF_INVALID_COMPRESSION_MODE:
+			*msg = strdup("Invalid value was set when invoking HPDF_SetCommpressionMode()");
+			break;
+		case HPDF_INVALID_DATE_TIME:
+			*msg = strdup("An invalid date-time value was set");
+			break;
+		case HPDF_INVALID_DESTINATION:
+			*msg = strdup("An invalid annotation handle was set");
+			break;
+		case HPDF_INVALID_DOCUMENT:
+			*msg = strdup("An invalid document handle is set");
+			break;
+		case HPDF_INVALID_DOCUMENT_STATE:
+			*msg = strdup("The function which is invalid in the present state was invoked");
+			break;
+		case HPDF_INVALID_ENCODER:
+			*msg = strdup("An invalid encoder handle is set");
+			break;
+		case HPDF_INVALID_ENCODER_TYPE:
+			*msg = strdup("A combination between font and encoder is wrong");
+			break;
+		case HPDF_INVALID_ENCODING_NAME:
+			*msg = strdup("An invalid encoding name is specified");
+			break;
+		case HPDF_INVALID_ENCRYPT_KEY_LEN:
+			*msg = strdup("The lengh of the key of encryption is invalid");
+			break;
+		case HPDF_INVALID_FONTDEF_DATA:
+			*msg = strdup("An invalid font handle was set or the font format is unsupported");
+			break;
+		case HPDF_INVALID_FONT_NAME:
+			*msg = strdup("A font which has the specified name is not found");
+			break;
+		case HPDF_INVALID_IMAGE:
+		case HPDF_INVALID_JPEG_DATA:
+			*msg = strdup("Unsupported or invalid image format");
+			break;
+		case HPDF_INVALID_N_DATA:
+			*msg = strdup("Cannot read a postscript-name from an afm file");
+			break;
+		case HPDF_INVALID_OBJECT:
+			*msg = strdup("An invalid object is set");
+			break;
+		case HPDF_INVALID_OPERATION:
+			*msg = strdup("Invoked HPDF_Image_SetColorMask() against the image-object which was set a mask-image");
+			break;
+		case HPDF_INVALID_OUTLINE:
+			*msg = strdup("An invalid outline-handle was specified");
+			break;
+		case HPDF_INVALID_PAGE:
+			*msg = strdup("An invalid page-handle was specified");
+			break;
+		case HPDF_INVALID_PAGES:
+			*msg = strdup("An invalid pages-handle was specified");
+			break;
+		case HPDF_INVALID_PARAMETER:
+			*msg = strdup("An invalid value is set");
+			break;
+		case HPDF_INVALID_PNG_IMAGE:
+			*msg = strdup("Invalid PNG image format");
+			break;
+		case HPDF_MISSING_FILE_NAME_ENTRY:
+			*msg = strdup("libharu internal error. The _FILE_NAME entry for delayed loading is missing");
+			break;
+		case HPDF_INVALID_TTC_FILE:
+			*msg = strdup("Invalid .TTC file format");
+			break;
+		case HPDF_INVALID_TTC_INDEX:
+			*msg = strdup("The index parameter exceeds the number of included fonts");
+			break;
+		case HPDF_INVALID_WX_DATA:
+			*msg = strdup("Cannot read a width-data from an afm file");
+			break;
+		case HPDF_LIBPNG_ERROR:
+			*msg = strdup("An error has returned from PNGLIB while loading an image");
+			break;
+		case HPDF_PAGE_CANNOT_RESTORE_GSTATE:
+			*msg = strdup("There are no graphics-states to be restored");
+			break;
+		case HPDF_PAGE_FONT_NOT_FOUND:
+			*msg = strdup("The current font is not set");
+			break;
+		case HPDF_PAGE_INVALID_FONT:
+			*msg = strdup("An invalid font-handle was specified");
+			break;
+		case HPDF_PAGE_INVALID_FONT_SIZE:
+			*msg = strdup("An invalid font-size was set");
+			break;
+		case HPDF_PAGE_INVALID_GMODE:
+			*msg = strdup("Invalid graphics mode");
+			break;
+		case HPDF_PAGE_INVALID_ROTATE_VALUE:
+			*msg = strdup("The specified value is not a multiple of 90");
+			break;
+		case HPDF_PAGE_INVALID_SIZE:
+			*msg = strdup("An invalid page-size was set");
+			break;
+		case HPDF_PAGE_INVALID_XOBJECT:
+			*msg = strdup("An invalid image-handle was set");
+			break;
+		case HPDF_PAGE_OUT_OF_RANGE:
+			*msg = strdup("The specified value is out of range");
+			break;
+		case HPDF_REAL_OUT_OF_RANGE:
+			*msg = strdup("The specified value is out of range");
+			break;
+		case HPDF_STREAM_EOF:
+			*msg = strdup("Unexpected EOF marker was detected");
+			break;
+		case HPDF_STRING_OUT_OF_RANGE:
+			*msg = strdup("The length of the specified text is too big");
+			break;
+		case HPDF_THIS_FUNC_WAS_SKIPPED:
+			*msg = strdup("The execution of a function was skipped because of other errors");
+			break;
+		case HPDF_TTF_CANNOT_EMBEDDING_FONT:
+			*msg = strdup("This font cannot be embedded (restricted by license)");
+			break;
+		case HPDF_TTF_INVALID_CMAP:
+			*msg = strdup("Unsupported or invalid ttf format (cannot find unicode cmap)");
+			break;
+		case HPDF_TTF_INVALID_FOMAT:
+			*msg = strdup("Unsupported or invalid ttf format");
+			break;
+		case HPDF_TTF_MISSING_TABLE:
+			*msg = strdup("Unsupported or invalid ttf format (cannot find a necessary table)");
+			break;
+		case HPDF_UNSUPPORTED_FUNC:
+			*msg = strdup("The library is not configured to use PNGLIB or internal error occured");
+			break;
+		case HPDF_UNSUPPORTED_JPEG_FORMAT:
+			*msg = strdup("Unsupported or invalid JPEG format");
+			break;
+		case HPDF_UNSUPPORTED_TYPE1_FONT:
+			*msg = strdup("Failed to parse .PFB file");
+			break;
+		case HPDF_ZLIB_ERROR:
+			*msg = strdup("An error has occurred while executing a function of Zlib");
+			break;
+		case HPDF_INVALID_PAGE_INDEX:
+			*msg = strdup("An error returned from Zlib");
+			break;
+		case HPDF_INVALID_URI:
+			*msg = strdup("An invalid URI was set");
+			break;
+		case HPDF_ANNOT_INVALID_ICON:
+			*msg = strdup("An invalid icon was set");
+			break;
+		case HPDF_ANNOT_INVALID_BORDER_STYLE:
+			*msg = strdup("An invalid border-style was set");
+			break;
+		case HPDF_PAGE_INVALID_DIRECTION:
+			*msg = strdup("An invalid page-direction was set");
+			break;
+		case HPDF_INVALID_FONT:
+			*msg = strdup("An invalid font-handle was specified");
+			break;
+		default:
+			*msg = strdup("Unknown error occured, please report");
+			break;
+	}
+	return 1;
+}
+
+void gpdferror_handler  (HPDF_STATUS   error_no,
+				       HPDF_STATUS   detail_no,
+				       void         *user_data)
+{
+  char *msg;
+  printf ("ERROR: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no,
+	  (HPDF_UINT)detail_no);
+  php_haru_status_to_errmsg(error_no, &msg);
+  printf("%s\n",msg);
+  longjmp(myenv, 1);
+}
+
+void
+gpdf_init(file)
+char        *file;  /* Output file              */
+
+{
+/*
+ * The basic coordinate system is points (roughly 1/72 inch).
+ * However,  most laser printers can do much better than that.
+ * We invent a coordinate system based on VDPI dots per inch.
+ * This goes along the long side of the page.  The long side
+ * of the page is LDIM inches in length,  the short side
+ * SDIM inches in length.  We we call this unit a `dev'.
+ * We map `width' and `height' into devs.
+ */
+    
+  
+  if (setjmp(myenv)) {
+    if(pdf != NULL)
+      HPDF_Free (pdf);
+    printf ("returned: cannot create PdfDoc object\n");
+    return;
+  }
+
+  pdf = HPDF_NewEx (gpdferror_handler, NULL,NULL,0,NULL);
+      if (!pdf) {
+          printf ("error: cannot create PdfDoc object\n");
+          return;
+      }
+    
+    PDFFILE=file;
+    HPDF_SetCompressionMode (pdf, HPDF_COMP_ALL);
+    
+}
+
 void
 gps_init_page(do_landscape, aspect)
     int *do_landscape;
@@ -3222,8 +3632,8 @@ gps_init_page(do_landscape, aspect)
     (void) fprintf(fp, "18.75 112.5 translate\n");
     STANDARD_PAGE_W = 8.25;
     if(*do_landscape){
-	if((*aspect) >= 1.259){
-	    (void) fprintf(fp, 
+      if((*aspect) >= 1.259){
+	  (void) fprintf(fp, 
 			   "%%do landscape\n90 rotate -100 -580 translate .95 .98 scale\n");
 	    STANDARD_PAGE_W = 11;
 	}
@@ -3234,7 +3644,35 @@ gps_init_page(do_landscape, aspect)
     }
 }
 
-
+void
+gpdf_init_page(do_landscape, aspect)
+     int *do_landscape;
+     float *aspect;
+{
+  float xm,ym;
+  int tf, error, pr=0,pt=0;
+  // HPDF_SetPageLayout  (pdf, HPDF_PAGE_LAYOUT_SINGLE);
+  pdfpage = HPDF_AddPage(pdf);
+  STANDARD_PAGE_W = 8.25;
+  pr=0;pt=0;
+  if(*aspect <=0.0 ){
+    xm = ym = 1.0;
+  }
+  else if(*aspect <= 1.0){
+    xm = *aspect;
+    ym = 1.0;
+  }
+  else{
+    xm = 1.0;
+    ym = 1.0 / *aspect;
+  }
+  HPDF_Page_SetHeight(pdfpage, STANDARD_PAGE_W*POINTS_PER_INCH*ym+2);
+  HPDF_Page_SetWidth(pdfpage, STANDARD_PAGE_W*POINTS_PER_INCH*xm+2);
+  //  if(do_landscape)
+  //HPDF_Page_SetRotate(pdfpage,90);
+  
+  
+}
 
 PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
      OUT_PRIMI      *primi;
@@ -3564,11 +4002,11 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
             }
         }
         break;
-      case CLIP_REC:
-	{
-            if(PS_clipsave > 0)
-              fprintf(fp,"grestore\n");
-	    if(primi->primi.clip.rec.xmin != primi->primi.clip.rec.xmax &&
+    case CLIP_REC:
+      {
+	if(PS_clipsave > 0)
+	  fprintf(fp,"grestore\n");
+	if(primi->primi.clip.rec.xmin != primi->primi.clip.rec.xmax &&
 	       primi->primi.clip.rec.ymin != primi->primi.clip.rec.ymax){
 		if(EPSFILE){
 		    fprintf(fp,"gsave\n");
@@ -3613,11 +4051,11 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 	    }
 	    break;
 	}
-      case TEXT:
-	{	
-	    old_pts = primi->primi.text.location;
-	    fprintf(fp,"gsave\n");
-	    cobundl.red = cobundl.green = cobundl.blue = 0.0;
+    case TEXT:
+      {	
+	old_pts = primi->primi.text.location;
+	fprintf(fp,"gsave\n");
+	  cobundl.red = cobundl.green = cobundl.blue = 0.0;
 	    if(!BWLINES){
 /*		if(WS_AVAIL_COLOUR(OPEN_WSID(X_id), 
 				   primi->primi.text.txattr.bundl.colour))
@@ -3749,30 +4187,1105 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
     return 0;
 }
 
+
+PdfInsertPrimi(primi, X_id, xm, ym, coltab)
+     OUT_PRIMI      *primi;
+     Gint X_id;
+     Gfloat xm, ym;
+     struct ive_color *coltab;
+{
+    Gint            num_pts, cnt;
+    Gpoint         *new_pts, *old_pts;
+    OUT_PRIMI      *new_primi;
+    Gcobundl        cobundl;
+    Gint            cheight;
+    Gint gi, i, type;
+    WS_STATE_PTR    ws;
+    float           size;
+    int position;
+    HPDF_Font pdffont;
+	    
+
+    HPDF_UINT16 mode;
+    /*    
+    mode = HPDF_Page_GetGMode  (pdfpage);
+    if(mode&HPDF_GMODE_PAGE_DESCRIPTION)
+      printf("HPDF_GMODE_PAGE_DESCRIPTION\n");
+    if(mode&HPDF_GMODE_PATH_OBJECT)
+      printf("HPDF_GMODE_PATH_OBJECT\n");
+    if(mode&HPDF_GMODE_TEXT_OBJECT)
+      printf("HPDF_GMODE_TEXT_OBJECT\n");
+    if(mode&HPDF_GMODE_CLIPPING_PATH)
+      printf("HPDF_GMODE_CLIPPING_PATH\n");
+    if(mode&HPDF_GMODE_SHADING)
+      printf("HPDF_GMODE_SHADING\n");
+    if(mode&HPDF_GMODE_INLINE_IMAGE)
+      printf("HPDF_GMODE_INLINE_IMAGE\n");
+    if(mode&HPDF_GMODE_EXTERNAL_OBJECT)
+      printf("HPDF_GMODE_EXTERNAL_OBJECT\n");
+    */
+    printf("xoff %f, yoff %f\n",xoff,yoff);
+    switch (primi->pid) {
+      case PLINE:
+	{
+	  Glnattr        *ptr;
+	  Glnbundl       *idv_ptr, *bdl_ptr, *bundl_ptr;
+	  
+	  //printf("pline\n");
+	  num_pts = primi->primi.fill_area.num_pts;
+	  old_pts = primi->primi.fill_area.pts;
+	  cobundl.red = cobundl.green = cobundl.blue = 0.0;
+	  ws=OPEN_WSID(X_id);
+	  
+	  ptr = &(primi->primi.pline.plnattr);
+	  gi = ptr->line;
+	  if (gi < 1 || gi >= MAX_BUNDL_TBL)
+	    gi = 1;
+	  idv_ptr = &(ptr->bundl);
+	  bdl_ptr = &(ws->lnbundl_table[gi]);
+	  
+	  if (ptr->colour == GBUNDLED) {              /* gc.foreground */
+	    bundl_ptr = bdl_ptr;
+	  } else {
+	    bundl_ptr = idv_ptr;
+	  }
+	  
+	  cobundl.red = coltab[bundl_ptr->colour].r;
+	  cobundl.green = coltab[bundl_ptr->colour].g;
+	  cobundl.blue = coltab[bundl_ptr->colour].b;
+	  if(cobundl.red > 1.0 || cobundl.red < 0.0)cobundl.red = 0.0;
+	  if(cobundl.green > 1.0 || cobundl.green < 0.0)cobundl.green = 0.0;
+	  if(cobundl.blue > 1.0 || cobundl.blue < 0.0)cobundl.blue = 0.0;
+	  HPDF_Page_SetRGBStroke(pdfpage,cobundl.red,cobundl.green,
+				 cobundl.blue);
+	  
+	  if (ptr->width == GBUNDLED) {               /* gc.line_width */
+	    size = bdl_ptr->width;            /* line width    */
+	  } else {
+	    size = idv_ptr->width;
+	  }
+	  HPDF_Page_SetLineWidth(pdfpage, size);
+	  HPDF_Page_SetLineCap(pdfpage, HPDF_BUTT_END);
+	  HPDF_Page_SetLineJoin(pdfpage,HPDF_MITER_JOIN);
+	  
+	  if (ptr->type == GBUNDLED) {                /* gc.line_style */
+	    bundl_ptr = bdl_ptr;
+	  } else {                                    /* line type     */
+	    bundl_ptr = idv_ptr;
+	  }
+
+	  switch (bundl_ptr->type) {
+	  case GLN_SOLID:
+	    HPDF_Page_SetDash(pdfpage, NULL,0,0);
+	    break;
+	  case GLN_DASH:
+	    HPDF_Page_SetDash(pdfpage, PDFDASH,1,1);
+	    break;
+	  case GLN_DOT:
+	    HPDF_Page_SetDash(pdfpage, PDFDOT,4,1);
+	    break;
+	  case GLN_DOTDASH:
+	    HPDF_Page_SetDash(pdfpage,PDFDOTDASH,4,1);
+	    break;
+	  default:
+	    HPDF_Page_SetDash(pdfpage, NULL,0,0);
+	  }
+
+	  /*	  
+	  HPDF_Page_MoveTo(pdfpage,
+			   (int)(old_pts[0].x * 
+				 STANDARD_PAGE_W * POINTS_PER_INCH * xm),
+			   (int)(old_pts[0].y * 
+				 STANDARD_PAGE_W * POINTS_PER_INCH * ym) );
+	  
+	  */
+	  HPDF_Page_MoveTo(pdfpage,
+			   xm*(old_pts[0].x + xoff)*
+			   POINTS_PER_INCH*STANDARD_PAGE_W + 1,
+			   ym*(old_pts[0].y+yoff)*
+			   POINTS_PER_INCH*STANDARD_PAGE_W + 1);
+	  
+	  for (cnt = 1; cnt < num_pts; cnt++)
+	    HPDF_Page_LineTo(pdfpage,
+			     xm*(xoff+old_pts[cnt].x)*
+			     POINTS_PER_INCH*STANDARD_PAGE_W + 1,
+			     ym*(yoff+old_pts[cnt].y)*
+			     POINTS_PER_INCH*STANDARD_PAGE_W + 1);
+	  //	    HPDF_Page_LineTo(pdfpage,
+	  //	     (old_pts[cnt].x * 
+	  //	      STANDARD_PAGE_W * POINTS_PER_INCH * xm),
+	  //	     (old_pts[cnt].y) * 
+	  //	     STANDARD_PAGE_W * POINTS_PER_INCH * ym);
+	  HPDF_Page_Stroke(pdfpage);
+	  break;
+	}
+    case PMARK:
+      {
+	Gmkattr        *ptr;
+	Gmkbundl       *idv_ptr, *bdl_ptr, *bundl_ptr;
+	//printf("pmark\n");
+	ws=OPEN_WSID(X_id);
+	ptr = &primi->primi.pmark.mkattr;
+	gi = ptr->mark;
+	if (gi < 1 || gi >= MAX_BUNDL_TBL)
+	  gi = 1;
+	idv_ptr = &(ptr->bundl);
+	bdl_ptr = &(ws->mkbundl_table[gi]);
+	
+	if (ptr->colour == GBUNDLED)                /* marker type  */
+	  bundl_ptr = bdl_ptr;
+	else
+	  bundl_ptr = idv_ptr;
+	
+	cobundl.red = coltab[bundl_ptr->colour].r;
+	cobundl.green = coltab[bundl_ptr->colour].g;
+	cobundl.blue = coltab[bundl_ptr->colour].b;
+	if(cobundl.red > 1.0 || cobundl.red < 0.0)cobundl.red = 0.0;
+	if(cobundl.green > 1.0 || cobundl.green < 0.0)cobundl.green = 0.0;
+	if(cobundl.blue > 1.0 || cobundl.blue < 0.0)cobundl.blue = 0.0;
+	
+
+	HPDF_Page_SetRGBStroke(pdfpage,cobundl.red,cobundl.green,
+			       cobundl.blue);
+	HPDF_Page_SetRGBFill(pdfpage,cobundl.red,cobundl.green,
+			     cobundl.blue);
+	HPDF_Page_SetLineWidth(pdfpage, 1.0);
+	
+	pdffont = HPDF_GetFont (pdf, "Helvetica", NULL);
+
+	if (ptr->size == GBUNDLED)                  /* marker size */
+	  size = (float) bdl_ptr->size;
+	else
+	  size = (float) idv_ptr->size;
+	printf("Marker Size: %f\n",size);
+	
+	if (ptr->type == GBUNDLED)                  /* marker type  */
+	  bundl_ptr = bdl_ptr;
+	else
+	  bundl_ptr = idv_ptr;
+	
+	if (WS_MARKER_TYPE(bundl_ptr->type))
+	  type = bundl_ptr->type;
+	else
+	  type = GMK_POINT;
+	
+	old_pts = primi->primi.pmark.location;
+	switch(type){
+	case GMK_POINT:
+	  for(i=0; i<primi->primi.pmark.num_pts; i++){
+	    HPDF_Page_MoveTo(pdfpage,
+			     (old_pts[0].x +xoff)* 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * xm + 1,
+			     (old_pts[0].y +yoff) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * ym + 1);
+	    HPDF_Page_Circle(pdfpage,
+			     (old_pts[i].x +xoff) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * xm + 1,
+			     (old_pts[i].y +yoff)* 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * ym + 1,
+			     (float)size * 
+			     .016 * POINTS_PER_INCH );
+	    HPDF_Page_Fill(pdfpage);
+	  }
+	  break;
+	case GMK_PLUS:
+	  HPDF_Page_BeginText (pdfpage);
+	    for(i=0; i<primi->primi.pmark.num_pts; i++){
+	    HPDF_Page_MoveTextPos(pdfpage,
+				  (xoff+old_pts[0].x) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * xm + 1,
+			     (yoff+ old_pts[0].y) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * ym + 1);
+	    HPDF_Page_SetFontAndSize(pdfpage, pdffont,
+				     (float) size*.07* POINTS_PER_INCH);
+	    HPDF_Page_ShowText  (pdfpage,"+");
+	  }
+	  HPDF_Page_EndText (pdfpage);
+	  break;
+	case GMK_STAR:
+	  HPDF_Page_BeginText (pdfpage);
+	  for(i=0; i<primi->primi.pmark.num_pts; i++){
+	    HPDF_Page_MoveTextPos(pdfpage,
+				  (xoff+ old_pts[0].x) * 
+				  STANDARD_PAGE_W * POINTS_PER_INCH * xm + 1,
+			     (old_pts[0].y +yoff) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * ym + 1);
+	    HPDF_Page_SetFontAndSize(pdfpage, pdffont,
+				     (float) size*.07* POINTS_PER_INCH);
+	    HPDF_Page_ShowText  (pdfpage,"*");
+	  }
+	  HPDF_Page_EndText (pdfpage);
+	  break;
+	case GMK_O:
+	  for(i=0; i<primi->primi.pmark.num_pts; i++){
+	    HPDF_Page_MoveTo(pdfpage,
+			     (xoff+ old_pts[0].x) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * xm + 1,
+			     (old_pts[0].y +yoff) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * ym + 1);
+	    HPDF_Page_Circle(pdfpage,
+			     (xoff+ old_pts[i].x) * 
+		    STANDARD_PAGE_W * POINTS_PER_INCH * xm + 1,
+			     (yoff+ old_pts[i].y) * 
+		    STANDARD_PAGE_W * POINTS_PER_INCH * ym + 1,
+		    (float)size * 
+		    .016 * POINTS_PER_INCH );
+	    HPDF_Page_Stroke(pdfpage);
+	  }
+	  break;
+	  
+	case GMK_X:
+	  HPDF_Page_BeginText (pdfpage);
+	  for(i=0; i<primi->primi.pmark.num_pts; i++){
+	    HPDF_Page_MoveTextPos(pdfpage,
+				  (xoff+ old_pts[0].x) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * xm + 1,
+			     (old_pts[0].y +yoff) * 
+			     STANDARD_PAGE_W * POINTS_PER_INCH * ym + 1);
+	    HPDF_Page_SetFontAndSize(pdfpage, pdffont,
+				     (float) size*.07* POINTS_PER_INCH);
+	    HPDF_Page_ShowText  (pdfpage,"X");
+	  }
+	  HPDF_Page_EndText (pdfpage);
+	  break;
+	}
+      }
+      break;
+      case FILL_AREA:
+	{
+	  Gflattr        *ptr;
+	  Gflbundl       *idv_ptr, *bdl_ptr, *bundl_ptr;
+	  Gflinter        fill_inter;
+	  int             px, py, prev, cur, fill_style;          
+ 	  
+	  
+	  //printf("fill\n");
+	  ws=OPEN_WSID(X_id);
+	  num_pts = primi->primi.fill_area.num_pts;
+	  old_pts = primi->primi.fill_area.pts;
+	  cobundl.red = cobundl.green = cobundl.blue = 0.0;
+	  
+	  ptr = &(primi->primi.fill_area.flattr);
+	  gi = ptr->fill;
+	  if (gi < 1 || gi >= MAX_BUNDL_TBL)
+	    gi = 1;
+	  idv_ptr = &(ptr->bundl);
+	  bdl_ptr = &(ws->flbundl_table[gi]);
+	  
+	  /* the colour attribute */
+	  
+	  if (ptr->colour == GBUNDLED)
+	    bundl_ptr = bdl_ptr;
+	  else
+	    bundl_ptr = idv_ptr;
+	  
+	  /* the fill interior attribute */
+          
+	  if (ptr->inter == GBUNDLED)
+	    bundl_ptr = bdl_ptr;
+	  else
+	    bundl_ptr = idv_ptr;
+	  
+	  fill_inter = bundl_ptr->inter;
+          
+	  /* the fill style attribute */
+          
+	  if (ptr->style == GBUNDLED)
+	    fill_style = bdl_ptr->style;
+	  else
+	    fill_style = idv_ptr->style;
+	  
+          
+	  /*	    if(WS_AVAIL_COLOUR(ws,bundl_ptr->colour))
+		    xXgksInqColourRep(OPEN_WSID(X_id),
+		    bundl_ptr->colour,
+		    GREALIZED,&cobundl);
+	  */
+	  cobundl.red = coltab[bundl_ptr->colour].r;
+	  cobundl.green = coltab[bundl_ptr->colour].g;
+	  cobundl.blue = coltab[bundl_ptr->colour].b;
+	  if(cobundl.red > 1.0 || cobundl.red < 0.0)cobundl.red = 0.0;
+	  if(cobundl.green > 1.0 || cobundl.green < 0.0)cobundl.green = 0.0;
+	  if(cobundl.blue > 1.0 || cobundl.blue < 0.0)cobundl.blue = 0.0;
+	  
+	  HPDF_Page_SetRGBStroke(pdfpage,cobundl.red,cobundl.green,
+				 cobundl.blue);
+	  HPDF_Page_SetRGBFill(pdfpage,cobundl.red,cobundl.green,
+			       cobundl.blue);
+	  HPDF_Page_SetLineWidth(pdfpage, 1.0);
+	
+	  if (fill_inter == GPATTERN) {
+	    float myx, myy;
+	    HPDF_Page_GSave(pdfpage);
+	    HPDF_Page_MoveTo(pdfpage,
+			     (xoff+ old_pts[0].x) * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * xm + 1,
+			     (yoff+ old_pts[0].y) * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * ym + 1);
+
+	    minx = maxx = (xoff+ old_pts[0].x) * STANDARD_PAGE_W *
+	      POINTS_PER_INCH * xm  + 1;
+	    miny = maxy = (yoff+ old_pts[0].y) * STANDARD_PAGE_W *
+	      POINTS_PER_INCH * ym + 1;
+                
+	    for (cnt = 1; cnt < num_pts; cnt++){
+	      HPDF_Page_LineTo(pdfpage,
+			       (xoff+ old_pts[cnt].x) * STANDARD_PAGE_W * 
+				POINTS_PER_INCH * xm + 1,
+			       (old_pts[cnt].y +yoff) * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym + 1);
+	    }
+	    HPDF_Page_Clip(pdfpage);
+	    myx = minx;
+	    myy = miny;
+	    while (myx < maxx){
+	      HPDF_Page_MoveTo(pdfpage,myx,miny);
+	      HPDF_Page_LineTo(pdfpage,myx,maxy);
+	      HPDF_Page_Stroke(pdfpage);
+	    }
+	    while (myy < maxy){
+	      HPDF_Page_MoveTo(pdfpage,minx,myy);
+	      HPDF_Page_LineTo(pdfpage,maxx,myy);
+	      HPDF_Page_Stroke(pdfpage);
+	    }
+	    HPDF_Page_GRestore(pdfpage);
+	  }
+	  else{
+	    HPDF_Page_MoveTo(pdfpage,
+			     (xoff+old_pts[0].x) * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * xm + 1 ,
+			     (yoff+old_pts[0].y) * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * ym + 1);
+	    
+	    for (cnt = 1; cnt < num_pts; cnt++)
+	      HPDF_Page_LineTo(pdfpage, 
+			       (xoff+ old_pts[cnt].x) * STANDARD_PAGE_W * 
+				POINTS_PER_INCH * xm + 1,
+			       (old_pts[cnt].y+yoff) * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym + 1);
+	    HPDF_Page_Fill(pdfpage);
+	  }
+        }
+        break;
+      case CLIP_REC:
+	{
+	  break;
+	  //printf("clip\n");
+	  /*
+            if(PS_clipsave > 0)
+	      HPDF_Page_GRestore(pdfpage);
+	    if(primi->primi.clip.rec.xmin != primi->primi.clip.rec.xmax &&
+	       primi->primi.clip.rec.ymin != primi->primi.clip.rec.ymax){
+	      HPDF_Page_GSave(pdfpage);
+	      PS_clipsave = 1;
+	      HPDF_Page_MoveTo(pdfpage,
+			       primi->primi.clip.rec.xmin * 
+			       STANDARD_PAGE_W * POINTS_PER_INCH * xm,
+			       primi->primi.clip.rec.ymin * 
+			       STANDARD_PAGE_W * POINTS_PER_INCH * ym);
+	      HPDF_Page_LineTo(pdfpage,
+			       primi->primi.clip.rec.xmax * 
+			       STANDARD_PAGE_W * POINTS_PER_INCH * xm ,
+			       primi->primi.clip.rec.ymin * 
+			       STANDARD_PAGE_W * POINTS_PER_INCH * ym );
+	      HPDF_Page_LineTo(pdfpage,
+			       primi->primi.clip.rec.xmax * 
+			       STANDARD_PAGE_W * POINTS_PER_INCH * xm,
+			       primi->primi.clip.rec.ymax * 
+			       STANDARD_PAGE_W * POINTS_PER_INCH * ym);
+	      HPDF_Page_LineTo(pdfpage,  
+			       primi->primi.clip.rec.xmin * 
+			       STANDARD_PAGE_W * POINTS_PER_INCH * xm,
+			       primi->primi.clip.rec.ymax * 
+			       STANDARD_PAGE_W * POINTS_PER_INCH * ym);
+	      HPDF_Page_ClosePath(pdfpage);
+	      HPDF_Page_Clip(pdfpage);
+	    }
+	  */
+	    break;
+	}
+    case TEXT:
+      {	
+	float angle;
+	//printf("text\n");
+	old_pts = primi->primi.text.location;
+	cobundl.red = 
+	  coltab[primi->primi.text.txattr.bundl.colour].r;
+	cobundl.green = 
+	  coltab[primi->primi.text.txattr.bundl.colour].g;
+	cobundl.blue = 
+	  coltab[primi->primi.text.txattr.bundl.colour].b;
+	
+	if(cobundl.red > 1.0 || cobundl.red < 0.0)cobundl.red = 0.0;
+	if(cobundl.green > 1.0)cobundl.green = 0.0;
+	if(cobundl.blue > 1.0)cobundl.blue = 0.0;
+	HPDF_Page_SetRGBStroke(pdfpage,cobundl.red,cobundl.green,
+			       cobundl.blue);
+	HPDF_Page_SetRGBFill(pdfpage,cobundl.red,cobundl.green,
+			     cobundl.blue);
+	HPDF_Page_SetLineWidth(pdfpage, 1.0);
+	
+	angle=atan(primi->primi.text.base_vec.y/primi->primi.text.base_vec.x);
+	
+	HPDF_Page_GSave(pdfpage);
+	HPDF_Page_Concat(pdfpage, cos(angle), sin(angle), 
+			 -sin(angle), cos(angle),
+			 (xoff+ old_pts[0].x) * 
+			 STANDARD_PAGE_W * POINTS_PER_INCH * xm + 1 ,
+			 (yoff+ old_pts[0].y) * STANDARD_PAGE_W * 
+			 POINTS_PER_INCH * ym + 1);
+	
+	HPDF_Page_BeginText (pdfpage);	
+	pdffont = HPDF_GetFont (pdf, "Times-Roman", NULL);
+	if(primi->primi.text.txattr.tx_exp == GINDIVIDUAL) {
+	  HPDF_Page_SetFontAndSize
+	    (pdfpage, pdffont,
+	     primi->primi.text.chattr.chwidth * STANDARD_PAGE_W * 
+	     POINTS_PER_INCH * 
+	     primi->primi.text.txattr.bundl.ch_exp * 1.5 
+	     + .5);
+	}
+	else
+	  HPDF_Page_SetFontAndSize
+	    (pdfpage, pdffont,
+	     primi->primi.text.chattr.chwidth * STANDARD_PAGE_W * 
+	     POINTS_PER_INCH * 1.5);
+	
+	switch(primi->primi.text.chattr.align.hor){
+	case  GTH_CENTRE:
+	  switch(primi->primi.text.chattr.align.ver){
+	  case GTV_HALF:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  -(HPDF_Page_TextWidth
+				    (pdfpage,primi->primi.text.string)/2.0),
+				  -(HPDF_Page_GetTextRise(pdfpage)/2.0));
+	    break;
+	  case GTV_BASE:
+	  case GTV_BOTTOM:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  -(HPDF_Page_TextWidth
+				    (pdfpage,primi->primi.text.string)/2.0),
+				  0);
+	    break;
+	  case GTV_NORMAL:
+	  case GTV_TOP:
+	  case GTV_CAP:
+	  default:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  -(HPDF_Page_TextWidth
+				    (pdfpage,primi->primi.text.string)/2.0),
+				  -(HPDF_Page_GetTextRise(pdfpage)));
+	    break;
+	  }
+	  break;
+	case  GTH_RIGHT:
+	  switch(primi->primi.text.chattr.align.ver){
+	  case GTV_BASE:
+	  case GTV_BOTTOM:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  -(HPDF_Page_TextWidth
+				    (pdfpage,primi->primi.text.string)),
+				  0);
+	    break;
+	  case GTV_HALF:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  -(HPDF_Page_TextWidth
+				    (pdfpage,primi->primi.text.string)),
+				  -(HPDF_Page_GetTextRise(pdfpage)/2.0));
+	    break;
+	  case GTV_NORMAL:
+	  case GTV_TOP:
+	  case GTV_CAP:
+	  default:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  -(HPDF_Page_TextWidth
+				    (pdfpage,primi->primi.text.string)),
+				  -(HPDF_Page_GetTextRise(pdfpage)));
+	    break;
+	  }
+	  break;
+	case  GTH_NORMAL:
+	case  GTH_LEFT:
+	default:
+	  switch(primi->primi.text.chattr.align.ver){
+	  case GTV_HALF:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  0,-(HPDF_Page_GetTextRise(pdfpage)/2.0));
+	    break;
+	  case GTV_BASE:
+	  case GTV_BOTTOM:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  0,0);
+	    break;
+	  case GTV_NORMAL:
+	  case GTV_TOP:
+	  case GTV_CAP:
+	  default:
+	    HPDF_Page_MoveTextPos(pdfpage, 
+				  0,-(HPDF_Page_GetTextRise(pdfpage)));
+	    break;
+	  }
+	  break;
+	}
+	HPDF_Page_ShowText(pdfpage, primi->primi.text.string);
+	HPDF_Page_EndText (pdfpage);	
+	/*
+	  mode = HPDF_Page_GetGMode  (pdfpage);
+	  if(mode&HPDF_GMODE_PAGE_DESCRIPTION)
+	  printf("HPDF_GMODE_PAGE_DESCRIPTION\n");
+	  if(mode&HPDF_GMODE_PATH_OBJECT)
+	  printf("HPDF_GMODE_PATH_OBJECT\n");
+	  if(mode&HPDF_GMODE_TEXT_OBJECT)
+	  printf("HPDF_GMODE_TEXT_OBJECT\n");
+	  if(mode&HPDF_GMODE_CLIPPING_PATH)
+	  printf("HPDF_GMODE_CLIPPING_PATH\n");
+	  if(mode&HPDF_GMODE_SHADING)
+	  printf("HPDF_GMODE_SHADING\n");
+	  if(mode&HPDF_GMODE_INLINE_IMAGE)
+	  printf("HPDF_GMODE_INLINE_IMAGE\n");
+	  if(mode&HPDF_GMODE_EXTERNAL_OBJECT)
+	  printf("HPDF_GMODE_EXTERNAL_OBJECT\n");
+	*/
+	//	printf("restore\n");
+	HPDF_Page_GRestore(pdfpage);
+	break;
+      }
+    case XGKS_MESG:
+      break;
+    case CELL_ARRAY:
+      break;
+    case GDP:
+      break;
+    }
+    return 0;
+}
+
+int
+Pdfgetsize(primi, X_id, xm, ym, xminp, xmaxp, yminp, ymaxp)
+     OUT_PRIMI      *primi;
+     Gint X_id;
+     Gfloat xm, ym, *xminp, *yminp, *xmaxp, *ymaxp;
+{
+    Gint            num_pts, cnt;
+    Gpoint         *new_pts, *old_pts;
+    OUT_PRIMI      *new_primi;
+    Gcobundl        cobundl;
+    Gint            cheight;
+    Gint            gi, i, type;
+    Gfloat          xmin,xmax,ymin,ymax;
+    WS_STATE_PTR    ws;
+    float           size;
+    int position;
+
+    xmin = *xminp;
+    ymin = *yminp;
+    xmax = *xmaxp;
+    ymax = *ymaxp;
+    switch (primi->pid) {
+      case PLINE:
+	{
+	  Glnattr        *ptr;
+	  Glnbundl       *idv_ptr, *bdl_ptr, *bundl_ptr;
+	  
+	  //	  printf("pline\n");
+	  num_pts = primi->primi.fill_area.num_pts;
+	  old_pts = primi->primi.fill_area.pts;
+	  ws=OPEN_WSID(X_id);
+	  
+	  ptr = &(primi->primi.pline.plnattr);
+	  gi = ptr->line;
+	  if (gi < 1 || gi >= MAX_BUNDL_TBL)
+	    gi = 1;
+	  idv_ptr = &(ptr->bundl);
+	  bdl_ptr = &(ws->lnbundl_table[gi]);
+	  
+	  if(xmin > old_pts[0].x)xmin=old_pts[0].x;
+	  if(xmax < old_pts[0].x)xmax=old_pts[0].x;
+	  if(ymin > old_pts[0].y)ymin=old_pts[0].y;
+	  if(ymax < old_pts[0].y)ymax=old_pts[0].y;
+	  for (cnt = 1; cnt < num_pts; cnt++){
+	    if(xmin > old_pts[cnt].x)xmin=old_pts[cnt].x;
+	    if(xmax < old_pts[cnt].x)xmax=old_pts[cnt].x;
+	    if(ymin > old_pts[cnt].y)ymin=old_pts[cnt].y;
+	    if(ymax < old_pts[cnt].y)ymax=old_pts[cnt].y;
+	  }
+	  break;
+	}
+    case PMARK:
+      {
+	Gmkattr        *ptr;
+	Gmkbundl       *idv_ptr, *bdl_ptr, *bundl_ptr;
+	//	printf("pmark\n");
+	ws=OPEN_WSID(X_id);
+	ptr = &primi->primi.pmark.mkattr;
+	gi = ptr->mark;
+	if (gi < 1 || gi >= MAX_BUNDL_TBL)
+	  gi = 1;
+	idv_ptr = &(ptr->bundl);
+	bdl_ptr = &(ws->mkbundl_table[gi]);
+	
+
+	if (ptr->size == GBUNDLED)                  /* marker size */
+	  size = (float) bdl_ptr->size;
+	else
+	  size = (float) idv_ptr->size;
+	
+	if (ptr->type == GBUNDLED)                  /* marker type  */
+	  bundl_ptr = bdl_ptr;
+	else
+	  bundl_ptr = idv_ptr;
+	
+	if (WS_MARKER_TYPE(bundl_ptr->type))
+	  type = bundl_ptr->type;
+	else
+	  type = GMK_POINT;
+	
+	old_pts = primi->primi.pmark.location;
+	if(xmin > old_pts[0].x)xmin=old_pts[0].x;
+	if(xmax < old_pts[0].x)xmax=old_pts[0].x;
+	if(ymin > old_pts[0].y)ymin=old_pts[0].y;
+	if(ymax < old_pts[0].y)ymax=old_pts[0].y;
+	switch(type){
+	case GMK_POINT:
+	case GMK_O:
+	  for(i=0; i<primi->primi.pmark.num_pts; i++){
+	    if(xmin > old_pts[cnt].x)xmin=old_pts[cnt].x;
+	    if(xmax < old_pts[cnt].x)xmax=old_pts[cnt].x;
+	    if(ymin > old_pts[cnt].y)ymin=old_pts[cnt].y;
+	    if(ymax < old_pts[cnt].y)ymax=old_pts[cnt].y;
+	  }
+	  break;
+	case GMK_PLUS:
+	case GMK_STAR:
+	case GMK_X:
+	  if(xmin > old_pts[0].x-(float)size*.07)xmin=old_pts[0].x-
+						   (float)size*.07;
+	  if(xmax < old_pts[0].x+(float)size*.07)xmax=old_pts[0].x+
+						   (float)size*.07;
+	  if(ymin > old_pts[0].y-(float)size*.07)ymin=old_pts[0].y-
+						   (float)size*.07;
+	  if(ymax < old_pts[0].y+(float)size*.07)ymax=old_pts[0].y+
+						   (float)size*.07;
+	  break;
+	}
+      }
+      break;
+    case FILL_AREA:
+      {
+	Gflattr        *ptr;
+	Gflbundl       *idv_ptr, *bdl_ptr, *bundl_ptr;
+	Gflinter        fill_inter;
+	int             px, py, prev, cur, fill_style;          
+ 	
+	
+	//	printf("fill\n");
+	ws=OPEN_WSID(X_id);
+	num_pts = primi->primi.fill_area.num_pts;
+	old_pts = primi->primi.fill_area.pts;
+	
+	ptr = &(primi->primi.fill_area.flattr);
+	gi = ptr->fill;
+	if (gi < 1 || gi >= MAX_BUNDL_TBL)
+	  gi = 1;
+	idv_ptr = &(ptr->bundl);
+	bdl_ptr = &(ws->flbundl_table[gi]);
+	
+	
+	
+	if(xmin > old_pts[cnt].x)xmin=old_pts[cnt].x;
+	if(xmax < old_pts[cnt].x)xmax=old_pts[cnt].x;
+	if(ymin > old_pts[cnt].y)ymin=old_pts[cnt].y;
+	if(ymax < old_pts[cnt].y)ymax=old_pts[cnt].y;
+	for (cnt = 1; cnt < num_pts; cnt++){
+	  if(xmin > old_pts[cnt].x)xmin=old_pts[cnt].x;
+	  if(xmax < old_pts[cnt].x)xmax=old_pts[cnt].x;
+	  if(ymin > old_pts[cnt].y)ymin=old_pts[cnt].y;
+	  if(ymax < old_pts[cnt].y)ymax=old_pts[cnt].y;
+	}
+      }
+      break;
+    case CLIP_REC:
+      break;
+      
+    case TEXT:
+      {	
+	float angle, cheight, clen, chwidth;
+	int vert = 0;
+	//	printf("text\n");
+
+	old_pts = primi->primi.text.location;
+	
+	angle=atan(primi->primi.text.base_vec.y/primi->primi.text.base_vec.x);
+	
+	if(angle >.75 && angle < 2.4)vert=1;
+	
+	if(primi->primi.text.txattr.tx_exp == GINDIVIDUAL) {
+	  chwidth=primi->primi.text.chattr.chwidth * 
+	    primi->primi.text.txattr.bundl.ch_exp;
+	  cheight=primi->primi.text.chattr.height * 
+	    primi->primi.text.txattr.bundl.ch_exp;
+	}
+	else{
+	  chwidth = primi->primi.text.chattr.chwidth;
+	  cheight = primi->primi.text.chattr.height;
+	}
+	
+	switch(primi->primi.text.chattr.align.hor){
+	case  GTH_CENTRE:
+	  switch(primi->primi.text.chattr.align.ver){
+	  case GTV_HALF:
+	    if(vert){
+	      if(xmin > old_pts[0].x -cheight/2.)
+		xmin=old_pts[0].x - cheight/2.;
+	      if(xmax < old_pts[0].x + cheight/2)
+		xmax=old_pts[0].x + cheight/2.;
+	      if(ymin > (old_pts[0].y - 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		ymin=old_pts[0].y - chwidth*strlen(primi->primi.text.string)/2.0;
+	      if(ymax < (old_pts[0].y + 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		ymax=old_pts[0].y +chwidth*strlen(primi->primi.text.string)/2.0;
+	    }
+	    else{
+	      if(ymin > old_pts[0].y -cheight/2.)
+		ymin=old_pts[0].y - cheight/2.;
+	      if(ymax < old_pts[0].y + cheight/2)
+		ymax=old_pts[0].y + cheight/2.;
+	      if(xmin > (old_pts[0].x - 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		xmin=old_pts[0].x - 
+		  chwidth*strlen(primi->primi.text.string)/2.0;
+	      if(xmax < (old_pts[0].x + 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		xmax=old_pts[0].x +chwidth*strlen(primi->primi.text.string)/2.0;
+	    }
+	    break;
+	  case GTV_BASE:
+	  case GTV_BOTTOM:
+	    if(vert){
+	      if(xmin > old_pts[0].x)
+		xmin=old_pts[0].x;
+	      if(xmax < old_pts[0].x + cheight)
+		xmax=old_pts[0].x + cheight;
+	      if(ymin > (old_pts[0].y - 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		ymin=old_pts[0].y - chwidth*strlen(primi->primi.text.string)/2.0;
+	      if(ymax < (old_pts[0].y + 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		ymax=old_pts[0].y +chwidth*strlen(primi->primi.text.string)/2.0;
+	    }
+	    else{
+	      if(ymin > old_pts[0].y)
+		ymin=old_pts[0].y;
+	      if(ymax < old_pts[0].y + cheight)
+		ymax=old_pts[0].y + cheight;
+	      if(xmin > (old_pts[0].x - 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		xmin=old_pts[0].x - chwidth*strlen(primi->primi.text.string)/2.0;
+	      if(xmax < (old_pts[0].x + 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		xmax=old_pts[0].x +chwidth*strlen(primi->primi.text.string)/2.0;
+	    }
+	    break;
+	  case GTV_NORMAL:
+	  case GTV_TOP:
+	  case GTV_CAP:
+	  default:
+	    if(vert){
+	      if(xmin > old_pts[0].x -cheight)
+		xmin=old_pts[0].x -cheight;
+	      if(xmax < old_pts[0].x)
+		xmax=old_pts[0].x;
+	      if(ymin > (old_pts[0].y - 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		ymin=old_pts[0].y - chwidth*strlen(primi->primi.text.string)/2.0;
+	      if(ymax < (old_pts[0].y + 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		ymax=old_pts[0].y +chwidth*strlen(primi->primi.text.string)/2.0;
+	    }
+	    else{
+	      if(ymin > old_pts[0].y -cheight)
+		ymin=old_pts[0].y - cheight;
+	      if(ymax < old_pts[0].y)
+		ymax=old_pts[0].y;
+	      if(xmin > (old_pts[0].x - 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		xmin=old_pts[0].x - chwidth*strlen(primi->primi.text.string)/2.0;
+	      if(xmax < (old_pts[0].x + 
+			 chwidth*strlen(primi->primi.text.string)/2.0))
+		xmax=old_pts[0].x +chwidth*strlen(primi->primi.text.string)/2.0;
+	    }
+	    break;
+	  }
+	  break;
+	case  GTH_RIGHT:
+	  switch(primi->primi.text.chattr.align.ver){
+	  case GTV_BASE:
+	  case GTV_BOTTOM:
+	    if(vert){
+	      if(xmin > old_pts[0].x)
+		xmin=old_pts[0].x;
+	      if(xmax < old_pts[0].x + cheight/2)
+		xmax=old_pts[0].x + cheight/2.;
+	      if(angle > 0){
+		if(ymin > (old_pts[0].y - chwidth*strlen(primi->primi.text.string)))
+		  ymin=old_pts[0].y - chwidth*strlen(primi->primi.text.string);
+		if(ymax < old_pts[0].y)
+		  ymax=old_pts[0].y;
+	      }
+	      else{
+		if(ymax < (old_pts[0].y - chwidth*strlen(primi->primi.text.string)))
+		  ymax=old_pts[0].y - chwidth*strlen(primi->primi.text.string);
+		if(ymin > old_pts[0].y)
+		  ymin=old_pts[0].y;
+	      }
+	    }
+	    else{
+	      if(ymin > old_pts[0].y)
+		ymin=old_pts[0].y;
+	      if(ymax < old_pts[0].y + cheight/2)
+		ymax=old_pts[0].y + cheight/2.;
+	      if(xmin > (old_pts[0].x - chwidth*strlen(primi->primi.text.string)))
+		xmin=old_pts[0].x - chwidth*strlen(primi->primi.text.string);
+	      if(xmax < old_pts[0].x)
+		xmax=old_pts[0].x;
+	    }
+	    break;
+	  case GTV_HALF:
+	    if(vert){
+	      if(xmin > old_pts[0].x -cheight/2.)
+		xmin=old_pts[0].x - cheight/2.;
+	      if(xmax < old_pts[0].x + cheight/2)
+		xmax=old_pts[0].x + cheight/2.;
+	      if(angle > 0){
+		if(ymin > (old_pts[0].y - chwidth*strlen(primi->primi.text.string)))
+		  ymin=old_pts[0].y - chwidth*strlen(primi->primi.text.string);
+		if(ymax < old_pts[0].y)
+		  ymax=old_pts[0].y;
+	      }
+	      else{
+		if(ymax < (old_pts[0].y - chwidth*strlen(primi->primi.text.string)))
+		  ymax=old_pts[0].y - chwidth*strlen(primi->primi.text.string);
+		if(ymin > old_pts[0].y)
+		  ymin=old_pts[0].y;
+	      }
+	    }
+	    else{
+	      if(ymin > old_pts[0].y -cheight/2.)
+		ymin=old_pts[0].y - cheight/2.;
+	      if(ymax < old_pts[0].y + cheight/2)
+		ymax=old_pts[0].y + cheight/2.;
+	      if(xmin > (old_pts[0].x - chwidth*strlen(primi->primi.text.string)))
+		xmin=old_pts[0].x - chwidth*strlen(primi->primi.text.string);
+	      if(xmax < old_pts[0].x)
+		xmax=old_pts[0].x;
+	    }
+	    
+	    break;
+	  case GTV_NORMAL:
+	  case GTV_TOP:
+	  case GTV_CAP:
+	  default:
+	    if(vert){
+	      if(xmin > old_pts[0].x -cheight)
+		xmin=old_pts[0].x - cheight;
+	      if(xmax < old_pts[0].x)
+		xmax=old_pts[0].x;
+	      if(angle > 0){
+		if(ymin > (old_pts[0].y - chwidth*strlen(primi->primi.text.string)))
+		  ymin=old_pts[0].y - chwidth*strlen(primi->primi.text.string);
+		if(ymax < old_pts[0].y)
+		  ymax=old_pts[0].y;
+	      }
+	      else{
+		if(ymax < (old_pts[0].y - chwidth*strlen(primi->primi.text.string)))
+		  ymax=old_pts[0].y - chwidth*strlen(primi->primi.text.string);
+		if(ymin > old_pts[0].y)
+		  ymin=old_pts[0].y;
+	      }
+	    }
+	    else{
+	      if(ymin > old_pts[0].y -cheight)
+		ymin=old_pts[0].y - cheight;
+	      if(ymax < old_pts[0].y)
+		ymax=old_pts[0].y;
+	      if(xmin > (old_pts[0].x - chwidth*strlen(primi->primi.text.string)))
+		xmin=old_pts[0].x - chwidth*strlen(primi->primi.text.string);
+	      if(xmax < old_pts[0].x)
+		xmax=old_pts[0].x;
+	    }
+	    break;
+	  }
+	  break;
+	case  GTH_NORMAL:
+	case  GTH_LEFT:
+	default:
+	  switch(primi->primi.text.chattr.align.ver){
+	  case GTV_HALF:
+	    if(vert){
+	      if(xmin > old_pts[0].x -cheight/2.)
+		xmin=old_pts[0].x - cheight/2.;
+	      if(xmax < old_pts[0].x + cheight/2)
+		xmax=old_pts[0].x + cheight/2.;
+	      if(angle>0){
+		if(ymin > old_pts[0].y)
+		  ymin=old_pts[0].y;
+		if(ymax < (old_pts[0].y + chwidth*strlen(primi->primi.text.string)))
+		  ymax=old_pts[0].y +chwidth*strlen(primi->primi.text.string);
+	      }
+	      else{
+		if(ymax < old_pts[0].y)
+		  ymax=old_pts[0].y;
+		if(ymin > (old_pts[0].y + chwidth*strlen(primi->primi.text.string)))
+		  ymin=old_pts[0].y +chwidth*strlen(primi->primi.text.string);
+	      }
+	    }
+	    else{
+	      if(ymin > old_pts[0].y -cheight/2.)
+		ymin=old_pts[0].y - cheight/2.;
+	      if(ymax < old_pts[0].y + cheight/2)
+		ymax=old_pts[0].y + cheight/2.;
+	      if(xmin > (old_pts[0].x))
+		xmin=old_pts[0].x;
+	      if(xmax < (old_pts[0].x + chwidth*strlen(primi->primi.text.string)))
+		xmax=old_pts[0].x +chwidth*strlen(primi->primi.text.string);
+	    }
+	    break;
+	  case GTV_BASE:
+	  case GTV_BOTTOM:
+	    if(vert){
+	      if(xmin > old_pts[0].x)
+		xmin=old_pts[0].x;
+	      if(xmax < old_pts[0].x + cheight)
+		xmax=old_pts[0].x + cheight;
+	      if(angle>0){
+		if(ymin > old_pts[0].y)
+		  ymin=old_pts[0].y;
+		if(ymax < (old_pts[0].y + chwidth*strlen(primi->primi.text.string)))
+		  ymax=old_pts[0].y +chwidth*strlen(primi->primi.text.string);
+	      }
+	      else{
+		if(ymax < old_pts[0].y)
+		  ymax=old_pts[0].y;
+		if(ymin > (old_pts[0].y + chwidth*strlen(primi->primi.text.string)))
+		  ymin=old_pts[0].y +chwidth*strlen(primi->primi.text.string);
+	      }
+	    }
+	    else{
+	      if(ymin > old_pts[0].y)
+		ymin=old_pts[0].y;
+	      if(ymax < old_pts[0].y + cheight)
+		ymax=old_pts[0].y + cheight;
+	      if(xmin > (old_pts[0].x))
+		xmin=old_pts[0].x;
+	      if(xmax < (old_pts[0].x + chwidth*strlen(primi->primi.text.string)))
+		xmax=old_pts[0].x +chwidth*strlen(primi->primi.text.string);
+	    }
+	    break;
+	  case GTV_NORMAL:
+	  case GTV_TOP:
+	  case GTV_CAP:
+	  default:
+	    if(vert){
+	      if(xmin > old_pts[0].x -cheight/2.)
+		xmin=old_pts[0].x - cheight/2.;
+	      if(xmax < old_pts[0].x)
+		xmax=old_pts[0].x;
+	      if(angle > 0){
+		if(ymin > old_pts[0].y)
+		  ymin=old_pts[0].y;
+		if(ymax < (old_pts[0].y + chwidth*strlen(primi->primi.text.string)))
+		  ymax=old_pts[0].y +chwidth*strlen(primi->primi.text.string);
+	      }
+	      else{
+		if(ymax < old_pts[0].y)
+		  ymax=old_pts[0].y;
+		if(ymin > (old_pts[0].y + chwidth*strlen(primi->primi.text.string)))
+		  ymin=old_pts[0].y +chwidth*strlen(primi->primi.text.string);
+	      }
+	    }
+	    else{
+	      if(ymin > old_pts[0].y -cheight/2.)
+		ymin=old_pts[0].y - cheight/2.;
+	      if(ymax < old_pts[0].y)
+		ymax=old_pts[0].y;
+	      if(xmin > (old_pts[0].x))
+		xmin=old_pts[0].x;
+	      if(xmax < (old_pts[0].x + chwidth*strlen(primi->primi.text.string)))
+		xmax=old_pts[0].x +chwidth*strlen(primi->primi.text.string);
+	    }
+	    break;
+	  }
+	  break;
+	}
+	break;
+      }
+      break;
+    case XGKS_MESG:
+      break;
+    case CELL_ARRAY:
+      break;
+    case GDP:
+      break;
+    }
+    *xminp = xmin;
+    *yminp = ymin;
+    *xmaxp = xmax;
+    *ymaxp = ymax;
+    return(0);
+}
+
 void
 gps_page()
 {
-    if (fp != NULL){
-        if(PS_clipsave > 0)
-	  fprintf(fp, "grestore\n");
-	fprintf(fp,  "showpage\n");
-	fprintf(fp, "grestore\n");
-    }
+  if (fp != NULL){
+    if(PS_clipsave > 0)
+      fprintf(fp, "grestore\n");
+    fprintf(fp,  "showpage\n");
+    fprintf(fp, "grestore\n");
+  }
 }
 
 void
 gps_end()
 {
-    if (fp != NULL){
-	fprintf(fp, "%% End of XGKS output\n");
-	if(EPSFILE){
-	  fprintf(fp,"%%%%Trailer\n");
-	  fprintf(fp, "%%%%BoundingBox: %d %d %d %d",
-		  minx+18,miny+112,maxx+19,maxy+113);
-	  fprintf(fp,"%%%%EOF\n");
-	}
-	fclose(fp);
-	fp = NULL;
+  if (fp != NULL){
+    fprintf(fp, "%% End of XGKS output\n");
+    if(EPSFILE){
+      fprintf(fp,"%%%%Trailer\n");
+      fprintf(fp, "%%%%BoundingBox: %d %d %d %d",
+	      minx+18,miny+112,maxx+19,maxy+113);
+      fprintf(fp,"%%%%EOF\n");
     }
+    fclose(fp);
+    fp = NULL;
+  }
 }
-
+void gpdf_end()
+{
+  HPDF_STATUS stat;
+  HPDF_UINT16 mode;
+  HPDF_Destination dst;
+  /*
+    mode = HPDF_Page_GetGMode  (pdfpage);
+    if(mode&HPDF_GMODE_PAGE_DESCRIPTION)
+    printf("End: HPDF_GMODE_PAGE_DESCRIPTION\n");
+    if(mode&HPDF_GMODE_PATH_OBJECT)
+    printf("End: HPDF_GMODE_PATH_OBJECT\n");
+    if(mode&HPDF_GMODE_TEXT_OBJECT)
+    printf("End: HPDF_GMODE_TEXT_OBJECT\n");
+    if(mode&HPDF_GMODE_CLIPPING_PATH)
+    printf("End: HPDF_GMODE_CLIPPING_PATH\n");
+    if(mode&HPDF_GMODE_SHADING)
+    printf("End: HPDF_GMODE_SHADING\n");
+    if(mode&HPDF_GMODE_INLINE_IMAGE)
+    printf("End: HPDF_GMODE_INLINE_IMAGE\n");
+    if(mode&HPDF_GMODE_EXTERNAL_OBJECT)
+    printf("End: HPDF_GMODE_EXTERNAL_OBJECT\n");
+  */
+  stat = HPDF_SaveToFile (pdf, PDFFILE);
+  if(stat == HPDF_INVALID_DOCUMENT)printf("HPDF_INVALID_DOCUMENT\n");
+  else if(stat == HPDF_FAILD_TO_ALLOC_MEM)printf("HPDF_FAILD_TO_ALLOC_MEM\n");
+  else if(stat == HPDF_FILE_IO_ERROR)printf("HPDF_FILE_IO_ERROR\n");
+  HPDF_Free(pdf);
+}

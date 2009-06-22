@@ -122,7 +122,7 @@ LIBS =	-threads -L/usr/lib  \
 	 -lGLU  -lGL  -lnetcdf -lnetcdff\
 	-lXt -lXp -lXpm -lXext -lX11 \
 	-lSM -lICE  -lpng -lz -lsvml -ldl -lc \
-	-lXm -lc 
+	-lXm -lc -lz
 
 
 #COPT = -O -w

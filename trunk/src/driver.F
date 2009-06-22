@@ -1441,6 +1441,9 @@ c           Command WRITECOLORTABLE.
          elseif (keynum .eq. P_WRITE_FRAME) then
 c           Command WRITE_FRAME.
             call write_frame (error)
+         elseif (keynum .eq. P_WRITE_PDF) then
+c           Command WRITE_FRAME.
+            call write_pdf (error)
          elseif (keynum .eq. P_WRITE_1D) then
 c	    Command WRITE_1D.
             call write_1d(error)

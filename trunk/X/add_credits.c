@@ -362,7 +362,7 @@ static char ident[] = "$Id: add_credits.c,v 1.87 2007-07-30 22:28:42 warren Exp 
 #define DEFAULT_FONT "9x15"		/* Font to use if others not found */
 
 static char *title = "IVE";
-static char *version = "Version 4.5 Release June 22, 2009";
+static char *version = "Version 4.6 Beta - June 22 1009";
 /*
    In credits strings, if a line starts with
 	"\b" => line in italics
@@ -383,7 +383,7 @@ static char *credits[] = {
     "",
     "\tNCAR Graphics library from the National Center for Atmospheric Research",
     "\tudunits and netCDF libraries from the Unidata Program Center, UCAR",
-    "\tlibpng from libpng.org",
+    "\tlibpng from libpng.org and libharu (pdf library) from libharu.org",
     NULL};
 
 void add_credits(dpy, widget) 

@@ -98,3 +98,77 @@ c
       end
 
 
+      subroutine write_pdf (error)
+c-----------------------------------------------------------------------
+      include 'incommands.icl'
+      include 'message.icl'
+      include 'segments.icl'
+c
+c
+c     Argument declarations.
+c
+      logical error
+c
+c
+c     Local variable declarations.
+c
+      character *1024   file
+      character *512    curval
+      integer          ibeg, iend
+      integer          plot
+c
+c
+c     External function declarations.
+c
+      integer          nblank, strbeg, strend
+c
+c
+c
+c
+      error = .false.
+      ibeg  = strbeg(comand(FSTVAL))
+      iend  = strend(comand(FSTVAL))
+c
+c
+c     Make sure a value is given.
+c
+      if ( nblank(comand(FSTVAL)) .eq. 0 ) then
+         write (message, 100) comand(FSTVAL)(ibeg:iend)
+         call write_message
+         error = .true.
+      else
+c
+c        Set the file name.
+c
+         file(1:len(file)) = ' '
+         file = comand(FSTVAL)(ibeg:iend)
+      endif
+c
+c     Expand ~'s done in the print_file routine
+c
+      curval = comand(fstval + 1)(1:cmdlen)
+      if (nblank(curval) .ne. 0 ) then
+         call cvatoi (curval(strbeg(curval):strend(curval)), plot,
+     &        error)
+      else
+         plot = curplot
+      endif
+         
+      if ( .not. error ) then
+c
+c        Set the file name.
+c
+         iend = strend(file)
+         call pdf_file(plot, file(1:iend))
+      endif
+c
+c
+c     Format statements.
+c
+ 100  format (1x,'Command ',a,' requires a value.')
+c
+c
+      return
+      end
+
+

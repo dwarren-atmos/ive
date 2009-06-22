@@ -51,7 +51,7 @@
 
 extern void gcreateseg(), gcloseseg(),grenameseg(),gdelseg(),gdelsegws(),
   gassocsegws(),gcopysegws(),ginsertseg(),gps_init(),geps_init(),gps_page(),
-  gps_init_page(),gps_end();
+  gps_init_page(),gps_end(),gpdf_init(),gpdf_init_page(),gpdf_end();
 /*
  *  gcrsg - Create Segment
  *
@@ -243,6 +243,12 @@ char *file;
 {
 	(void)geps_init(file);
 }
+void
+gpdf_init_(file)
+char *file;
+{
+	(void)gpdf_init(file);
+}
 
 /*
  * gps_print(wsid, seg_id, BWPRINT, as) - Output a subset of possible segment 
@@ -272,9 +278,20 @@ gps_init_page_(do_landscape, aspect)
 	(void)gps_init_page(do_landscape, aspect);
 }
 
+gpdf_init_page_(do_landscape, aspect)
+    int *do_landscape;
+    float *aspect;
+{
+	(void)gpdf_init_page(do_landscape, aspect);
+}
+
 gps_end_()
 {
 	(void)gps_end();
+}
+gpdf_end_()
+{
+	(void)gpdf_end();
 }
 
 
