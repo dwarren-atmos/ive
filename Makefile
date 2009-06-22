@@ -415,21 +415,23 @@ COPT=-g
 endif
 
 CFLAGS = ${COPT} ${DEC} ${DOBETA}\
-	-I${PWD}/h ${UDPOSIX_INCLUDE} ${BROWSER}
+	-I${PWD}/h -I${PWD}/h/haru ${UDPOSIX_INCLUDE} ${BROWSER}
 FFLAGS = ${FOPT} ${FDEC} ${ALPHA} ${FCPP}
 #
 #
 
 #
 ifdef MEMDBG 
-LOCALLIB = src/libIVE.a gks/libIVEgks.a src/libIVE.a mnemosyne/libmnem.a
+LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a mnemosyne/libmnem.a
 else
-LOCALLIB = src/libIVE.a gks/libIVEgks.a src/libIVE.a
+LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a 
 endif
 #
 #
 all: IVE
 link: LINK_ONLY
+haru:
+	${MAKE} -C ./haru CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
 gks:
 	${MAKE} -C ./gks CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
 	${MAKE} LDFLAGS="${LDFLAGS}" link
@@ -455,6 +457,7 @@ clean:
 	cd h; ${MAKE} clean; cd ..
 	cd src; ${MAKE} clean; cd ..
 	cd gks; ${MAKE} clean; cd ..
+	cd haru; ${MAKE} clean; cd ..
 	cd netcdf; ${MAKE} clean; cd ..
 	cd trans; ${MAKE}  clean; cd ..
 	cd X; ${MAKE}  clean; cd ..
@@ -468,6 +471,7 @@ IVE:
 	${MAKE} -C ./h CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} -C ./src CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" KF77="${KF77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" machine="${machine}"
 	${MAKE} -C ./gks CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
+	${MAKE} -C ./haru CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
 	${MAKE} -C ./netcdf CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} -C ./trans CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${ACC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} -C ./X CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${ACC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
@@ -491,6 +495,6 @@ PROOF:
 #
 #
 # dependencies
-.PHONY:gks X src netcdf trans clean all link
+.PHONY:gks haru X src netcdf trans clean all link
 #
 

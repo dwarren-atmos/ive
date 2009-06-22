@@ -443,3 +443,81 @@ c
       
 
 
+      subroutine pdf_file (pltnum, name)
+c-----------------------------------------------------------------------
+c     Purpose:
+c        This routine will write a plot to a pdf file.
+c     Arguments:
+c        pltnum  int  input  number of plot to write.
+c        name    char input  file name.	
+c-----------------------------------------------------------------------
+c
+      include 'message.icl'
+      include 'segments.icl'
+      include 'printer.icl'
+c
+c     Argument declarations.
+c
+      integer pltnum
+      character *(*) name
+c
+c     GKS DEFS
+c
+      ive_ptr ctb, get_color_table
+      INTEGER    GPERFO, GSGOP
+      PARAMETER (GPERFO=1, GSGOP=4)
+c
+c     Local variable declarations.
+c
+      character*1024 metaname
+      integer istate, ierr, ii, j, overlay
+      real    xscale, yscale
+      
+      integer  genran, strbeg, strend, nblank
+c
+c     Common blocks.
+c
+      logical*4 isopen
+      common / is_eps_file_open / isopen
+c
+      xscale = 1.0
+      yscale = 1.0
+c     
+c     Update screen and WISS.
+c     
+      call guwk(1, GPERFO)
+c     
+c     Close any open pltment. 
+c     
+      call gqops (istate)
+      if ( istate .eq. GSGOP ) call gclsg()
+c     
+c     Create a unique postscript file name by appending a random 
+c     number.
+c     
+      metaname = name	
+      call catnull(metaname, len(metaname),ierr)
+      call expand_path(metaname)
+      call gpdf_init(metaname)
+      call gpdf_init_page(landscape,xscale/yscale)
+
+c
+c     Dump color table
+c
+      call dump_color_table(curlist)
+c     
+c     Write specified plot to file
+c     
+      ii = mod(pltnum-1, MAXLIST) + 1
+      ctb = get_color_table(ii)
+      overlay=0
+      do j = 1, curoverlay(ii)
+         call gpdf_nprint(1, segs(j, ii), xscale/yscale,
+     &        %val(ctb),overlay)
+         overlay=1
+      enddo
+      call gpdf_end()
+      end           
+      
+
+

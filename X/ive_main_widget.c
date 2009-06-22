@@ -215,7 +215,7 @@ XmString NewString(s)
 struct{
     Widget plot,overlay,lift_overlay;
     Widget input_menu, input,load_file,load_trans,load_input;
-    Widget output_menu, output,dump_win,print,eps;
+    Widget output_menu, output,dump_win,print,eps,pdf;
     Widget print_current, print_setup, print_menu;
     Widget print_twoper, print_fourper, print_sixper;
     Widget set_log, save_win, quit;
@@ -259,7 +259,7 @@ Widget init_ive(parent,file_widget)
 {
     void init_background(), init_color(),slice_2d_(),init_dir(), init_eps();
     void init_trans(), init_ctb(), init_loop(), init_input(), init_dump();
-    void init_log(), init_eps(), init_printsetup(), do_2up(), do_4up();
+    void init_log(), init_pdf(), init_printsetup(), do_2up(), do_4up();
     void do_6up(), slice_menu_call(), init_wctb();
     static int z=0,o=1,tw=2,th=3,fo=4,fi=5;
     XmString str; /*temp string holder*/
@@ -455,6 +455,17 @@ Widget init_ive(parent,file_widget)
 
     XmStringFree(str);
     XtAddCallback(main_widget.eps ,XmNactivateCallback,init_eps,
+		  NULL);
+
+    str = NewString("PDF");
+    main_widget.pdf = XtVaCreateManagedWidget("PDF",
+					      xmPushButtonWidgetClass,
+					      main_widget.output_menu,
+					      XmNlabelString,str,
+					      NULL);
+
+    XmStringFree(str);
+    XtAddCallback(main_widget.pdf ,XmNactivateCallback,init_pdf,
 		  NULL);
 
     str = NewString("Dump Window");

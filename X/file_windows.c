@@ -796,5 +796,56 @@ void init_eps()
     XmStringFree(str);
 }
 
+struct pdf_widget pdf_widget = {NULL, {NULL, NULL, NULL}};
+/*needed for ui_update*/
+
+void init_pdf()
+{
+    extern Widget Box;
+    void done_pparent_callback(),im_gone_callback();
+    Widget popup,cancel,bb;
+    Arg args[8];
+    void pdf_ok_callback();
+    void dump_done_callback();
+    void call_driver();
+    FILE *file;
+    char *file_mask, *p;
+
+    if(pdf_widget.List){
+	XtManageChild(XtParent(XtParent(pdf_widget.List)));
+	return;
+    }
+    popup = XtVaCreatePopupShell("PDF", transientShellWidgetClass,
+				 Box,
+				 XmNautoUnmanage, FALSE,
+				 XtNallowShellResize, FALSE,
+				 XmNwidth, 278, XmNheight, 420, NULL);
+    XtSetArg(args[0], XmNmarginWidth, 2);
+    XtSetArg(args[1], XmNpacking, XmPACK_NONE);
+    bb = XmCreateBulletinBoard(popup, "PDF", args, 2);
+    XtManageChild(bb);
+    if (pdf_widget.fsb.pattern == NULL)
+	pdf_widget.fsb.pattern 
+	    = XmStringCreate("*.pdf", XmSTRING_DEFAULT_CHARSET);
+    pdf_widget.List = 
+	XtVaCreateManagedWidget("PDFlist", xmFileSelectionBoxWidgetClass,
+				bb, XmNwidth, 278,
+				XmNheight, 372,
+				XmNresizePolicy, XmRESIZE_NONE,
+				XmNpattern, eps_widget.fsb.pattern,
+				XmNdirectory, eps_widget.fsb.directory,
+				XmNdirSpec, eps_widget.fsb.dirSpec,
+				NULL);
+    cancel = XmFileSelectionBoxGetChild(pdf_widget.List,
+					XmDIALOG_CANCEL_BUTTON);
+    XtAddCallback(pdf_widget.List, XmNokCallback,pdf_ok_callback,NULL);
+    XtAddCallback(pdf_widget.List, XmNcancelCallback,dump_done_callback,NULL);
+    XtAddCallback(pdf_widget.List, XmNhelpCallback,
+		  call_driver, "help=writeframe");
+
+    XtManageChild(popup);
+    XtAddCallback(popup,XmNdestroyCallback,im_gone_callback,&pdf_widget.List);
+}
+
 
 

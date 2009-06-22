@@ -58,6 +58,11 @@ struct eps_widget {
     struct fsb fsb;
 } eps_widget;
 
+struct pdf_widget {
+    Widget List; 		/* Input widget */
+    struct fsb fsb;
+} pdf_widget;
+
 struct dir_widget {
     int start_val, end_val, coord;
     Widget List, dir_form,
