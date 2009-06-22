@@ -111,11 +111,12 @@ c-----------------------------------------------------------------------
       include 'supma.icl'
 
       integer strbeg, strend
+      character *8 myproj, mylim
 
-      call default_map_trans(proj, plon, plat, rota, maplim,
+      call default_map_trans(myproj, plon, plat, rota, mylim,
      &     plm1, plm2, plm3, plm4, exact_fit)
-      proj = proj(strbeg(proj):strend(proj))
-      maplim = maplim(strbeg(maplim):strend(maplim))
+      proj = myproj(strbeg(myproj):strend(myproj))
+      maplim = mylim(strbeg(mylim):strend(mylim))
       return
 
       end
