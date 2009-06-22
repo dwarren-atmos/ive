@@ -1,0 +1,103 @@
+# $Id: config.alpha,v 1.36 2003/07/02 20:23:34 warren Exp $
+# ALPHA Config File
+# $Log: config.alpha,v $
+# Revision 1.36  2003/07/02 20:23:34  warren
+# Use the version of NCAR and GKS that get along.
+#
+# Revision 1.35  2002/12/26 23:31:05  warren
+# use NCARG_ROOT instead of fixed path
+#
+# Revision 1.34  2002/05/22 17:56:22  davidive
+# First working version of trajectories colored by alternative fields
+# There is not a complete interface yet!!!
+#
+# Revision 1.33  2001/04/04 20:03:14  harryive
+# Fix library path for NCAR.
+#
+# Revision 1.32  2001/03/29 18:55:01  warren
+# Switched to use ncarg4.1
+#
+# Revision 1.31  2001/03/16 20:35:21  warren
+# Back to the old ncar
+#
+# Revision 1.30  2001/01/23 22:43:30  davidive
+# Added MESA libraries and arch generic
+#
+# Revision 1.29  2000/07/20 20:17:18  warren
+# back to -05
+#
+# Revision 1.28  2000/05/10 22:55:00  warren
+# Changed -O5 to -O4
+#
+# Revision 1.27  2000/04/07 20:57:52  warren
+# Added the missing endif
+#
+# Revision 1.26  2000/04/07 20:52:57  warren
+# added -assume gfullpath to alpha if -g used
+#
+# Revision 1.25  1999/12/22 00:32:14  warren
+# Fixed Dales crashing bug when changing from point slicer to normal. Also
+# have some ifdef linuxes in there in case we ever find a fortran compiler.
+#
+# Revision 1.24  1998/06/03 17:53:00  harry
+# Move NO_PROTO to config.sun.  Fix config.alpha to remove lm_sqrt.
+#
+#
+F77=f90
+KF77=f77
+ACC=cc
+CC=cc
+LD=cc
+RANLIB=/bin/echo
+FCPP =   -DSIXTY_FOUR_bptr -D__alpha
+FDEC =  -align dcommons -align records -recursive -reentrancy async -assume nozsize  -fp_reorder  -inline speed -speculate by_routine -check_bounds -arch generic -assume nominus0 -transform_loops
+ifeq (${CC},cc)
+#CC=cc -migrate
+
+DEC = -D_XOPEN_SOURCE_EXTENDED -D__alpha -D_ANSI_C_SOURCE -D_FASTMATH \
+	-I/usr/include -I/usr/local/include -D_POSIX_SOURCE -inline speed \
+	-unroll 2 -D_INTRINSICS -D_INLINE_INTRINSICS -readonly_strings  \
+	-speculate by_routine -member_alignment -arch generic -DLSB=0
+
+ifeq (${FOPT},-g)
+FOPT= ${FOPT} -assume gfullpath
+endif
+
+ifeq (${COPT},-g)
+DEC = -D_XOPEN_SOURCE_EXTENDED -D__alpha -D_ANSI_C_SOURCE -D_FASTMATH \
+        -I/usr/include -I/usr/local/include -D_POSIX_SOURCE -inline speed \
+        -unroll 2 -D_INTRINSICS -D_INLINE_INTRINSICS -readonly_strings  \
+        -speculate by_routine -member_alignment  -trapuv -scope_safe 
+endif
+#Includes there to premempt float.h in udposix.
+
+endif
+ifeq (${CC},gcc)
+DEC =  -I${NCARG_ROOT}/include -I/usr/local/MESA/include -I/usr/dt/include -I/usr/include -I/usr/local/include 
+endif
+ALPHA =  -DLANGUAGE_FORTRAN -D__LANGUAGE_FORTRAN__ -Dunix \
+	-D__unix__ -D__osf__ -D__alpha 
+#need -lphigs later
+#LIBS = -L/usr/opt/DXM121/lib/ -lncarg -lncarg_loc  -lXm 
+
+#LIBS =-L/usr/lib -L/usr/local/lib/ -lncarg -lncarg_loc -lXm \
+#-lxgks -lnetcdf  -ludunits -ludport -lm -lXt  -lX11  -lUfor -lfor \
+#-lFutil -lots  -lm -ldnet_stub
+
+LIBS =-L${NCARG_ROOT}/lib/ -L/usr/local/MESA/lib -L/usr/shlib -L/usr/lib  -L/usr/local/lib/ \
+	-lncarg -lncarg_c -lXm \
+	-lxgks-255 -lnetcdf  -ludunits -ludport -lm \
+	-lMesaGL -lMesaGLU -LMesaaux -lMesatk -lXt  -lX11  -lUfor -lfor \
+	-lFutil -lots  -lm
+
+COPT = -O5
+FOPT = -O5
+LDOPT =   -O4  
+LDSTUFF = -G 8 -call_shared ${LDOPT} 
+ifeq (${CC},gcc)
+LDSTUFF = 
+endif
+
+
+
+
