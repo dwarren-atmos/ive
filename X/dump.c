@@ -114,6 +114,8 @@ int *key, *iflag;
 		dump_widget.type = "XWD";
 	    else if (strncasecmp(argv[2], "gif", MIN(3, strlen(argv[2])))==0)
 		dump_widget.type = "GIF";
+	    else if (strncasecmp(argv[2], "png", MIN(3, strlen(argv[2])))==0)
+		dump_widget.type = "PNG";
 	    else {
 		sprintf(buf, "Command %s - invalid dump type %s", 
 			argv[0], argv[2]);

@@ -378,16 +378,22 @@ void dump_type_callback(w, client, call)
     XmAnyCallbackStruct *call;
 {
     XmString oldlab;
-    static XmString xwd=NULL, gif=NULL;
+    static XmString xwd=NULL, gif=NULL, png=NULL;
 
     if (xwd == NULL)
 	xwd = XmStringCreate("XWD", XmSTRING_DEFAULT_CHARSET);
     if (gif == NULL)
 	gif = XmStringCreate("GIF", XmSTRING_DEFAULT_CHARSET);
+    if (png == NULL)
+	png = XmStringCreate("PNG", XmSTRING_DEFAULT_CHARSET);
     XtVaGetValues(w, XmNlabelString, &oldlab, NULL);
     if (XmStringCompare(xwd, oldlab)) {
 	XtVaSetValues(w, XmNlabelString, gif, NULL);
 	dump_widget.type = "GIF";
+    }
+    else if(XmStringCompare(gif, oldlab)) {
+      XtVaSetValues(w, XmNlabelString, png, NULL);
+      dump_widget.type = "PNG";
     }
     else {
 	XtVaSetValues(w, XmNlabelString, xwd, NULL);

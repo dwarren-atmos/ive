@@ -77,10 +77,10 @@ LD=ifort
 RANLIB=ranlib
 ifeq (${MACH}, x86_64)
 ALPHA = -DLinux -DSIXTY_FOUR_bptr -D__alpha
-EXTRA=
+EXTRA= -DDOPNG
 else
 ALPHA = -DLinux
-EXTRA=
+EXTRA= -DDOPNG
 endif
 #NETCDF=/usr/local/netcdf-3.6.1
 FCPP =  
@@ -98,7 +98,7 @@ endif
 ifeq (${MACH}, x86_64)
 DEC =	-fPIE -DLSB=${LSB} -I/usr/include \
 	-I/usr/local/include -I/usr/X11R6/include \
-	-DLinux ${EXTRA} -fp-model precise
+	-DLinux ${EXTRA} -fp-model precise 
 else
 DEC =	-DLSB=${LSB} -I/usr/include \
 	-I/usr/local/include -I/usr/X11R6/include \
@@ -121,7 +121,7 @@ LIBS =	-threads -L/usr/lib  \
 	-lxgks-ifort -ludunits -ludport -lm \
 	 -lGLU  -lGL  -lnetcdf -lnetcdff\
 	-lXt -lXp -lXpm -lXext -lX11 \
-	-lSM -lICE  -lsvml -ldl -lc \
+	-lSM -lICE  -lpng -lz -lsvml -ldl -lc \
 	-lXm -lc 
 
 

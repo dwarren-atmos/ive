@@ -140,7 +140,9 @@ static char ident[] = "$Id: Window_Dump.c,v 1.10 2003/07/02 20:23:02 warren Exp 
 #else
 #include <malloc.h>
 #endif
-
+#ifdef DOPNG
+#include "png.h"        /* libpng header; includes zlib.h and setjmp.h */
+#endif
 extern void update_all_(),GifEncode();
 extern unsigned long IveGetPixel();
 
@@ -148,6 +150,25 @@ extern Dimension loop_height, loop_width; /* Loop window dimensions */
 
 #define FEEP_VOLUME 0
 
+#ifdef DOPNG
+static void png_error_handler(png_structp png_ptr, png_const_charp msg)
+{
+
+    /* This function, aside from the extra step of retrieving the "error
+     * pointer" (below) and the fact that it exists within the application
+     * rather than within libpng, is essentially identical to libpng's
+     * default error handler.  The second point is critical:  since both
+     * setjmp() and longjmp() are called from the same code, they are
+     * guaranteed to have compatible notions of how big a jmp_buf is,
+     * regardless of whether _BSD_SOURCE or anything else has (or has not)
+     * been defined. */
+
+    fprintf(stderr, "writepng error: %s\n", msg);
+    fflush(stderr);
+
+    longjmp(png_ptr->jmpbuf, 1);
+}
+#endif
 
 static int minbit(it)
      CARD32 it;
@@ -238,9 +259,9 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
     XColor *colors=(XColor *)NULL;
     unsigned int buffer_size = 0;
     int win_name_size;
-    int ncolors, i;
+    int ncolors, i, j;
     char *win_name;
-    char *new;
+    unsigned char *new;
     Bool got_win_name;
     XWindowAttributes win_info;
     XImage *image = (XImage *)NULL;
@@ -331,6 +352,10 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
       XSync(dpy, False);
       XSync(dpy, False);
       XSync(dpy, False);
+      XRaiseWindow(dpy, window);
+      XSync(dpy, False);
+      XSync(dpy, False);
+      XSync(dpy, False);
       pixmap = XCreatePixmap(dpy, window, width, height, win_info.depth);
       XCopyArea(dpy, window, pixmap, DefaultGC(dpy, screen),
 		x, y, width, height, 0, 0);
@@ -380,7 +405,7 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
 	line = 
 	  (char *)malloc(image->bytes_per_line + 1);
 	new = 
-	  (char *)malloc(image->width * image->height + 1);
+	  (unsigned char *)malloc(image->width * image->height + 1);
 	/* get mask from windows if pixmap set them to 0 */
 	if(image->red_mask)
 	  rmask=image->red_mask;
@@ -412,30 +437,32 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
 	red = (int *)malloc(sizeof(int) * 256);
 	green = (int *)malloc(sizeof(int) * 256);
 	blue = (int *)malloc(sizeof(int) * 256);
-	if(image->bits_per_pixel>8){
-	  for (i=0; i < ncolors; i++) {
-	    XColor c;
-	    c.pixel=IveGetPixel(i);
-	    XQueryColor(dpy, cmap, &c);
-	    red[i] = c.red/256;
-	    green[i] = c.green/256;
-	    blue[i] = c.blue/256;
-	  }
-	  for (i=ncolors; i<256; i++) {
-	    red[i] = green[i] =blue[i] = 255;
-	  }
-	}
-	else{
-	  for (i=0; i<256; i++) {
-	    XColor c;
-	    c.pixel=(unsigned long)i;
-	    XQueryColor(dpy, cmap, &c);
-	    red[i] = c.red/256;
-	    green[i] = c.green/256;
-	    blue[i] = c.blue/256;	    
-	  }
-	}
-	swap=image->data + image->xoffset;
+
+        if(image->bits_per_pixel>8){
+          for (i=0; i < ncolors; i++) {
+            XColor c;
+            c.pixel=IveGetPixel(i);
+            XQueryColor(dpy, cmap, &c);
+            red[i] = c.red/256;
+            green[i] = c.green/256;
+            blue[i] = c.blue/256;
+          }
+          for (i=ncolors; i<256; i++) {
+            red[i] = green[i] =blue[i] = 255;
+          }
+        }
+        else{
+          for (i=0; i<256; i++) {
+            XColor c;
+            c.pixel=(unsigned long)i;
+            XQueryColor(dpy, cmap, &c);
+            red[i] = c.red/256;
+            green[i] = c.green/256;
+            blue[i] = c.blue/256;
+          }
+        }
+
+ 	swap=image->data + image->xoffset;
 	/*loop through data and fix it*/
 	for(i=0; i<image->height; i++){
 	  int j, k;
@@ -544,7 +571,7 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
 	fputc(7,out); /*  000007 - MI000bpp M-> global colors I->sequential pixels 7->8bpp*/
 	(void)GifEncode(out, new, (int)image->depth, (int)(image->width * image->height));
 	/*end the file*/
-	if(new != image->data && new != NULL)free(new);
+	if(new != (unsigned char *)image->data && new != NULL)free(new);
 	fflush(out);
 	fputc( 0, out );                                         /* Write out Zero-length(to end series) */
 	fputc( 0x3B, out );                                      /* Write the GIF file terminator */
@@ -554,7 +581,146 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
 	free(blue);
 	red=NULL,green=NULL;blue=NULL;
     }
-    else {
+#ifdef DOPNG
+    else if (strcmp(type,"PNG") == 0) {
+      int *red, *green,* blue, tfile;
+      unsigned char B;
+      char *swap;
+      CARD32 rshift,gshift,bshift;
+      CARD32 rmask,gmask,bmask;
+      char *line;
+      char first = 0;
+      png_structp  png_ptr;       /* note:  temporary variables! */
+      png_infop  info_ptr;
+      png_color *palette;
+
+
+      line = 
+	(char *)malloc(image->bytes_per_line + 1);
+      new = 
+	(unsigned char *)malloc(image->width*image->height);
+      png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+					(void *)NULL, png_error_handler, 
+					(void *)NULL);
+      if (png_ptr == NULL)
+	{
+	  return(1);
+	}
+      info_ptr = png_create_info_struct(png_ptr);
+      if (info_ptr == NULL)
+	{
+	  png_destroy_write_struct(&png_ptr,  (png_infopp)NULL);
+	  return(1);
+	}
+      if (setjmp(png_ptr->jmpbuf))
+	{
+	  /* If we get here, we had a problem reading the file */
+	  png_destroy_write_struct(&png_ptr,  (png_infopp)NULL);
+	  return(1);
+	}
+      png_init_io(png_ptr, out);
+      png_set_IHDR(png_ptr, info_ptr, image->width, image->height, 
+		   8, PNG_COLOR_TYPE_PALETTE,
+		   PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE, 
+		   PNG_FILTER_TYPE_BASE);
+      
+      /* get mask from windows if pixmap set them to 0 */
+      if(image->red_mask)
+	rmask=image->red_mask;
+      else
+	rmask=
+	  DefaultVisualOfScreen(DefaultScreenOfDisplay(dpy))->red_mask;
+      if(image->green_mask)
+	gmask=image->green_mask;
+      else
+	gmask=
+	  DefaultVisualOfScreen(DefaultScreenOfDisplay(dpy))->green_mask;
+      if(image->blue_mask)
+	bmask=image->blue_mask;
+      else
+	bmask=
+	  DefaultVisualOfScreen(DefaultScreenOfDisplay(dpy))->blue_mask;
+      rshift=gshift=bshift=0;
+      while (!(rmask & 1)) {
+	rmask >>= 1;
+	rshift++;
+      }
+      while (!(gmask & 1)) {
+	gmask >>= 1;
+	gshift++;
+      }
+      while (!(bmask & 1)) {
+	bmask >>= 1;
+	bshift++;
+      }
+      
+      red = (int *)malloc(sizeof(int) * 256);
+      green = (int *)malloc(sizeof(int) * 256);
+      blue = (int *)malloc(sizeof(int) * 256);
+      ncolors=2;
+      memset(red,0,256*sizeof(int));
+      memset(green,0,256*sizeof(int));
+      memset(blue,0,256*sizeof(int));
+      red[1]=green[1]=blue[1]=255;
+      palette = png_malloc(png_ptr, 256*sizeof(png_color));
+      memset(palette,255,3*256);
+      
+      swap=image->data + image->xoffset;
+      for(i=0; i<image->height; i++){
+	int j;
+	for(j=0; j< image->width; j++){
+	  int k;
+	  unsigned int r,g,b;
+	  XColor c;
+	  c.pixel=XGetPixel(image, j, i);
+	  if(image->bits_per_pixel ==8){
+	    XQueryColor(dpy, cmap, &c);
+	    r = c.red;
+	    g = c.green;
+	    b = c.blue;
+	  }
+	  else{
+	    r=((c.pixel >> rshift) & rmask);
+	    g=((c.pixel >> gshift) & gmask);
+	    b=((c.pixel >> bshift) & bmask);
+	  }
+	  for(k=0; k<ncolors; k++){
+	    if(r == red[k] && g == green[k] && b == blue[k]){
+	      new[j + i*image->width] = (unsigned char)k;
+	      break;
+	    }
+	  }
+	  if(k==ncolors && ncolors < 255){
+	      red[ncolors] = r;
+	      green[ncolors]=g;
+	      blue[ncolors]=b;
+	      new[j + i*image->width] = (unsigned char)k;
+	      ncolors++;
+	  }
+	}
+      }
+
+      for(i=0; i<ncolors; i++){
+	palette[i].red=red[i];
+	palette[i].green=green[i];
+	palette[i].blue=blue[i];
+      }
+      png_set_PLTE(png_ptr, info_ptr, palette, ncolors);
+      png_write_info(png_ptr, info_ptr);
+
+
+      for(i=0; i<image->height; i++){
+	png_bytep row_pointer = new + i*image->width;
+	png_write_rows(png_ptr,&row_pointer, 1);
+      }
+      png_write_end(png_ptr, info_ptr);
+      free(info_ptr->palette);
+      png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+
+
+      }
+#endif
+      else {
       XWDFileHeader header;
       int header_size;
       
@@ -592,8 +758,13 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
       header.window_y = absy;
       header.window_bdrwidth = (CARD32) win_info.border_width;
       
+      colors = (XColor *)malloc(ncolors*sizeof(XColor));
+      for (i=0; i < ncolors; i++) {
+	colors[i].pixel=IveGetPixel(i);
+      }
+      
       if (*(char *) &swaptest) {
-	_swaplong((char *) &header, sizeof(header));
+	_swaplong((char *) &header, (unsigned)sizeof(header));
 	for (i = 0; i < ncolors; i++) {
 	  _swaplong((char *) &colors[i].pixel, (unsigned)sizeof(long));
 	  _swapshort((char *) &colors[i].red, 3 * (unsigned)sizeof(short));
