@@ -355,14 +355,14 @@ static char ident[] = "$Id: add_credits.c,v 1.87 2007-07-30 22:28:42 warren Exp 
 
 #define TFONT "*times-bold-r*24*"	/* Font for "IVE" */
 #define VFONT "*times-bold-r*18*"	/* Font for version number (bold) */
-#define FONT "*times-medium-r*18*"	/* Font for normal text */
-#define IFONT "*times-medium-i*18*"	/* Font for italic text */
+#define FONT "*times-medium-r*16*"	/* Font for normal text */
+#define IFONT "*times-medium-i*16*"	/* Font for italic text */
 #define TFCOLOR "green4"		/* Color for "IVE" */
 #define TBCOLOR "PaleGreen"		/* Background color for "IVE" */
 #define DEFAULT_FONT "9x15"		/* Font to use if others not found */
 
 static char *title = "IVE";
-static char *version = "Version 4.4 Release July 30, 2007";
+static char *version = "Version 4.5 Release June 22, 2009";
 /*
    In credits strings, if a line starts with
 	"\b" => line in italics
@@ -376,14 +376,14 @@ static char *credits[] = {
     "\b\tby",
     "",
     "\tHarry Edmon, David Warren, Dale Durran",
-    "\tand",
     "\tChristoph Schaer, Pete Miller, Rajul Pandya,",
-    "\tCurtis James, Alex Reinecke",
+    "\tCurtis James and Alex Reinecke",
     "",
     "\b\tusing",
     "",
     "\tNCAR Graphics library from the National Center for Atmospheric Research",
     "\tudunits and netCDF libraries from the Unidata Program Center, UCAR",
+    "\tlibpng from libpng.org",
     NULL};
 
 void add_credits(dpy, widget) 
