@@ -2968,71 +2968,6 @@ Gint            *ws_id,*seg_id, *overlay;
  * stuff in postscript. This is not really GKS, but was added for IVE to 
  * void the need for SUN or DEC GKS to print.
  */
-gps_print(ws_id, seg_id, BWLINES, as, coltab)
-     Gint            ws_id,seg_id, BWLINES; 
-     Gfloat          as; /* aspect ratio */
-     struct ive_color *coltab; /* color table to use */
-                   /*note: here ws_id refers to the X one*/
-{
-    /*
-     * declare local functions
-     */
-
-    SEG_STATE_PTR XgksFindSeg();
-    OUT_PRIMI *XgksSegPrimiTran();
-
-    SEG_STATE_PTR   seg;
-    WS_STATE_PTR    ws, wis;
-    WS_SEG_LIST    *WsSeg;
-    OUT_PRIMI      *clip, *primi, *tran;
-    Glimit          wsclip;
-    Gfloat         xm, ym;
-    int PsInsertPrimi();
-    /* check for operating state */
-    GKSERROR((xgks_state.gks_state != GWSOP && xgks_state.gks_state != GWSAC),
-             6, errgcopysegws);
-
-    /* Check if ws_id is opened */
-    GKSERROR(((ws = OPEN_WSID(ws_id)) == NULL), 25, errgcopysegws);
-
-    /* Check if WISS ws is opened */
-    GKSERROR(((xgks_state.wiss_id == INVALID) ||
-                ((wis = OPEN_WSID(xgks_state.wiss_id)) == NULL)),
-             27, errgcopysegws);
-    /* check for valid seg_id */
-    GKSERROR((seg_id < 1), 120, errgcopysegws);
-
-    /* Check if Segment is on WISS */
-    WsSeg = wis->seglist;
-    while (WsSeg != NULL) {
-        if (WsSeg->seg == seg_id)
-	  break;
-        WsSeg = WsSeg->next;
-    }
-    GKSERROR((WsSeg == NULL), 124, errgcopysegws);
-    
-    /* Get ready to output all primitives in segment to file */
-    seg = XgksFindSeg(seg_id);
-    primi = &(seg->primi_list);
-    if(as <=0 ){
-	xm = ym = 1.0;
-    }
-    else if(as < 1){
-	xm = as;
-	ym = 1.0;
-    }
-    else{
-	xm = 1.0;
-	ym = 1.0/as;
-    }
-    while (primi != NULL) {
-	tran = XgksSegPrimiTran(primi, seg->segattr.segtran);
-	PsInsertPrimi(tran, ws_id, BWLINES, xm, ym, coltab);
-	primi = primi->next;
-    }
-    return 0;
-}
-
 
 /*
  *=============================================================================
@@ -3080,7 +3015,75 @@ static HPDF_Page pdfpage;
 static jmp_buf myenv;
 static float oldxm,oldym,oldxmin,oldymin,oldxmax,oldymax;
 
-static int
+int
+gps_print(ws_id, seg_id, BWLINES, as, coltab)
+     Gint            ws_id,seg_id, BWLINES; 
+     Gfloat          as; /* aspect ratio */
+     struct ive_color *coltab; /* color table to use */
+                   /*note: here ws_id refers to the X one*/
+{
+    /*
+     * declare local functions
+     */
+
+    SEG_STATE_PTR XgksFindSeg();
+    OUT_PRIMI *XgksSegPrimiTran();
+
+    SEG_STATE_PTR   seg;
+    WS_STATE_PTR    ws, wis;
+    WS_SEG_LIST    *WsSeg;
+    OUT_PRIMI      *clip, *primi, *tran, *sizeprimi;
+    Glimit          wsclip;
+    Gfloat         xm, ym;
+    int PsInsertPrimi();
+    /* check for operating state */
+    GKSERROR((xgks_state.gks_state != GWSOP && xgks_state.gks_state != GWSAC),
+             6, errgcopysegws);
+
+    /* Check if ws_id is opened */
+    GKSERROR(((ws = OPEN_WSID(ws_id)) == NULL), 25, errgcopysegws);
+
+    /* Check if WISS ws is opened */
+    GKSERROR(((xgks_state.wiss_id == INVALID) ||
+                ((wis = OPEN_WSID(xgks_state.wiss_id)) == NULL)),
+             27, errgcopysegws);
+    /* check for valid seg_id */
+    GKSERROR((seg_id < 1), 120, errgcopysegws);
+
+    /* Check if Segment is on WISS */
+    WsSeg = wis->seglist;
+    while (WsSeg != NULL) {
+        if (WsSeg->seg == seg_id)
+	  break;
+        WsSeg = WsSeg->next;
+    }
+    GKSERROR((WsSeg == NULL), 124, errgcopysegws);
+    
+    /* Get ready to output all primitives in segment to file */
+    seg = XgksFindSeg(seg_id);
+    primi = &(seg->primi_list);
+    sizeprimi = &(seg->primi_list);
+    if(as <=0 ){
+	xm = ym = 1.0;
+    }
+    else if(as < 1){
+	xm = as;
+	ym = 1.0;
+    }
+    else{
+	xm = 1.0;
+	ym = 1.0/as;
+    }
+    while (primi != NULL) {
+	tran = XgksSegPrimiTran(primi, seg->segattr.segtran);
+	PsInsertPrimi(tran, ws_id, BWLINES, xm, ym, coltab);
+	primi = primi->next;
+    }
+    return 0;
+}
+
+
+int
 gpdf_print(ws_id, seg_id, as, coltab, overlay)
      Gint            ws_id,seg_id, overlay; 
      Gfloat          as; /* aspect ratio */
@@ -3128,6 +3131,7 @@ gpdf_print(ws_id, seg_id, as, coltab, overlay)
     seg = XgksFindSeg(seg_id);
     primi = &(seg->primi_list);
     sizeprimi = &(seg->primi_list);
+    printf("as %f\n",as);
     if(!overlay){
       if(as <=0 ){
 	xm = ym = 1.0;
@@ -3147,9 +3151,10 @@ gpdf_print(ws_id, seg_id, as, coltab, overlay)
 	Pdfgetsize(tran, ws_id, xm, ym, &xmin, &xmax, &ymin, &ymax);
 	sizeprimi = sizeprimi->next;
       }
-
+      printf("before xm ym: %f %f\n",xm,ym);
       xm=xm/(xmax-xmin);
       ym=ym/(ymax-ymin);
+      printf("after xm ym: %f %f\n",xm,ym);
     }
     else{
       xm = oldxm;
@@ -3775,12 +3780,29 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 			   STANDARD_PAGE_W * POINTS_PER_INCH * ym );
 	    
 	    
-	    for (cnt = 1; cnt < num_pts; cnt++)
+	    minx = MIN(old_pts[0].x * STANDARD_PAGE_W * 
+		       POINTS_PER_INCH * xm, minx);
+	    miny = MIN(old_pts[0].y * STANDARD_PAGE_W * 
+		       POINTS_PER_INCH * ym, miny);
+	    maxx = MAX(old_pts[0].x * STANDARD_PAGE_W * 
+		       POINTS_PER_INCH * xm, maxx);
+	    maxy = MAX(old_pts[0].y * STANDARD_PAGE_W * 
+		       POINTS_PER_INCH * ym, maxy);
+	    for (cnt = 1; cnt < num_pts; cnt++){
 	      fprintf(fp," %f %f l\n",
 		      (old_pts[cnt].x * 
 		       STANDARD_PAGE_W * POINTS_PER_INCH * xm),
 		      (old_pts[cnt].y) * 
 		      STANDARD_PAGE_W * POINTS_PER_INCH * ym);
+	      minx = MIN(old_pts[cnt].x * STANDARD_PAGE_W * 
+			 POINTS_PER_INCH * xm, minx);
+	      miny = MIN(old_pts[cnt].y * STANDARD_PAGE_W * 
+			 POINTS_PER_INCH * ym, miny);
+	      maxx = MAX(old_pts[cnt].x * STANDARD_PAGE_W * 
+			 POINTS_PER_INCH * xm, maxx);
+	      maxy = MAX(old_pts[cnt].y * STANDARD_PAGE_W * 
+			 POINTS_PER_INCH * ym, maxy);
+	    }
 	    fprintf(fp, "stroke\n");
         break;
 	}
@@ -3842,6 +3864,14 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 			    (float)size * 
 			    .016 * POINTS_PER_INCH );
 		    fprintf(fp, "fill\n");
+		    minx = MIN(old_pts[i].x * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * xm, minx);
+		    miny = MIN(old_pts[i].y * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym, miny);
+		    maxx = MAX(old_pts[i].x * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * xm, maxx);
+		    maxy = MAX(old_pts[i].y * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym, maxy);
 		}
 		break;
 	      case GMK_PLUS:
@@ -3852,6 +3882,14 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 			    old_pts[i].y * 
 			    STANDARD_PAGE_W * POINTS_PER_INCH * ym,
 			    (float) size*.07* POINTS_PER_INCH);
+		    minx = MIN(old_pts[i].x * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * xm, minx);
+		    miny = MIN(old_pts[i].y * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym, miny);
+		    maxx = MAX(old_pts[i].x * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * xm, maxx);
+		    maxy = MAX(old_pts[i].y * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym, maxy);
 		}
 		break;
 	      case GMK_STAR:
@@ -3862,6 +3900,14 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 			    old_pts[i].y * 
 			    STANDARD_PAGE_W * POINTS_PER_INCH * ym,
 			    (float) size*.1* POINTS_PER_INCH);
+		    minx = MIN(old_pts[i].x * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * xm, minx);
+		    miny = MIN(old_pts[i].y * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym, miny);
+		    maxx = MAX(old_pts[i].x * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * xm, maxx);
+		    maxy = MAX(old_pts[i].y * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym, maxy);
 		}
 		break;
 	      case GMK_O:
@@ -3880,6 +3926,14 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 			    (float)size * 
 			    .016 * POINTS_PER_INCH );
 		    fprintf(fp, "stroke\n");
+		    minx = MIN(old_pts[i].x * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * xm, minx);
+		    miny = MIN(old_pts[i].y * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym, miny);
+		    maxx = MAX(old_pts[i].x * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * xm, maxx);
+		    maxy = MAX(old_pts[i].y * STANDARD_PAGE_W * 
+			       POINTS_PER_INCH * ym, maxy);
 		}
 		break;
 		
@@ -3891,6 +3945,14 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 		    old_pts[i].y 
 		    * STANDARD_PAGE_W * POINTS_PER_INCH * ym,
 		    size*.05*POINTS_PER_INCH);
+		  minx = MIN(old_pts[i].x * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * xm, minx);
+		  miny = MIN(old_pts[i].y * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * ym, miny);
+		  maxx = MAX(old_pts[i].x * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * xm, maxx);
+		  maxy = MAX(old_pts[i].y * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * ym, maxy);
 		}
 		break;
 	    }
@@ -3948,7 +4010,6 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 	    cobundl.red = coltab[bundl_ptr->colour].r;
 	    cobundl.green = coltab[bundl_ptr->colour].g;
 	    cobundl.blue = coltab[bundl_ptr->colour].b;
-
 	    fprintf(fp, "%f %f %f setrgbcolor\n",cobundl.red,cobundl.green,
 		    cobundl.blue);
 	    fprintf(fp, "newpath\n");
@@ -3960,10 +4021,18 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
                                POINTS_PER_INCH * xm,
                                old_pts[0].y * STANDARD_PAGE_W * 
                                POINTS_PER_INCH * ym);
-                minx = maxx = old_pts[0].x * STANDARD_PAGE_W *
-                               POINTS_PER_INCH * xm;
-                miny = maxy = old_pts[0].y * STANDARD_PAGE_W *
-                               POINTS_PER_INCH * ym;
+		//                minx = maxx = old_pts[0].x * STANDARD_PAGE_W *
+		//             POINTS_PER_INCH * xm;
+                //             miny = maxy = old_pts[0].y * STANDARD_PAGE_W *
+		//             POINTS_PER_INCH * ym;
+		minx = MIN(old_pts[0].x * STANDARD_PAGE_W * 
+			   POINTS_PER_INCH * xm, minx);
+		miny = MIN(old_pts[0].y * STANDARD_PAGE_W * 
+			   POINTS_PER_INCH * ym, miny);
+		maxx = MAX(old_pts[0].x * STANDARD_PAGE_W * 
+			   POINTS_PER_INCH * xm, maxx);
+		maxy = MAX(old_pts[0].y * STANDARD_PAGE_W * 
+			   POINTS_PER_INCH * ym, maxy);
                 
                 for (cnt = 1; cnt < num_pts; cnt++){
                     fprintf(fp,"  %f %f l\n",
@@ -3991,13 +4060,30 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
                                POINTS_PER_INCH * xm,
                                old_pts[0].y * STANDARD_PAGE_W * 
                                POINTS_PER_INCH * ym);
-                
-                for (cnt = 1; cnt < num_pts; cnt++)
+		
+		minx = MIN(old_pts[0].x * STANDARD_PAGE_W * 
+			   POINTS_PER_INCH * xm, minx);
+		miny = MIN(old_pts[0].y * STANDARD_PAGE_W * 
+			   POINTS_PER_INCH * ym, miny);
+		maxx = MAX(old_pts[0].x * STANDARD_PAGE_W * 
+			   POINTS_PER_INCH * xm, maxx);
+		maxy = MAX(old_pts[0].y * STANDARD_PAGE_W * 
+			   POINTS_PER_INCH * ym, maxy);
+                for (cnt = 1; cnt < num_pts; cnt++){
                   fprintf(fp,"  %f %f l\n",
                           (old_pts[cnt].x * STANDARD_PAGE_W * 
                            POINTS_PER_INCH * xm),
                           (old_pts[cnt].y) * STANDARD_PAGE_W * 
                           POINTS_PER_INCH * ym);
+		  minx = MIN(old_pts[cnt].x * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * xm, minx);
+		  miny = MIN(old_pts[cnt].y * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * ym, miny);
+		  maxx = MAX(old_pts[cnt].x * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * xm, maxx);
+		  maxy = MAX(old_pts[cnt].y * STANDARD_PAGE_W * 
+			     POINTS_PER_INCH * ym, maxy);
+		}
                 fprintf(fp, "fill\n");
             }
         }
@@ -4039,20 +4125,13 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 			STANDARD_PAGE_W * POINTS_PER_INCH * ym);
 		fprintf(fp, "closepath clip\n");
 	    }
-	    if(EPSFILE){
-		minx = MIN(minx, primi->primi.clip.rec.xmin * 
-			   STANDARD_PAGE_W * POINTS_PER_INCH * xm);
-		miny = MIN(miny, primi->primi.clip.rec.ymin * 
-			   STANDARD_PAGE_W * POINTS_PER_INCH * ym);
-		maxx = MAX(maxx, primi->primi.clip.rec.xmax * 
-			   STANDARD_PAGE_W * POINTS_PER_INCH * xm);
-		maxy = MAX(maxy, primi->primi.clip.rec.ymax * 
-			   STANDARD_PAGE_W * POINTS_PER_INCH * ym);
-	    }
 	    break;
 	}
     case TEXT:
       {	
+
+	float angle;
+	int vert=0;
 	old_pts = primi->primi.text.location;
 	fprintf(fp,"gsave\n");
 	  cobundl.red = cobundl.green = cobundl.blue = 0.0;
@@ -4097,18 +4176,45 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 	    fprintf(fp,"  %f %f atan rotate\n",
 		    primi->primi.text.base_vec.y,
 		    primi->primi.text.base_vec.x);
-	    
+	    angle = atan(primi->primi.text.base_vec.y/
+			 primi->primi.text.base_vec.x);
+	   if(angle >.75 && angle < 2.4)vert=1;
+
 	    switch(primi->primi.text.chattr.align.hor){
 	      case  GTH_CENTRE:
 		switch(primi->primi.text.chattr.align.ver){
 		  case GTV_HALF:
 		    fprintf(fp, "(%s) stringwidth pop -2.0 div %f rm\n",
 			    primi->primi.text.string,(float)cheight/-3.0);
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)-xm*cheight/2, minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)+xm*cheight/2, maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)-ym*cheight/2, miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)+ym*cheight/2, maxy);
+		    }
 		    break;
 		  case GTV_BASE:
 		  case GTV_BOTTOM:
 		    fprintf(fp, "(%s) stringwidth pop -2.0 div 0.0 rm\n",
 			    primi->primi.text.string);
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)-xm*cheight/2, minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)+xm*cheight/2, maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym), miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)+ym*cheight, maxy);
+		    }
 		    break;
 		  case GTV_NORMAL:
 		  case GTV_TOP:
@@ -4116,6 +4222,18 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 		  default:
 		    fprintf(fp, "(%s) stringwidth pop -2.0 div %d rm\n",
 			    primi->primi.text.string, -cheight);
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)-xm*cheight/2, minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)+xm*cheight/2, maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)-ym*cheight,miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym), maxy);
+		    }
 		    break;
 		}
 		break;
@@ -4125,10 +4243,34 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 		  case GTV_BOTTOM:
 		    fprintf(fp, "(%s) stringwidth pop -1.0 mul 0.0 rm\n",
 			    primi->primi.text.string);
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)-xm*cheight, minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm), maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym), miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)+ym*cheight, maxy);
+		    }
 		    break;
 		  case GTV_HALF:
 		    fprintf(fp, "(%s) stringwidth pop -1.0 mul %f rm\n",
 			    primi->primi.text.string,(float)cheight/-3.0);
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)-xm*cheight, minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm), maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)-ym*cheight/2, miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)+ym*cheight/2, maxy);
+		    }
 		    break;
 		  case GTV_NORMAL:
 		  case GTV_TOP:
@@ -4136,6 +4278,18 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 		  default:
 		    fprintf(fp, "(%s) stringwidth pop -1.0 mul %d rm\n",
 			    primi->primi.text.string, -cheight);
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)-xm*cheight, minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm), maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)-ym*cheight, miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym), maxy);
+		    }
 		    break;
 		}
 		break;
@@ -4146,9 +4300,33 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 		  case GTV_HALF:
 		    fprintf(fp,
 			    " 0.0 %f rm\n",(float)cheight/-3.0);
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm), minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)+xm*cheight, maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)-ym*cheight/2, miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)+ym*cheight/2, maxy);
+		    }
 		    break;
 		  case GTV_BASE:
 		  case GTV_BOTTOM:
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm), minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)+xm*cheight, maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym), miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)+ym*cheight, maxy);
+		    }
 		    break;
 		  case GTV_NORMAL:
 		  case GTV_TOP:
@@ -4156,6 +4334,18 @@ PsInsertPrimi(primi, X_id, BWLINES, xm, ym, coltab)
 		  default:
 		    fprintf(fp,
 			    "0.0 %d  rm\n",-cheight);
+		    if(vert){
+		      minx = MIN((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm), minx);
+		      maxx = MAX((old_pts[0].x * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * xm)+xm*cheight, maxx);
+		    }
+		    else{
+		      miny = MIN((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym)-ym*cheight, miny);
+		      maxy = MAX((old_pts[0].y * STANDARD_PAGE_W * 
+				  POINTS_PER_INCH * ym), maxy);
+		    }
 		    break;
 		}
 		break;
@@ -4224,7 +4414,7 @@ PdfInsertPrimi(primi, X_id, xm, ym, coltab)
     if(mode&HPDF_GMODE_EXTERNAL_OBJECT)
       printf("HPDF_GMODE_EXTERNAL_OBJECT\n");
     */
-    printf("xoff %f, yoff %f\n",xoff,yoff);
+    //    printf("xoff %f, yoff %f\n",xoff,yoff);
     switch (primi->pid) {
       case PLINE:
 	{
@@ -5253,7 +5443,7 @@ gps_end()
     fprintf(fp, "%% End of XGKS output\n");
     if(EPSFILE){
       fprintf(fp,"%%%%Trailer\n");
-      fprintf(fp, "%%%%BoundingBox: %d %d %d %d",
+      fprintf(fp, "%%%%BoundingBox: %d %d %d %d\n",
 	      minx+18,miny+112,maxx+19,maxy+113);
       fprintf(fp,"%%%%EOF\n");
     }

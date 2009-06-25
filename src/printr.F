@@ -117,6 +117,7 @@ c
       include 'message.icl'
       include 'segments.icl'
       include 'printer.icl'
+      include 'plotops.icl'
 c     
 c     GKS DEFS
 c     
@@ -136,7 +137,6 @@ c
       ive_ptr ctb, get_color_table
       integer i, ibeg, iend, istate, ierr, MAXPLTS, 
      &        numplts, PLT_ID, ii, j, ix, land,junk
-      real    xscale, yscale
       character *2 string
       character *10  SCRATCHDIR
       character *80 curdir, metaname, prnam,randname
@@ -152,8 +152,6 @@ c
 
       call getenv ('IVEPSDIR', PSDIR)      
       if(nblank(PSDIR) .eq. 0)  PSDIR=LIBDIR
-      xscale = 1.0
-      yscale = 1.0
 c
 c     Fix printing for lpr or lp
 c
@@ -240,20 +238,20 @@ c
                endif
          endif
          if(pltnum(ix) .eq. -1) then
-            call gps_init_page(land,xscale/yscale)
+            call gps_init_page(land,aratio)
             call gps_page()
          else
             ii = mod(pltnum(ix)-1, MAXLIST) + 1
             ctb = get_color_table(ii)
-            call gps_init_page(land,xscale/yscale)
+            call gps_init_page(land,aratio)
             if(color_printer) then
                do j = 1, curoverlay(ii)
-                  call gps_nprint(1, segs(j,ii),.false., xscale/yscale, 
+                  call gps_nprint(1, segs(j,ii),.false., aratio, 
      &                           %val(ctb))
                enddo
             else
                do j = 1, curoverlay(ii)
-                  call gps_nprint(1, segs(j,ii),.true., xscale/yscale, 
+                  call gps_nprint(1, segs(j,ii),.true., aratio, 
      &                           %val(ctb))
                enddo
             endif
@@ -362,6 +360,8 @@ c
       include 'message.icl'
       include 'segments.icl'
       include 'printer.icl'
+      include 'plotops.icl'
+
 c
 c     Argument declarations.
 c
@@ -378,7 +378,6 @@ c     Local variable declarations.
 c
       character *512 metaname
       integer istate, ierr, ii, j
-      real    xscale, yscale
       
       integer  genran, strbeg, strend, nblank
 c
@@ -387,8 +386,6 @@ c
       logical*4 isopen
       common / is_eps_file_open / isopen
 c
-      xscale = 1.0
-      yscale = 1.0
 c     
 c     Update screen and WISS.
 c     
@@ -407,7 +404,7 @@ c
       call expand_path(metaname)
       call geps_init(metaname)
       if(isopen) then
-         call gps_init_page(landscape,xscale/yscale)
+         call gps_init_page(landscape,aratio)
 c
 c     Dump color table
 c
@@ -419,12 +416,12 @@ c
          ctb = get_color_table(ii)
          if(color_file) then
             do j = 1, curoverlay(ii)
-               call gps_nprint(1, segs(j, ii),.false., xscale/yscale,
+               call gps_nprint(1, segs(j, ii),.false., aratio,
      &              %val(ctb))
             enddo
          else
             do j = 1, curoverlay(ii)
-               call gps_nprint(1, segs(j, ii),.true., xscale/yscale,
+               call gps_nprint(1, segs(j, ii),.true., aratio,
      &              %val(ctb))
             enddo
          endif
@@ -455,6 +452,7 @@ c
       include 'message.icl'
       include 'segments.icl'
       include 'printer.icl'
+      include 'plotops.icl'
 c
 c     Argument declarations.
 c
@@ -471,7 +469,6 @@ c     Local variable declarations.
 c
       character*1024 metaname
       integer istate, ierr, ii, j, overlay
-      real    xscale, yscale
       
       integer  genran, strbeg, strend, nblank
 c
@@ -480,8 +477,6 @@ c
       logical*4 isopen
       common / is_eps_file_open / isopen
 c
-      xscale = 1.0
-      yscale = 1.0
 c     
 c     Update screen and WISS.
 c     
@@ -499,7 +494,7 @@ c
       call catnull(metaname, len(metaname),ierr)
       call expand_path(metaname)
       call gpdf_init(metaname)
-      call gpdf_init_page(landscape,xscale/yscale)
+      call gpdf_init_page(landscape,aratio)
 
 c
 c     Dump color table
@@ -512,7 +507,7 @@ c
       ctb = get_color_table(ii)
       overlay=0
       do j = 1, curoverlay(ii)
-         call gpdf_nprint(1, segs(j, ii), xscale/yscale,
+         call gpdf_nprint(1, segs(j, ii), aratio,
      &        %val(ctb),overlay)
          overlay=1
       enddo
