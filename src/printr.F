@@ -469,8 +469,10 @@ c     Local variable declarations.
 c
       character*1024 metaname
       integer istate, ierr, ii, j, overlay
+      integer  genran, strbeg, strend, nblank, axes
+      real vbot, vtop, vleft, vrght, wbot, wtop, wleft, wrght
+      real myratio
       
-      integer  genran, strbeg, strend, nblank
 c
 c     Common blocks.
 c
@@ -490,12 +492,20 @@ c
 c     Create a unique postscript file name by appending a random 
 c     number.
 c     
+      if(aratio .eq. 1.0) then
+         call getset ( vleft, vrght, vbot, vtop,wleft,
+     &        wrght, wbot, wtop, axes)
+         myratio = abs((wrght-wleft)/(wtop-wbot))
+      else
+         myratio = aratio
+      endif
+      write(6,*)'myratio',myratio
       metaname = name	
       call catnull(metaname, len(metaname),ierr)
       call expand_path(metaname)
       call gpdf_init(metaname)
-      call gpdf_init_page(landscape,aratio)
-
+      call gpdf_init_page(landscape,myratio)
+c
 c
 c     Dump color table
 c
