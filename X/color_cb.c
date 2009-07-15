@@ -340,7 +340,7 @@ void color_reset_callback(w, data, call)
    pressed.  It swaps colors 0 and 1 to swap the foreground and background
    colors.
    */
-
+#include <ive_gl.h>
 void swap_colors_callback(w, data, call)
      Widget w;
      Widget data;
@@ -357,12 +357,14 @@ void swap_colors_callback(w, data, call)
     gsetcolourrep(WS_X,0,&co1);       /*set new gks colour0*/
     gsetcolourrep(WS_X,1,&co0);       /*set new gks colour1*/
     gupdatews(WS_X,GPERFORM);                /*now!!!*/
+    glClearColor( co1.red, co1.green, co1.blue, 1.0 );
     
     ginqcolorrep(WS_X,0,GREALIZED,&co0);        /*get gks color*/
     ginqcolorrep(WS_X,1,GREALIZED,&co1);        /*get gks color*/
     XSync(XtDisplay(w),FALSE);
     XSync(XtDisplay(w),FALSE);
     XSync(XtDisplay(w),FALSE);
+
 }
 /*
    "color_bar_callback" is called when the "Color Bar" button is pushed.

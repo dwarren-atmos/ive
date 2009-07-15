@@ -174,16 +174,33 @@ static char ident[] = "$Id: gks_widgets.c,v 1.37 2002/12/26 22:48:11 warren Exp 
 #include "../gks/XgksWidget.h"
 #include <xgks.h>
 #include <ive_gks.h>
-#include <GL/glx.h>
-#include <GL/gl.h>
+#include <ive_gl.h>
 #include <X11/Xcms.h>
 #include <malloc.h>
 #include <stdlib.h>
 
-GLXContext IveGlxContext;
-XVisualInfo *IveGlxVisInfo;
+int singleBufferAttributess[] = {
+  GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+  GLX_RENDER_TYPE,   GLX_RGBA_BIT,
+  GLX_RED_SIZE,      1,   /* Request a single buffered color buffer */
+  GLX_GREEN_SIZE,    1,   /* with the maximum number of color bits  */
+  GLX_BLUE_SIZE,     1,   /* for each component                     */
+    None
+};
+
+int doubleBufferAttributes[] = {
+  GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+  GLX_RENDER_TYPE,   GLX_RGBA_BIT,
+  GLX_DOUBLEBUFFER,  True,  /* Request a double-buffered color buffer with */
+  GLX_RED_SIZE,      1,     /* the maximum number of bits per component    */
+  GLX_GREEN_SIZE,    1, 
+  GLX_BLUE_SIZE,     1,
+    None
+};
+
 static int snglBuf[] = {GLX_RGBA, GLX_DEPTH_SIZE, 8, None};
 static int dblBuf[] = {GLX_RGBA, GLX_DEPTH_SIZE, 8, GLX_DOUBLEBUFFER,None};
+
 static int firsttime=1;
 static struct{
     Widget w;
@@ -538,100 +555,47 @@ static void do_slice_popup(parent)
 }
 
 
-void setup_3D()
+void setup_3D(Widget widg)
 {
-  int dummy=0, count, width=640, height=480;
-  Widget widg, GlShell;
   Display *dpy;
-  extern Widget xgks_widget;
+  Window xwin;
+  GLXFBConfig  *fbConfigs;
+  GLXContext context;
+  int numReturned, dummy;
   extern void glinput(),updateViewport();
 
-
-  dpy = XtDisplay(xgks_widget);
+  IveDblBufferFlag=0;
+  dpy = XtDisplay(widg);
   /* set up Open GL stuff */
   if(!glXQueryExtension(dpy,&dummy,&dummy)){
     printf("There will be no 3D. Your X server does not support it!\n");
     return;
   }
+  xwin = XtWindow(widg);
+  fbConfigs = glXChooseFBConfig( dpy, DefaultScreen(dpy),
+				 doubleBufferAttributes, &numReturned );
 
-  for(count=0; count<10, g_widg[count].id != WS_X;count++);
-  if(XtIsManaged(g_widg[count].w)){
-    XtVaGetValues(g_widg[count].w,
-		  XmNwidth, &width,
-		  XmNheight, &height,
-		  NULL);
-    /*    XtUnRealizeWidget(XtParent(g_widg[count].w));*/
+  if ( fbConfigs == NULL ) {  /* no double buffered configs available */
+    fbConfigs = glXChooseFBConfig( dpy, DefaultScreen(dpy),
+				   singleBufferAttributess, &numReturned );
+
   }
-  widg = g_widg[count].w;
-  for(count=0; count<10, g_widg[count].id != GL_window_ID;count++);
-  if(count > 9){
-    for(count=0; count<10, g_widg[count].id == 0;count++)
-      if(count > 9){
-	/*out of widgets*/
-	(void)make_help_widget_("Out of widgets in the GKS tree");
-	return;
-      }
-    IveGlxVisInfo = glXChooseVisual(dpy, DefaultScreen(dpy), dblBuf);
-    if (IveGlxVisInfo == NULL) {
-      IveGlxVisInfo = glXChooseVisual(dpy, DefaultScreen(dpy), snglBuf);
-    }
-    while(IveGlxVisInfo+1 != NULL && IveGlxVisInfo->class != PseudoColor)
-      IveGlxVisInfo++;
-    
-    GlShell = XtVaAppCreateShell("Ive GL","IVE_GL",
-				  applicationShellWidgetClass,
-				  dpy, XtNallowShellResize, TRUE,
-				 XmNx, 400, XmNy, 30,
-				 XmNvisual, IveGlxVisInfo->visual,
-				 XtNdepth, IveGlxVisInfo->depth,
-				 XmNwidth, width, XmNcolormap,cmap,
-				 XmNheight, height,NULL);
-      
-    XtRealizeWidget(GlShell);
-    XSync(dpy,False);
-    g_widg[count].w =
-      XtVaCreateManagedWidget("GL Widget",
-			      xmDrawingAreaWidgetClass,GlShell,
-			      XmNwidth, width,
-			      XmNheight, height,
-			      XtNbackingStore, Always,
-			      XmNcolormap,cmap, NULL);
-    g_widg[count].id = GL_window_ID;
-    XtAddCallback(g_widg[count].w, XmNinputCallback,  glinput, NULL);
-    XtAddCallback(g_widg[count].w, XmNexposeCallback, updateViewport, NULL);
-    
-    IveGlxContext = glXCreateContext(dpy,IveGlxVisInfo, NULL, 0);
-    if(!IveGlxContext){
-      printf("no GL context\n");
-    }
-    XSynchronize(XtDisplay(g_widg[count].w), True);
+  else{
+    IveDblBufferFlag = 1;
   }
-  gl_widget=g_widg[count].w;
-  if(!XtIsRealized(XtParent(gl_widget)))
-    XtRealizeWidget(XtParent(gl_widget));
-  if(!XtIsManaged(gl_widget))
-     XtManageChild(gl_widget);
-  XSync(XtDisplay(gl_widget), False);
-  glXMakeCurrent(XtDisplay(gl_widget), XtWindow(gl_widget), 
-		 IveGlxContext);
+  IveGlxVisInfo = glXGetVisualFromFBConfig(dpy, fbConfigs[0]);
+
+  IveGlxContext = glXCreateNewContext(dpy,fbConfigs[0],GLX_RGBA_TYPE,
+				      NULL, True);
+  if(!IveGlxContext){
+    printf("no GL context\n");
+  }
+  IveGlxWindow = glXCreateWindow(dpy, fbConfigs[0], xwin, NULL);
+  glXMakeContextCurrent(dpy, IveGlxWindow, IveGlxWindow, IveGlxContext);
+  glClearColor( 1.0, 1.0, 1.0, 1.0 );
+  glClear( GL_COLOR_BUFFER_BIT );
+  glFlush();
 }
-
-void setup_2D()
-{
-  int count;
-
-  for(count=0; count<10, g_widg[count].id != WS_X;count++);
-  if(XtIsManaged(XtParent(g_widg[count].w)))
-    return;
-  XtManageChild(XtParent(g_widg[count].w));
-
-  for(count=0; count<10, g_widg[count].id != GL_window_ID;count++);
-  if(count == 10)
-    return;
-  XtUnmanageChild(XtParent(g_widg[count].w));
-}
-  
-void setup_2D_(){setup_2D();}
 
 
 
@@ -819,7 +783,7 @@ Widget init_xgks(parent,name, cmap)
     do_slice_popup(xgks_widget);
     xXgksFillArea(NULL,NULL);
     
-
+    setup_3D(xgks_widget);
     return(xgks_widget);
 }
 
