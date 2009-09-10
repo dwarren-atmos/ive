@@ -9,6 +9,8 @@
 #include <xgks.h>
 #include <ive_gks.h>
 
+
+
 #ifndef IVE_CUBE_PLOTS
 extern int ive_checkcube();
 extern void ive_scattercube();
@@ -25,8 +27,8 @@ extern struct{
 #define min_color user_colors_.min_user_color
 #define max_color user_colors_.max_user_color
 
-extern GLXContext IveGlxContext;
-extern Widget gl_widget;
+//extern GLXContext IveGlxContext;
+//extern Widget gl_widget;
 
 extern struct{
     int locked, dimavg, phys;
@@ -40,6 +42,17 @@ struct point {
     float x,y,z;
 };
 
+struct TRIANGLE {
+  struct point p1;
+  struct point p2;
+  struct point p3;
+};
+
+struct TRIANGLES{
+    int num_triangles;
+    struct TRIANGLE *tri;
+};
+
 #define phpts3_dep(x,y,z) (phpts3.pt + (x) + (((y) + ((z) * phpts3.numx)) * phpts3.numy))
 
 extern struct{
@@ -48,4 +61,5 @@ extern struct{
   int numy;
   int numz;
 }phpts3;
+
 

@@ -784,6 +784,10 @@ c     Init window storage stack
 c
       call init_window_list()
 c
+c
+c     Initial 3d mode
+      plotyp3='ISOSURF'
+c
 c     NCAR initialization
 c
       call pcsetc('FC', char(255))
