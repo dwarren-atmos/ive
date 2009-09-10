@@ -15,15 +15,6 @@ static char rcsid[] = "$Id: slicer3d.c,v 1.2 2001/01/23 22:47:17 davidive Exp $"
  *   special:   special value
  *   phys:      If one - do evenly space slice in physical space
  *
- *   $Log: slicer3d.c,v $
- *   Revision 1.2  2001/01/23 22:47:17  davidive
- *   cpline.f: fixed to use zero_color
- *   everything else: First cut at wireframes and isosurfaces. No dimentions yet
- *   no widgets yet.
- *
- *   Revision 1.1  1996/07/18 18:02:39  harry
- *   Initial check-in of 3d slicer.
- *
  *
  */
 #include <string.h>
@@ -108,9 +99,16 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
     } *cmpta, *phpta;
     struct point *phtmp;
 
-    if( *dims != 4 ) {
-	(void)make_help_widget_("slicer3d: must be 4 dimensional field");
+    if( *dims < 3 ) {
+	(void)make_help_widget_("slicer3d: must be 3 or 4 dimensional field");
 	return((float *)0);
+    }
+    if( *dims == 3 ) { /*must be time*/
+      if(*ni<2 ||*nj<2||*nk<2){
+	(void)make_help_widget_("slicer3d: only allows missing time\n");
+	return((float *)0);
+      }
+      locked=3;
     }
     /* we only do space in 3 or 4 dimentions for now */
 
