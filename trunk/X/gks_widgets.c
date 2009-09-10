@@ -590,8 +590,11 @@ void setup_3D(Widget widg)
   if(!IveGlxContext){
     printf("no GL context\n");
   }
-  IveGlxWindow = glXCreateWindow(dpy, fbConfigs[0], xwin, NULL);
-  glXMakeContextCurrent(dpy, IveGlxWindow, IveGlxWindow, IveGlxContext);
+  XtVaSetValues(widg,XmNvisual,IveGlxVisInfo,NULL);
+  //IveGlxWindow = glXCreateWindow(dpy, fbConfigs[0], xwin, NULL);
+  //glXMakeContextCurrent(dpy, IveGlxWindow, IveGlxWindow, IveGlxContext);
+  IveGlxWindow=xwin;
+  glXMakeCurrent(dpy,xwin,IveGlxContext);
   glClearColor( 1.0, 1.0, 1.0, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT );
   glFlush();
