@@ -33,7 +33,7 @@ RM = /bin/rm -f
 .F.o:  
 	${F77} -c  ${FCPP} ${FFLAGS} $*.F -o $*.o
 #
-OBJS = 	cpmpxy.o derivative.o loadfunc.o vvumxy.o
+OBJS = 	cpmpxy.o cpmpxyz.o derivative.o loadfunc.o vvumxy.o
 #
 #
 all: ../src/libIVE.a
