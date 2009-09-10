@@ -68,22 +68,32 @@ void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
     x = *xinp;
     y = *yinp;
     z = *zinp;
-    ixinp = MAX((int)x, 1);
-    iyinp = MAX((int)y, 1);
-    izinp = MAX((int)z, 1);
+    
+    if(x<0. || y<0. ||z<0.){
+      sprintf(dummy,"outside of array bounds in cpmpxyz  (%f, %f, %f)\n", 
+	      x,y,z);
+      (void)make_help_widget_(dummy);
+      *xotp = 0;
+      *yotp = 0;
+      *zotp = 0;
+      return;
+    }
+    ixinp = (int)x;
+    iyinp = (int)y;
+    izinp = (int)z;
     dx = x - (float)ixinp;
     dy = y - (float)iyinp;
     dz = z - (float)izinp;
-    ixinp += window_points3_.imin-1;
-    iyinp += window_points3_.jmin-1;
-    izinp += window_points3_.kmin-1;
+    ixinp += window_points3_.imin;
+    iyinp += window_points3_.jmin;
+    izinp += window_points3_.kmin;
     if(ixinp<phpts3.numx - 1)ixinp1 = ixinp+1;
     else ixinp1=ixinp;
     if(iyinp<phpts3.numy - 1)iyinp1 = iyinp+1;
     else iyinp1=iyinp;
     if(izinp<phpts3.numz - 1)izinp1 = izinp+1;
     else izinp1=izinp;
-
+    
     if(ixinp >phpts3.numx - 1){
       sprintf(dummy,"numx = %d , ixinp = %d",phpts3.numx, ixinp);
       (void)make_help_widget_(dummy);
@@ -113,7 +123,7 @@ void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
     //Do weighted average of 2 4pt bessels???
 
     //lets try linear for fun
-    /*
+    
     a=(dx*phtmp1->x)+((1-dx)*phtmp2->x);
     b=(dx*phtmp5->x)+((1-dx)*phtmp6->x);
     c=(dx*phtmp8->x)+((1-dx)*phtmp7->x);
@@ -132,8 +142,8 @@ void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
     c=(dz*phtmp3->z)+((1-dz)*phtmp7->z);
     d=(dz*phtmp4->z)+((1-dz)*phtmp8->z);
     z=(a+b+c+d)/4.;
-    */
     
+    /*
     a = (1.-dz) * ((1.-dy) * phtmp1->x + dy*
 		   phtmp4->x + dz *((1.-dy)*phtmp5->x)+
 		   dy*phtmp8->x);
@@ -162,7 +172,7 @@ void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
 		   dy*phtmp7->z);
 
     z = dx*a+(1-dx)*b;
-
+    */
 
     
     
