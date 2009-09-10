@@ -528,7 +528,7 @@ void ive_get_surface(i, j, k, vert, val, triangles)
       verts[8].x = i;
       verts[8].y = j+dist;
       verts[8].z = k+1;
-      printf("&256 dist=%f\n",dist);
+      //printf("&256 dist=%f\n",dist);
     }
   if (edgeTable[index] & 512)
     {
