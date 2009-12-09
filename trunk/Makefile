@@ -348,7 +348,16 @@
 UDPOSIX_INCLUDE = -I/usr/local/include/udposix
 LD = ${CC}
 PR =  /usr/local/CenterLine/bin/proof ${LD}
+machine := ${shell /usr/bin/uname}
+ifndef machine
+machine := ${shell /bin/uname}
+endif
+ifndef machine
+machine := ${shell /usr/ucb/uname}
+endif
+ifndef machine
 machine := ${shell /usr/ucb/arch}
+endif
 ifndef machine
 machine := ${shell /usr/bin/arch}
 endif
@@ -373,7 +382,13 @@ endif
 ifeq (${machine}, alpha)
 include configs/config.alpha
 endif
+ifeq (${machine}, OSF1)
+include configs/config.alpha
+endif
 ifeq (${machine},sun4)
+include configs/config.sun
+endif
+ifeq (${machine},SunOS)
 include configs/config.sun
 endif
 ifeq (${machine}, IRIX)
