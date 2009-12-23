@@ -42,6 +42,11 @@ extern int convert();
 #define slab_dep(x,y,z) *(slab_3.slab + (x) + (((y) + ((z) * njs)) * nis))
 #define wslab_dep(x,y,z) *(wslab + (x) + (((y) + ((z) * *nj)) * *ni))
 #define phpts3_dep(x,y,z) (phpts3.pt + (x) + (((y) + ((z) * njs)) * nis))
+//#define slab_dep(x,y,z) *(slab_3.slab + (x) + (y)*nis + z*njs*nis)
+//#define wslab_dep(x,y,z) *(wslab + (x) + (y)*(*ni) + (z)*(*nj)*(*ni))
+//#define phpts3_dep(x,y,z) (phpts3.pt + (x) + (y)*nis + (z)*nis*njs)
+
+
 
 static int nis, njs, nks;
 
@@ -57,16 +62,16 @@ struct {
 	    0, 0, 0, 
 	    "",""};
 
-struct point {
+static struct point {
     float x,y,z;
 };
 struct point3{
-    struct point *pt;
+    struct point ***pt;
     int numx;
     int numy;
     int numz;
 } ;
-struct point3 phpts3 = {(struct point *)0,
+struct point3 phpts3 = {(struct point ***)0,
 			0, 0, 0};
 struct wpt3 wp3;
 
@@ -248,9 +253,8 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 		return((float *) 0);
 	    }
 	    if ((phpts3.pt =  
-		 (struct point *)malloc(nis * njs * nks 
-					* sizeof(struct point ))) == 
-		( struct point *)0)
+		 (struct point ***)malloc(nis*sizeof(struct point **))) == 
+		( void *)0)
 	    {
 		(void)make_help_widget_
 		    ("slicer3d: can't allocate memory - phpts3");
@@ -260,6 +264,35 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 		free((char *)cmpt);
 		return((float *) 0);
 	    }
+	    for (icounter=0; icounter<nis; icounter++){
+	      if ((phpts3.pt[icounter]=(struct point **)malloc(njs*sizeof(struct point *))) ==
+		  ( void *)0){
+		free((char *)slab_3.slab);
+		for(dcounter=0; dcounter < icounter; dcounter++)free(phpts3.pt[dcounter]);
+		free(phpts3.pt);
+		slab_3.slab = 0;
+		free((char *)phpt);
+		free((char *)cmpt);
+		return((float *) 0);
+	      }
+	      for(kcounter=0; kcounter<njs; kcounter++){
+		if (((struct point *)phpts3.pt[icounter][kcounter]=
+		     (struct point *)malloc(nks*sizeof(struct point))) ==  ( void *)0){
+		  int a,b,c;
+		  free((char *)slab_3.slab);
+		  for(a=0; a < icounter; a++){
+		    for(b=0; b< kcounter; b++)
+		      free(phpts3.pt[a][b]);
+		    free(phpts3.pt[a]);
+		  }
+		  free(phpts3.pt);
+		  slab_3.slab = 0;
+		  free((char *)phpt);
+		  free((char *)cmpt);
+		  return((float *) 0);
+		}
+	      }
+	    }		
 	    phpts3.numx = nis;
 	    phpts3.numy = njs;
 	    phpts3.numz = nks;
@@ -287,11 +320,14 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 					   &cmpt[icounter].x,&cmpt[icounter].y,
 					   &cmpt[icounter].z,&cmpt[icounter].t,
 			    special);
-			phpts3_dep(icounter, dcounter, kcounter)->x =
+			//phpts3_dep(icounter, dcounter, kcounter)->x =
+			//phpts3_dep(icounter,dcounter, kcounter)->y = 
+			//phpts3_dep(icounter,dcounter, kcounter)->z = 
+			phpts3.pt[icounter][dcounter][kcounter].x =
 			    phpta[icounter].v[ii];
-			phpts3_dep(icounter,dcounter, kcounter)->y = 
+			phpts3.pt[icounter][dcounter][kcounter].y =
 			    phpta[icounter].v[jj];
-			phpts3_dep(icounter,dcounter, kcounter)->z = 
+			phpts3.pt[icounter][dcounter][kcounter].z =
 			    phpta[icounter].v[kk];
 		    }
 		}
@@ -319,10 +355,12 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 	    if (*phys) compute = pslicer3d_(corner, &ii1, &jj1, &kk1,
 					    &nis, &njs, &nks,
 					    &zero, &zero);
-	    else compute = data_slicer_3d_trans_(corner, &ii1, &jj1, &kk1,
-						 &nis, &njs, &nks, 
-						 &zero, &zero);
+	    //else compute = data_slicer_3d_trans_(corner, &ii1, &jj1, &kk1,
+	    //					 &nis, &njs, &nks, 
+	    //					 &zero, &zero);
 	    if (compute == 0) return((float *)0);
+	    
+
 	    if ((phpt=(struct point4 *)malloc(nis*sizeof(struct point4)))
 		== (struct point4 *)0)
 	    {
@@ -342,18 +380,46 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 		return((float *) 0);
 	    }
 	    if ((phpts3.pt =  
-		 (struct point *)malloc(nis * njs * nks 
-					* sizeof(struct point ))) == 
-		( struct point *)0)
+		 (struct point ***)malloc(nis*sizeof(struct point **))) == 
+		( void *)0)
 	    {
 		(void)make_help_widget_
 		    ("slicer3d: can't allocate memory - phpts3");
 		free((char *)slab_3.slab);
 		slab_3.slab = 0;
 		free((char *)phpt);
-		free((char *)compute);
+		free((char *)cmpt);
 		return((float *) 0);
 	    }
+	    for (icounter=0; icounter<nis; icounter++){
+	      if ((phpts3.pt[icounter]=(struct point **)malloc(njs*sizeof(struct point *))) ==
+		  ( void *)0){
+		free((char *)slab_3.slab);
+		for(dcounter=0; dcounter < icounter; dcounter++)free(phpts3.pt[dcounter]);
+		free(phpts3.pt);
+		slab_3.slab = 0;
+		free((char *)phpt);
+		free((char *)cmpt);
+		return((float *) 0);
+	      }
+	      for(kcounter=0; kcounter<njs; kcounter++){
+		if (((struct point *)phpts3.pt[icounter][kcounter]=
+		     (struct point *)malloc(nks*sizeof(struct point))) ==  ( void *)0){
+		  int a,b,c;
+		  free((char *)slab_3.slab);
+		  for(a=0; a < icounter; a++){
+		    for(b=0; b< kcounter; b++)
+		      free(phpts3.pt[a][b]);
+		    free(phpts3.pt[a]);
+		  }
+		  free(phpts3.pt);
+		  slab_3.slab = 0;
+		  free((char *)phpt);
+		  free((char *)cmpt);
+		  return((float *) 0);
+		}
+	      }
+	    }		
 	    phpts3.numx = nis;
 	    phpts3.numy = njs;
 	    phpts3.numz = nks;
@@ -361,9 +427,16 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 
 	    for(kcounter = 0; kcounter < nks; kcounter++) {
 		for(dcounter = 0 ; dcounter < njs; dcounter++){
-	    
+		  int l;
 		    cmpt = compute + (dcounter + nis*kcounter) * njs;
-		    (void)index_2_phys_trans_(phpt, cmpt, iflag, dims, &nis);
+		    for(l=0; l<nis; l++){
+		      phpt[l].x = MISSING;
+		      phpt[l].y = MISSING;
+		      phpt[l].z = MISSING;
+		      phpt[l].t = MISSING;
+		    }
+		    convert(phpt, cmpt, iflag, *dims, coord_dep, nis);
+		    //(void)index_2_phys_trans_(phpt, cmpt, iflag, dims, &nis);
 
 		    for(icounter = 0 ; icounter < nis; icounter++){
 			slab_dep(icounter,dcounter,kcounter) = 
@@ -371,11 +444,11 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 					   &cmpt[icounter].x,&cmpt[icounter].y,
 					   &cmpt[icounter].z,&cmpt[icounter].t,
 					   special);
-			phpts3_dep(icounter, dcounter, kcounter)->x =
+			phpts3.pt[icounter][dcounter][kcounter].x =
 			    phpta[icounter].v[ii];
-			phpts3_dep(icounter,dcounter, kcounter)->y = 
+			phpts3.pt[icounter][dcounter][kcounter].y =
 			    phpta[icounter].v[jj];
-			phpts3_dep(icounter,dcounter, kcounter)->z = 
+			phpts3.pt[icounter][dcounter][kcounter].z =
 			    phpta[icounter].v[kk];
 		    }
 		}

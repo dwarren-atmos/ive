@@ -179,6 +179,8 @@ static char ident[] = "$Id: gks_widgets.c,v 1.37 2002/12/26 22:48:11 warren Exp 
 #include <malloc.h>
 #include <stdlib.h>
 
+extern void ive_3dinput();
+
 int singleBufferAttributess[] = {
   GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
   GLX_RENDER_TYPE,   GLX_RGBA_BIT,
@@ -552,6 +554,11 @@ static void do_slice_popup(parent)
 /*end of line menu*/
     XtAddEventHandler(parent, ButtonPressMask, False, 
                       postmenu, over_menu);
+    XtAddEventHandler(parent, ButtonPressMask, False,
+		    ive_3dinput, NULL);
+    XtAddEventHandler(parent, KeyPressMask, False,
+		    ive_3dinput, NULL);
+  
 }
 
 

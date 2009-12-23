@@ -12,22 +12,23 @@ extern void make_help_widget_(),phys_2_lonlat_trans_(),maptrn_();
 #endif
 #define EPSLON  .00001
 #define MAXLAT  89.0
-#define ORVAL  1.0e12
+//#define ORVAL  1.0e12
 #define SMALLEST_FLOAT 1.0e-28
 static struct point {
     float x,y,z;
-}*phtmp1, *phtmp2, *phtmp3, *phtmp4, *phtmp5, *phtmp6, *phtmp7, *phtmp8;
-#define p3(x,y,z) (phpts3.pt + (x) +(((y) + ((z)+phpts3.numy))*phpts3.numx))
+}phtmp1, phtmp2, phtmp3, phtmp4, phtmp5, phtmp6, phtmp7, phtmp8;
+//#define p3(x,y,z) (phpts3.pt + (x) +(((y) + ((z)+phpts3.numy))*phpts3.numx))
+#define p3(x,y,z) (phpts3.pt + (x) +(y)*phpts3.numx + (z)*phpts3.numy*phpts3.numx)
 struct point3{
-    struct point *pt;
-    int numx;
-    int numy;
-    int numz;
+  struct point  ***pt;
+  int numx;
+  int numy;
+  int numz;
 } ;
 extern struct point3 phpts3;
 extern struct wpt3 window_points3_;
 
-void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
+void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp, ORVAL)
 /*-----------------------------------------------------------------------
   
  *     Purpose:
@@ -50,10 +51,10 @@ void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
  */
      
      int   *imap;
-     float *xinp, *yinp, *zinp, *xotp, *yotp, *zotp;
+     float *xinp, *yinp, *zinp, *xotp, *yotp, *zotp, *ORVAL;
 {
-  float dx, dy, dz, lon, lat, x, y, z, a, b, c, d;
-  int ixinp, ixinp1, iyinp, iyinp1, izinp, izinp1;
+  float dx, dy, dz, lon, lat, x, y, z, a, b, c, d, x2, y2, z2;
+  int ixinp, ixinp1, iyinp, iyinp1, izinp, izinp1, i;
   char dummy[80];
 
     if (*imap == 0) {
@@ -65,10 +66,16 @@ void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
        Forward transforms.
        */
     //Don't wory about reverse - doesn't really make sense in 3d and should alwasy be off
+
     x = *xinp;
     y = *yinp;
     z = *zinp;
-    
+
+    //*xotp=x;
+    //*yotp=y;
+    //*zotp=z;
+    //return;
+
     if(x<0. || y<0. ||z<0.){
       sprintf(dummy,"outside of array bounds in cpmpxyz  (%f, %f, %f)\n", 
 	      x,y,z);
@@ -84,16 +91,18 @@ void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
     dx = x - (float)ixinp;
     dy = y - (float)iyinp;
     dz = z - (float)izinp;
+
     ixinp += window_points3_.imin;
     iyinp += window_points3_.jmin;
     izinp += window_points3_.kmin;
+    
     if(ixinp<phpts3.numx - 1)ixinp1 = ixinp+1;
     else ixinp1=ixinp;
     if(iyinp<phpts3.numy - 1)iyinp1 = iyinp+1;
     else iyinp1=iyinp;
     if(izinp<phpts3.numz - 1)izinp1 = izinp+1;
     else izinp1=izinp;
-    
+
     if(ixinp >phpts3.numx - 1){
       sprintf(dummy,"numx = %d , ixinp = %d",phpts3.numx, ixinp);
       (void)make_help_widget_(dummy);
@@ -102,120 +111,125 @@ void cpmpxyz_(imap, xinp, yinp, zinp, xotp, yotp, zotp)
       *zotp = 0;
       return;
     }
-    phtmp1 = p3(ixinp,iyinp,izinp);
-    phtmp2 = p3(ixinp1,iyinp,izinp);
-    phtmp3 = p3(ixinp1,iyinp1,izinp);
-    phtmp4 = p3(ixinp,iyinp1,izinp);
-    phtmp5 = p3(ixinp,iyinp,izinp1);
-    phtmp6 = p3(ixinp1,iyinp,izinp1);
-    phtmp7 = p3(ixinp1,iyinp1,izinp1);
-    phtmp8 = p3(ixinp,iyinp1,izinp1);
+    //printf("in starts at %f izinp %d izinp1 %d\n",z,izinp,izinp1);
+    //printf("(%f,%f,%f)\n",p3(ixinp,iyinp,izinp)->x,p3(ixinp,iyinp,izinp)->y,p3(ixinp,iyinp,izinp)->z);
+    //for(i=0; i<phpts3.numz; i++){
+    // printf("z: %d %f\n", i,p3(ixinp,iyinp,i)->z); 
+    //}
+    phtmp1 = phpts3.pt[ixinp][iyinp][izinp];
+    phtmp2 = phpts3.pt[ixinp1][iyinp][izinp];
+    phtmp3 = phpts3.pt[ixinp1][iyinp1][izinp];
+    phtmp4 = phpts3.pt[ixinp][iyinp1][izinp];
+    phtmp5 = phpts3.pt[ixinp][iyinp][izinp1];
+    phtmp6 = phpts3.pt[ixinp1][iyinp][izinp1];
+    phtmp7 = phpts3.pt[ixinp1][iyinp1][izinp1];
+    phtmp8 = phpts3.pt[ixinp][iyinp1][izinp1];
 
     /*
-     8-----7
-    /\     /\
-   /  4---/--\
-   5-----6    3
-   \  /   \  /
-    \/     \/
-     1-----2
+      8-----7 
+     /\     /\
+    /  4---/--\
+    5-----6    3
+    \  /   \  / 
+     \/     \/  
+      1-----2
     */
     //Do weighted average of 2 4pt bessels???
 
     //lets try linear for fun
-    
-    a=(dx*phtmp1->x)+((1-dx)*phtmp2->x);
-    b=(dx*phtmp5->x)+((1-dx)*phtmp6->x);
-    c=(dx*phtmp8->x)+((1-dx)*phtmp7->x);
-    d=(dx*phtmp4->x)+((1-dx)*phtmp3->x);
-    x=(a+b+c+d)/4.;
 
 
-    a=(dy*phtmp1->y)+((1-dy)*phtmp4->y);
-    b=(dy*phtmp5->y)+((1-dy)*phtmp8->y);
-    c=(dy*phtmp6->y)+((1-dy)*phtmp7->y);
-    d=(dy*phtmp2->y)+((1-dy)*phtmp3->y);
-    y=(a+b+c+d)/4.;
+    a=((1-dx)*phtmp1.x)+((dx)*phtmp2.x);
+    b=((1-dx)*phtmp5.x)+((dx)*phtmp6.x);
+    c=((1-dx)*phtmp8.x)+((dx)*phtmp7.x);
+    d=((1-dx)*phtmp4.x)+((dx)*phtmp3.x);
+    x2=(a+b+c+d)/4.;
 
-    a=(dz*phtmp1->z)+((1-dz)*phtmp5->z);
-    b=(dz*phtmp2->z)+((1-dz)*phtmp6->z);
-    c=(dz*phtmp3->z)+((1-dz)*phtmp7->z);
-    d=(dz*phtmp4->z)+((1-dz)*phtmp8->z);
-    z=(a+b+c+d)/4.;
-    
+
+    a=((1-dy)*phtmp1.y)+((dy)*phtmp4.y);
+    b=((1-dy)*phtmp5.y)+((dy)*phtmp8.y);
+    c=((1-dy)*phtmp6.y)+((dy)*phtmp7.y);
+    d=((1-dy)*phtmp2.y)+((dy)*phtmp3.y);
+    y2=(a+b+c+d)/4.;
+
+    a=((1-dz)*phtmp1.z)+((dz)*phtmp5.z);
+    b=((1-dz)*phtmp2.z)+((dz)*phtmp6.z);
+    c=((1-dz)*phtmp3.z)+((dz)*phtmp7.z);
+    d=((1-dz)*phtmp4.z)+((dz)*phtmp8.z);
+    z2=(a+b+c+d)/4.;
+
     /*
-    a = (1.-dz) * ((1.-dy) * phtmp1->x + dy*
-		   phtmp4->x + dz *((1.-dy)*phtmp5->x)+
-		   dy*phtmp8->x);
-    b = (1.-dz) * ((1.-dy) * phtmp2->x + dy*
-		   phtmp3->x + dz *((1.-dy)*phtmp6->x)+
-		   dy*phtmp7->x);
+    a = (1.-dz) * ((1.-dy) * phtmp1.x + dy*
+		   phtmp4.x + dz *((1.-dy)*phtmp5.x)+
+		   dy*phtmp8.x);
+    b = (1.-dz) * ((1.-dy) * phtmp2.x + dy*
+		   phtmp3.x + dz *((1.-dy)*phtmp6.x)+
+		   dy*phtmp7.x);
 
-    x = dx*a+(1-dx)*b;
-
-
-    a = (1.-dz) * ((1.-dy) * phtmp1->y + dy*
-		   phtmp4->y + dz *((1.-dy)*phtmp5->y)+
-		   dy*phtmp8->y);
-    b = (1.-dz) * ((1.-dy) * phtmp2->y + dy*
-		   phtmp3->y + dz *((1.-dy)*phtmp6->y)+
-		   dy*phtmp7->y);
-
-    y = dx*a+(1-dx)*b;
+    x2 = dx*a+(1-dx)*b;
 
 
-    a = (1.-dz) * ((1.-dy) * phtmp1->z + dy*
-		   phtmp4->z + dz *((1.-dy)*phtmp5->z)+
-		   dy*phtmp8->z);
-    b = (1.-dz) * ((1.-dy) * phtmp2->z + dy*
-		   phtmp3->z + dz *((1.-dy)*phtmp6->z)+
-		   dy*phtmp7->z);
+    a = (1.-dz) * ((1.-dy) * phtmp1.y + dy*
+		   phtmp4.y + dz *((1.-dy)*phtmp5.y)+
+		   dy*phtmp8.y);
+    b = (1.-dz) * ((1.-dy) * phtmp2.y + dy*
+		   phtmp3.y + dz *((1.-dy)*phtmp6.y)+
+		   dy*phtmp7.y);
 
-    z = dx*a+(1-dx)*b;
+    y2 = dx*a+(1-dx)*b;
+
+
+    a = (1.-dz) * ((1.-dy) * phtmp1.z + dy*
+		   phtmp4.z + dz *((1.-dy)*phtmp5.z)+
+		   dy*phtmp8.z);
+    b = (1.-dz) * ((1.-dy) * phtmp2.z + dy*
+		   phtmp3.z + dz *((1.-dy)*phtmp6.z)+
+		   dy*phtmp7.z);
+
+    z2 = dx*a+(1-dx)*b;
+    
     */
-
     
     
 
-    *xotp=x;
-    *yotp=y;
-    *zotp=z;
-
-    if ( *imap == 2) return;
+    *xotp=x2;
+    *yotp=y2;
+    *zotp=z2;
+    //    if ( *imap == 2) return;
     
     if (window_points3_.x1 < window_points3_.x2) {
       if (*xotp < window_points3_.x1 || *xotp > window_points3_.x2) {
-	*xotp = ORVAL;
+	*xotp = *ORVAL;
 	return;
       }
     }
     else {
       if (*xotp > window_points3_.x1 || *xotp < window_points3_.x2) {
-	*xotp = ORVAL;
+	*xotp = *ORVAL;
 	return;
       }
     }
     if (window_points3_.y1 < window_points3_.y2) {
       if (*yotp < window_points3_.y1 || *yotp > window_points3_.y2) {
-	*xotp = ORVAL;
+	*xotp = *ORVAL;
 	return;
       }
     }
     else {
       if (*yotp > window_points3_.y1 || *yotp < window_points3_.y2) {
-            *xotp = ORVAL;
+            *xotp = *ORVAL;
 	    return;
 	}
     }
     if (window_points3_.z1 < window_points3_.z2) {
       if (*zotp < window_points3_.z1 || *zotp > window_points3_.z2) {
-	*xotp = ORVAL;
+	*xotp = *ORVAL;
 	return;
       }
     }
     else {
       if (*zotp > window_points3_.z1 || *zotp < window_points3_.z2) {
-	*xotp = ORVAL;
+	*xotp = *ORVAL;
 	return;
       }
     }
