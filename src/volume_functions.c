@@ -398,23 +398,41 @@ static float check_line(val,x,y)
   return (FLT_MAX);
 }
 
-static float vertinterp(vert0,vert1,val)
-     float vert0, vert1, val;
+static void vertinterp(val,p1, p2, val1, val2, pout )
+     float val, val1, val2;
+     struct plainpoint p1, p2, *pout;
 {
-  if(val==vert0)return(0.);
-  if(val==vert1)return(1.);
-  if(abs(vert1-vert0)<EPSLON)return(0.);
-  if((val-vert0)/(vert1-vert0)<=1.)
-    return((val-vert0)/(vert1-vert0));
-  else
-    printf("error: val: %f vert0: %f vert1: %f\n",val,vert0,vert1);
-  return(0.);
+  double dist;
+  /*
+  if(abs(val1-val)<EPSLON){
+    pout->x=p1.x;
+    pout->y=p1.y;
+    pout->z=p1.z;
+    return;
+  }
+  if(abs(val2-val)<EPSLON){
+    pout->x=p2.x;
+    pout->y=p2.y;
+    pout->z=p2.z;
+    return;
+  }
+  if(abs(val1-val2)<EPSLON){
+    pout->x=p1.x;
+    pout->y=p1.y;
+    pout->z=p1.z;
+    return;
+  }
+  */
+  dist = (val - val1)/(val2 - val1);
+  pout->x = p1.x + dist * (p2.x - p1.x);
+  pout->y = p1.y + dist * (p2.y - p1.y);
+  pout->z = p1.z + dist * (p2.z - p1.z);
 }
 
 
-void ive_get_surface(i, j, k, vert, val, triangles)
-     int i,j,k;
+void ive_get_surface(vert, val, points, triangles)
      float vert[8], val;
+     struct plainpoint points[8];
      struct TRIANGLES *triangles;
 {
   /* Original from http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/  */
@@ -436,17 +454,13 @@ void ive_get_surface(i, j, k, vert, val, triangles)
    *****
    *****/
   int index=0; /*index of cube type*/
-  int l;
-  struct point verts[12]={{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},
+  int i,l;
+  struct plainpoint verts[12]={{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},
 			  {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},
 			  {0,0,0},{0,0,0}};
+
   float dist;
 
-  for(l=0; l<12;l++){
-    verts[l].x=0.;
-    verts[l].y=0.;
-    verts[l].z=0.;
-  }
   if(vert[0] < val) index |= 1;
   if(vert[1] < val) index |= 2;
   if(vert[2] < val) index |= 4;
@@ -463,95 +477,59 @@ void ive_get_surface(i, j, k, vert, val, triangles)
   //  printf("index: %d\n",index);
   if (edgeTable[index] & 1)
     {
-      dist=vertinterp(vert[0],vert[1],val);
-      verts[0].x = i+dist;
-      verts[0].y = j;
-      verts[0].z = k+1;
+      vertinterp(val,points[0],points[1],vert[0],vert[1],&verts[0]);
     }
   if (edgeTable[index] & 2)
     {
-      dist=vertinterp(vert[2],vert[1],val);
-      verts[1].x = i+1;
-      verts[1].y = j;
-      verts[1].z = k+dist;
+      vertinterp(val,points[1],points[2],vert[1],vert[2],&verts[1]);
       //      printf("&2 dist=%f\n",dist);
     }
   if (edgeTable[index] & 4)
     {
-      dist=vertinterp(vert[3],vert[2],val);
-      verts[2].x = i+dist;
-      verts[2].y = j;
-      verts[2].z = k;
+      vertinterp(val,points[2],points[3],vert[2],vert[3],&verts[2]);
     }
   if (edgeTable[index] & 8)
     {
-      dist=vertinterp(vert[3],vert[0],val);
-      verts[3].x = i;
-      verts[3].y = j;
-      verts[3].z = k+dist;
+      vertinterp(val,points[3],points[0],vert[3],vert[0],&verts[3]);
       //printf("&8 dist=%f\n",dist);
     }
   if (edgeTable[index] & 16)
     {
-      dist=vertinterp(vert[4],vert[5],val);
-      verts[4].x = i+dist;
-      verts[4].y = j+1;
-      verts[4].z = k+1;
+      vertinterp(val,points[4],points[5],vert[4],vert[5],&verts[4]);
     }
   if (edgeTable[index] & 32)
     {
-      dist=vertinterp(vert[6],vert[5],val);
-      verts[5].x = i+1;
-      verts[5].y = j+1;
-      verts[5].z = k+dist;
+      vertinterp(val,points[5],points[6],vert[5],vert[6],&verts[5]);
       //printf("&32 dist=%f\n",dist);
     }
   if (edgeTable[index] & 64)
     {
-      dist=vertinterp(vert[7],vert[6],val);
-      verts[6].x = i+dist;
-      verts[6].y = j+1;
-      verts[6].z = k;
+      vertinterp(val,points[6],points[7],vert[6],vert[7],&verts[6]);
       //printf("got here\n");
     }
   if (edgeTable[index] & 128)
     {
-      dist=vertinterp(vert[7],vert[4],val);
-      verts[7].x = i;
-      verts[7].y = j+1;
-      verts[7].z = k+dist;
+      vertinterp(val,points[7],points[4],vert[7],vert[4],&verts[7]);
       //printf("&128 dist=%f\n",dist);
     }
   if (edgeTable[index] & 256)
     {
-      dist=vertinterp(vert[0],vert[4],val);
-      verts[8].x = i;
-      verts[8].y = j+dist;
-      verts[8].z = k+1;
+      vertinterp(val,points[0],points[4],vert[0],vert[4],&verts[8]);
       //printf("&256 dist=%f\n",dist);
     }
   if (edgeTable[index] & 512)
     {
-      dist=vertinterp(vert[1],vert[5],val);
-      verts[9].x = i+1;
-      verts[9].y = j+dist;
-      verts[9].z = k+1;
+      vertinterp(val,points[1],points[5],vert[1],vert[5],&verts[9]);
       //printf("&512 dist=%f\n",dist);
     }
   if (edgeTable[index] & 1024)
     {
-      dist=vertinterp(vert[2],vert[6],val);
-      verts[10].x = i+1;
-      verts[10].y = j+dist;
-      verts[10].z = k;
+      vertinterp(val,points[2],points[6],vert[2],vert[6],&verts[10]);
       //printf("&1024 dist=%f\n",dist);
     }	 
   if (edgeTable[index] & 2048)
     {
-      dist=vertinterp(vert[3],vert[7],val);
-      verts[11].x = i;
-      verts[11].y = j+dist;
-      verts[11].z = k;
+      vertinterp(val,points[3],points[7],vert[3],vert[7],&verts[11]);
       //printf("&2048 dist=%f\n",dist);
     }
   //Don't need to see if we have one as that was done before we got here.
@@ -576,3 +554,101 @@ void ive_get_surface(i, j, k, vert, val, triangles)
 } 
 
 
+/*
+void ive_get_points(i, j, k, vert, val, triangles)
+     int i,j,k;
+     float vert[8], val;
+     struct TRIANGLES *triangles;
+     {
+*/
+  /* Original from http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/  */
+
+  /*****     points passed same as for triangles
+   *****     
+   *****    7
+   *****    | 0
+   *****    |/ 
+   *****    3-----2  
+   *****
+   *****/
+/*
+  int l;
+  struct plainpoint verts[12]={{-1,-1,-1},{-1,-1,-1},{-1,-1,-1},{-1,-1,-1},{-1,-1,-1},
+			  {-1,-1,-1},{-1,-1,-1},{-1,-1,-1},{-1,-1,-1},{-1,-1,-1},
+			  {-1,-1,-1},{-1,-1,-1}};
+  float dist;
+  int dd=-1;
+
+  if(vert[3] == val){
+    verts[0].x = 0.;
+    verts[0].y = 0.;
+    verts[0].z = 0.;
+  }
+  
+  if(vert[3] < val){
+    if(vert[7]>val){
+      dd++;
+      dist=vertinterp(vert[3],vert[7],val);
+      verts[dd].x = 0.;
+      verts[dd].y = dist;
+      verts[dd].z = 0.;
+    }
+    if(vert[2]>val){
+      dd++;
+      dist=vertinterp(vert[3],vert[2],val);
+      verts[dd].x = dist;
+      verts[dd].y = 0.;
+      verts[dd].z = 0.;
+    }
+    if(vert[0]>val){
+      dd++;
+      dist=vertinterp(vert[3],vert[0],val);
+      verts[dd].x = 0.;
+      verts[dd].y = 0.;
+      verts[dd].z = dist;
+    }
+  }
+  if(vert[3] > val){
+    if(vert[7]<val){
+      dd++;
+      dist=vertinterp(vert[3],vert[7],val);
+      verts[dd].x = 0.;
+      verts[dd].y = dist;
+      verts[dd].z = 0.;
+    }
+    if(vert[2]<val){
+      dd++;
+      dist=vertinterp(vert[3],vert[2],val);
+      verts[dd].x = dist;
+      verts[dd].y = 0.;
+      verts[dd].z = 0.;
+    }
+    if(vert[0]<val){
+      dd++;
+      dist=vertinterp(vert[3],vert[0],val);
+      verts[dd].x = 0.;
+      verts[dd].y = 0.;
+      verts[dd].z = dist;
+    }
+  }
+  if(dd > -1){
+    for(i=dd+1; i<3; i++){
+      verts[i].x = verts[dd].x;
+      verts[i].y = verts[dd].y;
+      verts[i].z = verts[dd].z;
+    }
+    triangles->tri[0].p1.x = verts[0].x;
+    triangles->tri[0].p1.y = verts[0].y;
+    triangles->tri[0].p1.z = verts[0].z;
+    triangles->tri[0].p2.x = verts[1].x;
+    triangles->tri[0].p2.y = verts[1].y;
+    triangles->tri[0].p2.z = verts[1].z;
+    triangles->tri[0].p3.x = verts[2].x;
+    triangles->tri[0].p3.y = verts[2].y;
+    triangles->tri[0].p3.z = verts[2].z;
+    triangles->num_triangles=1;
+  }
+  else
+    triangles->num_triangles=0;
+}
+*/

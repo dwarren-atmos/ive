@@ -38,28 +38,79 @@ extern struct{
     char datfil[256], field[256];
 } slab_3;
 
-struct point {
+struct plainpoint {
     float x,y,z;
 };
 
+typedef struct {float xCoord, yCoord, zCoord; int normalRef;} Point;
+
+typedef struct {Point pt[3];} Triangle;
+
+typedef struct {int size; Point *normal;}NormalList; 
+               //one of these per object
+
+typedef struct {
+  int size;
+  Triangle *items;
+  int color;
+} Surface; //one of these per file passed
+
+typedef struct {
+  int objects;
+  Surface *Surface;
+  NormalList *NormalList;
+  int objectOn[10];
+  GLuint listName[10];
+}Objects;
+
+
+static float xPosition=0.f;
+static float yPosition=0.f;
+static float xStretch;
+static float yStretch;
+static float xRotation=0.f;
+static float yRotation=0.f;
+static float zRotation=0.f;
+static float clipDistanceIVE=0;
+static float clipDistanceIVE2=0;
+static int scalarX=1, scalarY=1, scalarZ=1;
+
+static float mins3[3], maxs3[3], mids3[3];
+
+
 struct TRIANGLE {
-  struct point p1;
-  struct point p2;
-  struct point p3;
+  struct plainpoint p1;
+  struct plainpoint p2;
+  struct plainpoint p3;
+  int      normal1,normal2,normal3; //array indexes
 };
 
 struct TRIANGLES{
-    int num_triangles;
-    struct TRIANGLE *tri;
+  int num_triangles,num_normals,*norm_counts;
+  struct TRIANGLE *tri;
+  struct plainpoint *normals;
+  struct plainpoint *norm_points;
 };
 
 #define phpts3_dep(x,y,z) (phpts3.pt + (x) + (((y) + ((z) * phpts3.numx)) * phpts3.numy))
 
 extern struct{
-  struct point *pt;
+  struct plainpoint *pt;
   int numx;
   int numy;
   int numz;
 }phpts3;
 
+typedef struct {
+  float xPos;
+  float yPos;
+  float yStr;
+  float xStr;
+  float xRot;
+  float yRot;
+  float zRot;}DisplayField; //used to set size of window
 
+extern int *doubleBufferAttributes;
+extern int *singleBufferAttributes;
+
+int nObjects;
