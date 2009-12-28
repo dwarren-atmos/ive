@@ -292,26 +292,26 @@ void plot3d(mins, maxs, IVE_Objects)
   mids[1]=(mins[2]+maxs[2])/2;
 
 
-  file = fopen("pointsafter","w+");
-  fprintf(file,"triangles: %d\n", IVE_Objects->Surface[0].size);
-  fprintf(file,"normals: %d\n",IVE_Objects->NormalList[0].size);
-  fprintf(file,"min:{%f, %f, %f}\n",
-    mins[0],mins[2],mins[1]);
+  //  file = fopen("pointsafter","w+");
+  //fprintf(file,"triangles: %d\n", IVE_Objects->Surface[0].size);
+  //fprintf(file,"normals: %d\n",IVE_Objects->NormalList[0].size);
+  //fprintf(file,"min:{%f, %f, %f}\n",
+  // mins[0],mins[2],mins[1]);
   //	  mins[slab_3.xaxis-1],mins[slab_3.yaxis-1],mins[slab_3.zaxis-1]);
-  fprintf(file,"max:{%f, %f, %f}\n",
-  	  maxs[0],maxs[2],maxs[1]);
+  //fprintf(file,"max:{%f, %f, %f}\n",
+  // 	  maxs[0],maxs[2],maxs[1]);
   //maxs[slab_3.xaxis-1],maxs[slab_3.yaxis-1],maxs[slab_3.zaxis-1]);
-  for (i=0;i<IVE_Objects->Surface[0].size;i++)
-    {   
-      fprintf(file,"{%f, %f, %f}[%d] {%f, %f, %f}[%d] {%f, %f, %f}[%d]\n",
-	      IVE_Objects->Surface[0].items[i].pt[0].xCoord,IVE_Objects->Surface[0].items[i].pt[0].yCoord,IVE_Objects->Surface[0].items[i].pt[0].zCoord,IVE_Objects->Surface[0].items[i].pt[0].normalRef,
-	      IVE_Objects->Surface[0].items[i].pt[1].xCoord,IVE_Objects->Surface[0].items[i].pt[1].yCoord,IVE_Objects->Surface[0].items[i].pt[1].zCoord,IVE_Objects->Surface[0].items[i].pt[1].normalRef,
-	      IVE_Objects->Surface[0].items[i].pt[2].xCoord,IVE_Objects->Surface[0].items[i].pt[2].yCoord,IVE_Objects->Surface[0].items[i].pt[2].zCoord,IVE_Objects->Surface[0].items[i].pt[2].normalRef);
-   }
-  for(i=0; i<IVE_Objects->NormalList[0].size; i++){
-    fprintf(file,"{%f, %f, %f}\n",IVE_Objects->NormalList[0].normal[i].xCoord,IVE_Objects->NormalList[0].normal[i].yCoord,IVE_Objects->NormalList[0].normal[i].zCoord);
-  }
-  fclose(file);
+  //for (i=0;i<IVE_Objects->Surface[0].size;i++)
+  //{   
+  //  fprintf(file,"{%f, %f, %f}[%d] {%f, %f, %f}[%d] {%f, %f, %f}[%d]\n",
+  //	      IVE_Objects->Surface[0].items[i].pt[0].xCoord,IVE_Objects->Surface[0].items[i].pt[0].yCoord,IVE_Objects->Surface[0].items[i].pt[0].zCoord,IVE_Objects->Surface[0].items[i].pt[0].normalRef,
+  //	      IVE_Objects->Surface[0].items[i].pt[1].xCoord,IVE_Objects->Surface[0].items[i].pt[1].yCoord,IVE_Objects->Surface[0].items[i].pt[1].zCoord,IVE_Objects->Surface[0].items[i].pt[1].normalRef,
+  //	      IVE_Objects->Surface[0].items[i].pt[2].xCoord,IVE_Objects->Surface[0].items[i].pt[2].yCoord,IVE_Objects->Surface[0].items[i].pt[2].zCoord,IVE_Objects->Surface[0].items[i].pt[2].normalRef);
+  //   }
+  //for(i=0; i<IVE_Objects->NormalList[0].size; i++){
+  //  fprintf(file,"{%f, %f, %f}\n",IVE_Objects->NormalList[0].normal[i].xCoord,IVE_Objects->NormalList[0].normal[i].yCoord,IVE_Objects->NormalList[0].normal[i].zCoord);
+  //}
+  //fclose(file);
 
    for(i=0;i<IVE_Objects->objects;i++)
     {
