@@ -280,6 +280,7 @@ static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" 
 #define MOVE_PARCEL move_parcel_
 #define EXISTS(x) 1
 #define PHYSUV_2_LONLATUV_TRANS physuv_2_lonlatuv_trans_
+#define DIMS_PLACEMENT dims_placement_
 #else
 #define NEW_FILE (*new_file)
 #define NEW_FIELD (*new_field)
@@ -300,6 +301,7 @@ static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" 
 #define MOVE_PARCEL (*move_parcel)
 #define EXISTS(x) x
 #define PHYSUV_2_LONLATUV_TRANS (*physuv_2_lonlatuv_trans)
+#define DIMS_PLACEMENT (*dims_placement)
 #endif
 
 int NEW_FILE(), NEW_FIELD(), INDEX_2_PHYS(), PHYS_2_INDEX();
@@ -308,7 +310,7 @@ int DEFAULT_MAP();
 int HEADING();
 float *DATA_SLICER_1D(), *DATA_SLICER_2D(), *DATA_SLICER_3D(), *CALC_FIELD();
 float *CALC_FIELD(), FILE_COORD();
-void  *MOVE_PARCEL(), *PHYSUV_2_LONLATUV_TRANS(), *RUN_SUB();
+void  *MOVE_PARCEL(), *PHYSUV_2_LONLATUV_TRANS(), *RUN_SUB(), *DIMS_PLACEMENT();
 
 /* BEGIN INTERFACE ROUTINES AND DEFAULT TRANSFORMS */
 
@@ -420,7 +422,8 @@ void
 new_field_trans_(name, field, inmax1, inmax2, inmax3, inmax4, len)
 char *name;
 float **field;
-int *inmax1, *inmax2, *inmax3, *inmax4, len;
+int *inmax1, *inmax2, *inmax3, *inmax4;
+long len;
 
 {
     if (EXISTS(new_field)) {
@@ -815,7 +818,7 @@ default_map_trans_(proj, plon, plat, rota, limit, plm1, plm2, plm3, plm4,
 char *proj, *limit;
 float *plon, *plat, *rota, *plm1, *plm2, *plm3, *plm4;
 int *exact_fit;
-int len1, len2;
+long len1, len2;
 {
     if (EXISTS(default_map)) {
 	DEFAULT_MAP(proj, plon, plat, rota, limit, plm1, plm2, plm3, plm4,
@@ -1077,9 +1080,10 @@ int *ii, *jj, *kk, *ni, *nj, *nk, *da, *nda;
 float *
 calc_field_trans_(name, ndims, dims, stag, min, max, missing, data_units,
 	    data_display_units, dim_names, len1, len2, len3, len4)
-int *ndims, len1, len2, len3, len4, *dims;
-float *stag, *min, *max, *missing;
-char *name, *data_units, *data_display_units, *dim_names;
+     int *ndims, *dims;
+     long len1, len2, len3, len4;
+     float *stag, *min, *max, *missing;
+     char *name, *data_units, *data_display_units, *dim_names;
 {
     if (EXISTS(calc_field)) {
 	return(CALC_FIELD(name, ndims, dims, stag, min, max, missing,
@@ -1180,7 +1184,7 @@ char *name, *data_units, *data_display_units, *dim_names;
 
 void 
 run_sub_(name, len)
-int len;
+long len;
 char *name;
 {
   if (EXISTS(run_sub)) {
@@ -1210,7 +1214,7 @@ heading_trans_(where, which, line, len)
      int  *where;
      int  *which;
      char *line;
-     int len; /*stupid fortran length int*/
+     long len; /*stupid fortran length int*/
 {
     if (EXISTS(heading)) {
 	HEADING(where, which, line, len);
@@ -1364,6 +1368,36 @@ int *nu, *nv, *imap;
   }
   return;
 }
+
+/*
+ * dims_placement_trans: This routine allows the user to change the current
+ * value of the file coordinate from what IVE thinks it should be.
+ *
+ * Arguments:
+ *	numdims	int *		totalnumber of dims
+ *      dims2go int[10] *       Id of currently opened netCDF file.
+ *      name char *             name of field
+ */
+
+void
+dims_placement_trans_(numdims, dims2go, name)
+     int *numdims, *dims2go;
+     char *name;
+{
+  if (EXISTS(dims_placement)) {
+    long len = strlen(name);
+    DIMS_PLACEMENT(numdims, dims2go, name, len);
+      }
+  else
+    if(*numdims==5){
+      dims2go[0]=-1;
+      dims2go[1]= 3;
+      dims2go[2]= 2;
+      dims2go[3]= 1;
+      dims2go[4]= 0;
+    }
+}
+
 
 /* END INTERFACE ROUTINES AND DEFAULT TRANSFORMS */
 
@@ -1600,7 +1634,8 @@ nl[13].n_name = "file_coordinate_";
 nl[14].n_name = "move_parcel_";
 nl[15].n_name = "run_sub_";
 nl[16].n_name = "physuv_2_lonlatuv_trans_";
-nl[17].n_name = "";
+nl[17].n_name = "dims_placement_trans_";
+nl[18].n_name = "";
     if(nlist(tmpfile,nl) != -1){
 	int i;
 	new_file = (int (*)())nl[0].n_value;
@@ -1620,6 +1655,7 @@ nl[17].n_name = "";
 	move_parcel = (void *(*)())nl[14].n_value;
 	run_sub = (void *(*)())nl[15].n_value;
 	physuv_2_lonlatuv_trans = (void *(*)())nl[16].n_value;
+	dims_placement_trans_ = (void *(*)())nl[17].n_value;
 
     }
     if (unlink(tmpfile)){
@@ -1658,8 +1694,9 @@ load_func_(progname, objfile)
         heading = NULL;
 	file_coordinate = NULL;
 	move_parcel = NULL;
-                    run_sub= NULL;
-                    physuv_2_lonlatuv_trans = NULL;
+	run_sub= NULL;
+	physuv_2_lonlatuv_trans = NULL;
+	dims_placement_trans_=NULL;	    
     }
     if (strcasecmp(objfile, "default") == 0) return 0;
     if (check_obj(objfile, "sunos") < 0) return 2;
@@ -1670,110 +1707,21 @@ load_func_(progname, objfile)
         return 1;
     }
 
-    if ((new_file = (int (*)())dlsym(dlp, "_new_file_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _new_file procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((new_field = (int (*)())dlsym(dlp, "_new_field_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding _new_field procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((index_2_phys = (int (*)())dlsym(dlp, "_index_2_phys_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding _index_2_phys procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((phys_2_index = (int (*)())dlsym(dlp, "_phys_2_index_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding _phys_2_index procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((horiz_ter = (int (*)())dlsym(dlp, "_horiz_ter_")) == NULL) {
- /*       (void) fputs(progname,stderr);
-        (void) fputs(": error finding _horiz_ter procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((vert_ter = (int (*)())dlsym(dlp, "_vert_ter_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding _vert_ter procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((phys_2_lonlat = (int (*)())dlsym(dlp, "_phys_2_lonlat_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding _phys_2_lonlat procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((lonlat_2_phys = (int (*)())dlsym(dlp, "_lonlat_2_phys_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _lonlat_2_phys procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((default_map = (int (*)())dlsym(dlp, "_default_map_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _default_map procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((data_slicer_2d = (float * (*)())dlsym(dlp, "_data_slicer_2d_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _data_slicer_2d procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((data_slicer_3d = (float * (*)())dlsym(dlp, "_data_slicer_3d_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _data_slicer_3d procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((calc_field = (float * (*)())dlsym(dlp, "_calc_field_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _calc_field procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((heading = (int (*)())dlsym(dlp, "_heading_")) == NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _heading procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((file_coordinate=(float(*)())dlsym(dlp, "_file_coordinate_"))
-	== NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((move_parcel=(void *(*)())dlsym(dlp, "_move_parcel_"))
-	== NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error finding  _file_coordinate procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if ((run_sub=(void *(*)())dlsym(dlp, "_run_sub_"))
-	== NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error run_sub procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-    if (physuv_2_lonlatuv_trans(=(void *(*)())dlsym(dlp, "_physuv_2_lonlatuv_trans_"))
-	== NULL) {
-/*        (void) fputs(progname,stderr);
-        (void) fputs(": error physuv_2_lonlatuv_trans procedure\n",stderr);
-        (void) fputs(dlerror(),stderr);*/
-    }
-   return 0;
+    return 0;
 }
 #endif /*sparc*/
 #if defined(__alpha) || defined(SOLARIS) || defined(IRIX) || defined(linux)
 #include <dlfcn.h>
 
     int
-load_func_(progname, objfile)
-     char *progname, *objfile;
-{
-    static void *dlp=NULL;
+    load_func_(progname, objfile)
+	 char *progname, *objfile;
+    {
+      static void *dlp=NULL;
 #if defined(IRIX)
 #else
 #endif
-    if(dlp) {
+      if(dlp) {
 	dlclose(dlp);
 	new_file = NULL;
 	new_field = NULL;
@@ -1792,6 +1740,7 @@ load_func_(progname, objfile)
 	move_parcel = NULL;
 	run_sub = NULL;
 	physuv_2_lonlatuv_trans = NULL;
+	dims_placement = NULL;
     }
     if (strcasecmp(objfile, "default") == 0) return 0;
     if (check_obj(objfile, 
