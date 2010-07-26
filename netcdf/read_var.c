@@ -198,15 +198,15 @@ char *data_units,
      *dim_names;	  /* name of the dimensions */
 int len1, len2, len3;
 {
-    int i, j, k, n=1, status, flag, read_from_nc=0, four=4;
+    int i, j, k, status, flag, read_from_nc=0, four=4;
+    long n; //runs out at ~ 2.5 gig vars otherwise
     SIZE_T *start, *length;	/* Needed for hyperslice access */
     float *vt, *pt;
     float delta[4], dommin[4], dommax[4];
-
-
+    int dims2go[10];
     /*
       Check for valid variable id.
-      */
+    */
     if (*var_id < 0 || *var_id >= var_file.nvars) {
 	return((float *) 0);
     }
@@ -222,174 +222,199 @@ int len1, len2, len3;
 	  This variable has not yet been read.
 	  Read per dimension attributes.
 	  */
-	if (var_file.file_dim > -1 && *ndims == 4)
-	    VAR_INFO.dims[3-var_file.file_dim] =
-		var_file.vars[var_file.file_varid].dims[0];
-        VAR_INFO.vatts.lmin = VAR_INFO.vatts.lmax = bigone;
-	read_from_nc = 1;
-	flag = ncopts;
-	ncopts = 0;
-	for (i=0; i < (*ndims>4?4:*ndims); ++i){
-	    int jfor = *ndims-1-i;
-	    /*
-	       New style attribute (min only).
-	       */
-	    VAR_INFO.dims[i].stagger = 0;
-	    minstr[0] = dname[jfor];
-	    if (var_file.file_dim > -1 && *ndims == 4 &&
+      /* Check for skipped dimentions*/
+      if(*ndims > 4)
+	dims_placement_trans_(ndims, dims2go, VAR_INFO.name);
+	   
+      if (var_file.file_dim > -1 && *ndims == 4)
+	VAR_INFO.dims[3-var_file.file_dim] =
+	  var_file.vars[var_file.file_varid].dims[0];
+      VAR_INFO.vatts.lmin = VAR_INFO.vatts.lmax = bigone;
+      read_from_nc = 1;
+      flag = ncopts;
+      ncopts = 0;
+      //      for (i=0; i < (*ndims>4?4:*ndims); ++i){
+      for (i=0; i < *ndims; ++i){
+	int jfor= *ndims-1-i;
+	if(*ndims > 4)	jfor = dims2go[i];
+	VAR_INFO.dims[i].min = 0.;
+	VAR_INFO.dims[i].max = 0.;
+	if(jfor < 0) continue;
+	/*
+	  New style attribute (min only).
+	*/
+	VAR_INFO.dims[i].stagger = 0;
+	minstr[0] = dname[jfor];
+	if (var_file.file_dim > -1 && *ndims == 4 &&
 		i == 3-var_file.file_dim) {
-		VAR_INFO.dims[i].min = dommin[jfor];
+	  VAR_INFO.dims[i].min = dommin[jfor];
+	  VAR_INFO.dims[i].max = dommax[jfor];
+	}
+	else if (ncattgetf(var_file.id, *var_id, minstr,
+			   &VAR_INFO.dims[i].min) != -1) {
+	  if (delta[jfor] == 0.)
+	    VAR_INFO.dims[i].max = dommax[jfor];
+	  else VAR_INFO.dims[i].max = VAR_INFO.dims[i].min 
+		 + delta[jfor]*(VAR_INFO.dims[i].size-1);
+	}
+	else {
+	  /*
+	    Old style attributes.
+	  */
+	  ominstr[0] = dname[jfor];
+	  if (ncattgetf(var_file.id, *var_id, ominstr,
+			&VAR_INFO.dims[i].min) != -1) {
+	    omaxstr[0] = dname[jfor];
+	    if (ncattgetf(var_file.id, *var_id, omaxstr,
+			  &VAR_INFO.dims[i].max) == -1)
+	      VAR_INFO.dims[i].max = dommax[jfor];
+	    ostag[0] = dname[jfor];
+	    ncattgetf(var_file.id, *var_id, ostag,
+		      &VAR_INFO.dims[i].stagger);
+	  }
+	  else {
+	    /*
+	      First, assume the variable is within the
+	      domain boundary.
+	    */
+	    VAR_INFO.dims[i].min = dommin[jfor];
+	    if (delta[jfor] == 0.) {
+	      if (VAR_INFO.dims[i].size == 1)
+		VAR_INFO.dims[i].max = dommin[jfor];
+	      else
 		VAR_INFO.dims[i].max = dommax[jfor];
 	    }
-	    else if (ncattgetf(var_file.id, *var_id, minstr,
-			    &VAR_INFO.dims[i].min) != -1) {
-                if (delta[jfor] == 0.)
-                    VAR_INFO.dims[i].max = dommax[jfor];
-		else VAR_INFO.dims[i].max = VAR_INFO.dims[i].min 
-                    + delta[jfor]*(VAR_INFO.dims[i].size-1);
-	    }
-	    else {
-		/*
-		   Old style attributes.
-		   */
-		ominstr[0] = dname[jfor];
-		if (ncattgetf(var_file.id, *var_id, ominstr,
-			     &VAR_INFO.dims[i].min) != -1) {
-		    omaxstr[0] = dname[jfor];
-		    if (ncattgetf(var_file.id, *var_id, omaxstr,
-				 &VAR_INFO.dims[i].max) == -1)
-			VAR_INFO.dims[i].max = dommax[jfor];
-		    ostag[0] = dname[jfor];
-		    ncattgetf(var_file.id, *var_id, ostag,
-			     &VAR_INFO.dims[i].stagger);
+	    else VAR_INFO.dims[i].max = dommin[jfor]
+		   + delta[jfor]*(VAR_INFO.dims[i].size-1);
+	    /* 
+	       Check for a variable with the same name as the dimension
+	       to use for physical limits.  Do not let a variable try
+	       to reference itself in this search.
+	    */
+	    for (j=0; j < var_file.nvars; ++j) {
+	      if (j != *var_id &&
+		  strcasecmp(var_file.vars[j].name, 
+			     var_file.dims[VAR_INFO.dims[i].id].name)
+		  == 0) {
+		float *data = (float *)var_file.vars[j].values;
+		if (data == NULL) {
+		  int ndim2, dim2[3];
+		  float sta2[3], mi2[3], ma2[3], misda2;
+		  
+		  data = (float *) read_var_(&j, &ndim2, dim2,
+					     sta2, mi2, ma2, &misda2,
+					     NULL, NULL, NULL,
+					     0, 0, 0);
 		}
-		else {
-		    /*
-		       First, assume the variable is within the
-		       domain boundary.
-		       */
-		    VAR_INFO.dims[i].min = dommin[jfor];
-		    if (delta[jfor] == 0.) {
-			if (VAR_INFO.dims[i].size == 1)
-			    VAR_INFO.dims[i].max = dommin[jfor];
-			else
-			    VAR_INFO.dims[i].max = dommax[jfor];
-		    }
-		    else VAR_INFO.dims[i].max = dommin[jfor]
-			+ delta[jfor]*(VAR_INFO.dims[i].size-1);
-		    /* 
-		       Check for a variable with the same name as the dimension
-		       to use for physical limits.  Do not let a variable try
-		       to reference itself in this search.
-		       */
-		    for (j=0; j < var_file.nvars; ++j) {
-			if (j != *var_id &&
-			    strcasecmp(var_file.vars[j].name, 
-				       var_file.dims[VAR_INFO.dims[i].id].name)
-			    == 0) {
-			    float *data = (float *)var_file.vars[j].values;
-			    if (data == NULL) {
-				int ndim2, dim2[3];
-				float sta2[3], mi2[3], ma2[3], misda2;
-
-				data = (float *) read_var_(&j, &ndim2, dim2,
-						       sta2, mi2, ma2, &misda2,
-						       NULL, NULL, NULL,
-						       0, 0, 0);
-			    }
-			    VAR_INFO.dims[i].min = data[0];
-			    VAR_INFO.dims[i].max =
-				data[VAR_INFO.dims[i].size-1];
-			}
-		    }
-		}
+		VAR_INFO.dims[i].min = data[0];
+		VAR_INFO.dims[i].max =
+		  data[VAR_INFO.dims[i].size-1];
+	      }
 	    }
-	}
-	
-	/* 
-	  Get missing data value.
-	  */
-	status = ncattgetf(var_file.id,*var_id,"missing_value",
-			  &VAR_INFO.misdat);
-	if(status == -1) status = ncattgetf(var_file.id,*var_id,"_FillValue",
-					   &VAR_INFO.misdat);
-	if(status == -1) status = ncattgetf(var_file.id,*var_id,"missing_data",
-			  &VAR_INFO.misdat);
-	if(status == -1) VAR_INFO.misdat=var_file.misdat;
-	
-	/* Get data units and data display units. If units display units are
-	   not found, set display units = units.
-	 */
-	if(!VAR_INFO.units_forced){
-	  for ( j = 0; j < MAX_NC_NAME; j++) {
-	    VAR_INFO.data_units[j] =  '\0';
-	    VAR_INFO.data_display_units_orig[j] = '\0';
 	  }
-	  status = ncattget(var_file.id, *var_id, "units",
-			    VAR_INFO.data_units);
-	  status = ncattget(var_file.id, *var_id, "display_units",
-			    VAR_INFO.data_display_units_orig);
-	  if ( status == -1 ) 
-	    strcpy (VAR_INFO.data_display_units_orig,VAR_INFO.data_units);
-	  if (VAR_INFO.data_display_units[0] == '\0')
-	    strcpy(VAR_INFO.data_display_units,
-		   VAR_INFO.data_display_units_orig);
 	}
+      }
+      
+      /* 
+	 Get missing data value.
+      */
+      status = ncattgetf(var_file.id,*var_id,"missing_value",
+			 &VAR_INFO.misdat);
+      if(status == -1) status = ncattgetf(var_file.id,*var_id,"_FillValue",
+					  &VAR_INFO.misdat);
+      if(status == -1) status = ncattgetf(var_file.id,*var_id,"missing_data",
+					  &VAR_INFO.misdat);
+      if(status == -1) VAR_INFO.misdat=var_file.misdat;
+      
+      /* Get data units and data display units. If units display units are
+	 not found, set display units = units.
+      */
+      if(!VAR_INFO.units_forced){
+	for ( j = 0; j < MAX_NC_NAME; j++) {
+	  VAR_INFO.data_units[j] =  '\0';
+	  VAR_INFO.data_display_units_orig[j] = '\0';
+	}
+	status = ncattget(var_file.id, *var_id, "units",
+			  VAR_INFO.data_units);
+	status = ncattget(var_file.id, *var_id, "display_units",
+			  VAR_INFO.data_display_units_orig);
+	if ( status == -1 ) 
+	  strcpy (VAR_INFO.data_display_units_orig,VAR_INFO.data_units);
+	if (VAR_INFO.data_display_units[0] == '\0')
+	  strcpy(VAR_INFO.data_display_units,
+		 VAR_INFO.data_display_units_orig);
+      }
     }
     
     /*
       Case where we read all values in one file.
-      */
+    */
     if (var_file.file_dim == -1 || *ndims < 4) {
-	for (i=0; i < *ndims; i++)
-	    dims[*ndims-1-i] = VAR_INFO.dims[i].size;
-	if (VAR_INFO.values == NULL) {
+      for (i=0; i < *ndims; i++){
+	int jfor = *ndims-1-i;
+	if(*ndims > 4) jfor = dims2go[i];
+	if(jfor < 0) continue;
+	dims[jfor] = VAR_INFO.dims[i].size;
+	printf("dims[%d] = %d, index %d\n",jfor,dims[jfor],i);
+      }
+      if (VAR_INFO.values == NULL) {
 	/*
 	  Allocate space for the variable.
-	  */
-	    if (*ndims) {
-		start = (SIZE_T *) malloc(sizeof(long) * *ndims);
-		length = (SIZE_T *) malloc(sizeof(long) * *ndims);
-		if (start == NULL || length == NULL) {
-		    if (start) free(start);
-		    (void)make_help_widget_("Memory cannot be allocated for \
+	*/
+	if (*ndims) {
+	  start = (SIZE_T *) malloc(sizeof(long) * *ndims);
+	  length = (SIZE_T *) malloc(sizeof(long) * *ndims);
+	  if (start == NULL || length == NULL) {
+	    if (start) free(start);
+	    (void)make_help_widget_("Memory cannot be allocated for \
 this field.\nPlease use FREE to delete a field from memory and try again.");
-		    return ((float *) 0);
-		}
-	    }
-	    for (i=0; i < *ndims; ++i) {
-		n *= VAR_INFO.dims[i].size;
-		length[i] = VAR_INFO.dims[i].size;
-		start[i] = 0;
-	    }
-	    VAR_INFO.values =
-		(float *) memalign(sizeof(float), sizeof(float) * n);
-	    if (VAR_INFO.values == NULL) {
-		(void)make_help_widget_("Memory cannot be allocated for this\
-field.\nPlease use FREE to delete a field from memory and try again.");
-		if (*ndims) {
-		    free (start);
-		    free (length);
-		}
-		return ((float *) 0);
-	    }
-	    i = nc_get_vara_float(var_file.id, *var_id, start, length,
-				  VAR_INFO.values);
-	    if (*ndims) {
-		free(start);
-		free(length);
-	    }
-	    ncopts = flag;
-	    /*
-	       Free allocated space on error.
-	       */
-	    if (i != 0) {
-		free(VAR_INFO.values);
-		VAR_INFO.values = 0;
-		return((float *) 0);
-	    }
+	    return ((float *) 0);
+	  }
 	}
+	for (i=0; i < *ndims; ++i) {
+	  int jfor = *ndims-1-i;
+	  if(*ndims > 4) jfor = dims2go[i];
+	  if(jfor < 0){
+	    length[i]=1;
+	    start[i]=0;
+	  }
+	  else{
+	    n *= VAR_INFO.dims[i].size;
+	    length[i] = VAR_INFO.dims[i].size;
+	    start[i] = 0;
+	  }
+	  printf("n = %ld\n",n);
+	}
+	VAR_INFO.values =
+	  (float *) memalign(sizeof(float), sizeof(float) * n);
+	if (VAR_INFO.values == NULL) {
+	  printf("tried to allocate %ld meg\n",sizeof(float) * n/(1024*1024));
+	  (void)make_help_widget_("Memory cannot be allocated for this \
+field.\nPlease use FREE to delete a field from memory and try again.");
+	  if (*ndims) {
+	    free (start);
+	    free (length);
+	  }
+	  return ((float *) 0);
+	}
+	i = nc_get_vara_float(var_file.id, *var_id, start, length,
+			      VAR_INFO.values);
+	if (*ndims) {
+	  free(start);
+	  free(length);
+	}
+	ncopts = flag;
+	/*
+	  Free allocated space on error.
+	*/
+	if (i != 0) {
+	  free(VAR_INFO.values);
+	  VAR_INFO.values = 0;
+	  return((float *) 0);
+	}
+      }
     }
+
     /*
        Case where we read all values from multiple files.
        */
@@ -498,11 +523,11 @@ this field.\nPlease use FREE to delete a field from memory and try again.");
 	    ncopts = flag;
 	}
     }
-    /*
-      Return requested information. Put array info in correct order
-      for fortran.
+	/*
+	  Return requested information. Put array info in correct order
+	  for fortran.
       */
-    for (i = *ndims-1, j=0; i >=0; i--,j++) {
+	for (i = *ndims-1, j=0; i >=0; i--,j++) {
 	if (dim_names)
 	    strncpy(dim_names+j*len3, var_file.dims[VAR_INFO.dims[i].id].name,
 		    (len3 < MAX_NC_NAME? len3: MAX_NC_NAME));
@@ -601,6 +626,6 @@ int nc_get_vara_float(ncid, varid, start, count, ip)
 	return i;
     }
     }
-}
-
+ }
+ 
 #endif NETCDF3

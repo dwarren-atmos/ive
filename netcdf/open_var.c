@@ -297,7 +297,7 @@ int len1, len2, len3, len4;
     /*
       Open the netcdf file and get header information.
       */
-    if ((var_file.id = ncopen(name, NC_NOWRITE)) == -1) {
+    if ((var_file.id = ncopen(name, NC_NOWRITE|NC_64BIT_OFFSET)) == -1) {
 	if (*temp) var_file = var_file_old;
 	else if (var_file_old.nvars > 0) free(var_file_old.vars);
 	ncopts = oldncopts;
@@ -446,6 +446,7 @@ int len1, len2, len3, len4;
 	  the largest variable.
 	  */
       int maxdim[4] = {0,0,0,0}, dim_var, maxndim = 0;
+      int dims2go[10];
 
 	for (i=0; i < var_file.nvars; ++i) {
 	    if (var_file.vars[i].ndims > maxndim) {
@@ -459,85 +460,96 @@ int len1, len2, len3, len4;
 		}
 	    }
 	    if (var_file.vars[i].ndims == maxndim) {
+	      dims_placement_trans_(&maxndim, dims2go,
+				    var_file.vars[i].name);
+	      /*
+		we can only really deal with 4 dimensions, so one of them 
+		beter be 1 (so it can be ignored) - transform tells us which
+		one matches which dim (currently must be in order - 
+		which to skip)
+	      */
+	      for (j=0; j< maxndim; ++j){ 
 
-		for (j=0; j < maxndim; ++j) {
+		int new_max=0, jfor= maxndim-j-1;
 
-		    int new_max=0, jfor = maxndim-j-1;
-		    
-		    if (find_domain[jfor]) continue;
-		    if (var_file.vars[i].dims[j].size > maxdim[jfor]) {
-			maxdim[jfor] = var_file.vars[i].dims[j].size;
-			new_max = 1;
-		    }
-		    /*
-		      Look for variable with same name as dimension if
-		      this is the largest dimension so far or if no
-		      such variable has been found for this dimension.
-		      */
-		    if (new_max || (dmin[jfor] == 0. && 
-				    dmax[jfor] == 0.)) {
-			dim_var = -1;
-			for (k=0; k < var_file.nvars; ++k) {
-			    if (strcmp(var_file.vars[k].name, 
-			       var_file.dims[var_file.vars[i].dims[j].id].name)
-				== 0) {
-				dim_var = k;
-				break;
-			    }
-			}
-			if (dim_var != -1) {
-			    int ndims, dims[3];
-			    float stag[3], min[3], max[3], misdat, *data;
-			    
-			    data = (float *) read_var_(&dim_var, &ndims, dims,
-						       stag, min, max, &misdat,
-						       data_units,
-						       data_display_units,
-						       NULL, 80, 80, 0);
-			    if(data != NULL){
-			      dmin[jfor] = data[0];
-			      dmax[jfor] = data[dims[0]-1];
-			      if (data_units[0])
-				strcpy(domain_units+(jfor)*len2, data_units);
-			      if (data_display_units[0]) 
-				strcpy(
-				      var_file.domain_display_units_orig[jfor],
-				      data_display_units);
-			      cdf_dimvar_.size[jfor] = dims[0];
-			      cdf_dimvar_.data[jfor] = data;
-			    }
-			}
-		    }
+		if(maxndim > 4) jfor=dims2go[j];
+		if(jfor<0) continue;
+		if (find_domain[jfor]) continue;
+
+		if (var_file.vars[i].dims[j].size > maxdim[jfor]) {
+		  maxdim[jfor] = var_file.vars[i].dims[j].size;
+		  new_max = 1;
 		}
+		/*
+		  Look for variable with same name as dimension if
+		  this is the largest dimension so far or if no
+		  such variable has been found for this dimension.
+		*/
+		if (new_max || (dmin[jfor] == 0. && 
+				dmax[jfor] == 0.)) {
+		  dim_var = -1;
+		  for (k=0; k < var_file.nvars; ++k) {
+		    if (strcmp(var_file.vars[k].name, 
+			       var_file.dims[var_file.vars[i].dims[j].id].name)
+			== 0) {
+		      dim_var = k;
+		      break;
+		    }
+		  }
+		  if (dim_var != -1) {
+		    int ndims, dims[3];
+		    float stag[3], min[3], max[3], misdat, *data;
+		    
+		    data = (float *) read_var_(&dim_var, &ndims, dims,
+					       stag, min, max, &misdat,
+					       data_units,
+					       data_display_units,
+						       NULL, 80, 80, 0);
+		    if(data != NULL){
+		      dmin[jfor] = data[0];
+		      dmax[jfor] = data[dims[0]-1];
+		      if (data_units[0])
+			strcpy(domain_units+(jfor)*len2, data_units);
+		      if (data_display_units[0]) 
+			strcpy(
+			       var_file.domain_display_units_orig[jfor],
+			       data_display_units);
+		      cdf_dimvar_.size[jfor] = dims[0];
+		      cdf_dimvar_.data[jfor] = data;
+		    }
+		  }
+		}
+	      }
 	    }
 	}
-	/*
-	   For each coordinate: if no domain information was specified,
-	   and there is no dimension variable, use the size of the largest
-	   array and set the delta to 1.
+      /*
+	For each coordinate: if no domain information was specified,
+	and there is no dimension variable, use the size of the largest
+	array and set the delta to 1.
 	   */
-	for (j=0; j < maxndim; ++j) {
-	    if (find_domain[maxndim-j-1] == 0 &&
-		maxdim[j] && dmin[j] == 0. && dmax[j] == 0.) {
-		dmin[j] = 1.;
-		dmax[j] = maxdim[j];
-		delta[j] = 1.;
-	    }
+      for (j=0; j < maxndim; ++j) {
+	if(j>3)break;
+	if (find_domain[maxndim-j-1] == 0 &&
+	    maxdim[j] && dmin[j] == 0. && dmax[j] == 0.) {
+	  dmin[j] = 1.;
+	  dmax[j] = maxdim[j];
+	    delta[j] = 1.;
 	}
+      }
     }
     if (!*temp && var_file_old.nvars) {
-	for (i=0; i < 4; i++) {
-	    if (domain_units[i*len3] 
-		&& var_file_old.domain_display_units[i][0])
-		strcpy(var_file.domain_display_units[i],
-		       var_file_old.domain_display_units[i]);
-	}
+      for (i=0; i < 4; i++) {
+	if (domain_units[i*len3] 
+	    && var_file_old.domain_display_units[i][0])
+	  strcpy(var_file.domain_display_units[i],
+		 var_file_old.domain_display_units[i]);
+      }
     }
     for (i=0; i < 4; i++) {
-	if (var_file.domain_display_units[i][0] == '\0') 
-	    strcpy(var_file.domain_display_units[i],
-		   var_file.domain_display_units_orig[i]);
-	strcpy(domain_display_units+i*len4, var_file.domain_display_units[i]);
+      if (var_file.domain_display_units[i][0] == '\0') 
+	strcpy(var_file.domain_display_units[i],
+	       var_file.domain_display_units_orig[i]);
+      strcpy(domain_display_units+i*len4, var_file.domain_display_units[i]);
     }
     if (!*temp && var_file_old.nvars > 0) free(var_file_old.vars);
     /*
