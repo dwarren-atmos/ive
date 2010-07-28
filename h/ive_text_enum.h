@@ -84,6 +84,8 @@
 #define POINT_TEXT_BOXES -3
 #define TRAJ_TEXT_BOXES -4
 #define COLOR_TEXT_BOXES -5
+#define ThreeD_TEXT_BOXES -6
+#define ThreeD_CONTROL_TEXT_BOXES -7
 
 #define MAX_CONTOUR_BOXES  5
 #define MAX_MAP_BOXES  4
@@ -100,6 +102,8 @@
 #define MAX_POINT_BOXES 4
 #define MAX_TRAJ_BOXES 6
 #define MAX_COLOR_BOXES 1
+#define MAX_ThreeD_BOXES 1
+#define MAX_ThreeD_CONTROL_BOXES 2
 
 #define CVALS  100
 #define XMAJOR  101
@@ -181,6 +185,8 @@
 #define TRAJ_BACKGROUND -405
 
 #define COLOR_SHIFT -500
+
+#define ThreeVALS -600
 
 #ifdef use_text_arrays
 int contour_text_boxes[MAX_CONTOUR_BOXES];
@@ -265,6 +271,12 @@ int color_text_boxes[MAX_COLOR_BOXES];
 /*
   color_shift
 */
+int threed_text_boxes[MAX_ThreeD_BOXES];
+int threed_control_text_boxes[MAX_ThreeD_CONTROL_BOXES];
+/*
+  Surface values
+*/
+
 #else
 extern int contour_text_boxes[MAX_CONTOUR_BOXES];
 extern int map_text_boxes[MAX_MAP_BOXES];
@@ -280,6 +292,8 @@ extern int terrain_text_boxes[MAX_TERRAIN_BOXES];
 extern int point_text_boxes[MAX_POINT_BOXES];
 extern int traj_text_boxes[MAX_TRAJ_BOXES];
 extern int color_text_boxes[MAX_COLOR_BOXES];
+extern int threed_text_boxes[MAX_ThreeD_BOXES];
+extern int threed_control_text_boxes[MAX_ThreeD_CONTROL_BOXES];
 void cleanup_box_call();
 void cleanup_form_call();
 void text_box_motion();

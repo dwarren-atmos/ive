@@ -61,20 +61,27 @@ typedef struct {
   NormalList *NormalList;
   int objectOn[10];
   GLuint listName[10];
+  char *Field[10];
 }Objects;
+
+typedef struct
+{
+	Objects *O;
+	int N;
+}ToggleButton;
 
 
 static float xPosition=0.f;
 static float yPosition=0.f;
 static float xStretch;
 static float yStretch;
-static float xRotation=0.f;
-static float yRotation=0.f;
+float xRotation;
+float yRotation;
 static float zRotation=0.f;
 static float clipDistanceIVE=0;
 static float clipDistanceIVE2=0;
 static int scalarX=1, scalarY=1, scalarZ=1;
-
+int LRMult,UDMult;
 static float mins3[3], maxs3[3], mids3[3];
 
 
