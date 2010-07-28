@@ -126,6 +126,9 @@ static char ident[] = "$Id: add_field.c,v 1.15 2003/12/24 18:50:07 davidive Exp 
 #ifdef __osf__
 #define memalign(size1,size2) malloc(size2)
 #endif
+#ifdef INTELCC
+#define memalign(size1,size2) malloc(size2)
+#endif
 #define bigone 1.0E38
 
 /*
@@ -135,9 +138,13 @@ static char ident[] = "$Id: add_field.c,v 1.15 2003/12/24 18:50:07 davidive Exp 
 
 #include "cdfinfo.h"
 #include <string.h>
-#include <malloc.h>
 #include <stdio.h>
 #include <ctype.h>
+#ifdef MEMDBG
+#include <mnemosyne.h>
+#else
+#include <malloc.h>
+#endif
 
 extern void make_help_widget_();
 cdf_info var_file;
