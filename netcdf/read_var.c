@@ -141,6 +141,9 @@ static char ident[] = "$Id: read_var.c,v 1.31 2006/05/01 22:08:17 davidive Exp $
 #ifdef __osf__
 #define memalign(size1,size2) malloc(size2)
 #endif
+#ifdef INTELCC
+#define memalign(size1,size2) malloc(size2)
+#endif
 #define bigone 1.0E38
 
 /*
@@ -151,10 +154,14 @@ static char ident[] = "$Id: read_var.c,v 1.31 2006/05/01 22:08:17 davidive Exp $
 #include "cdfinfo.h"
 #include <string.h>
 #include <strings.h>
-#include <stdlib.h>
+#include <ctype.h>
 #include <stdio.h>
+#ifdef MEMDBG
+#include <mnemosyne.h>
+#else
+#include <stdlib.h>
 #include <malloc.h>
-
+#endif
 extern void make_help_widget_(),setlvar_();
 extern void getrarr_(),make_help_widget_(),setlvar_();
 #ifdef NC_FILL_BYTE
@@ -385,8 +392,10 @@ this field.\nPlease use FREE to delete a field from memory and try again.");
 	  }
 	  printf("n = %ld\n",n);
 	}
+	printf("1\n");
 	VAR_INFO.values =
 	  (float *) memalign(sizeof(float), sizeof(float) * n);
+	printf("2\n");
 	if (VAR_INFO.values == NULL) {
 	  printf("tried to allocate %ld meg\n",sizeof(float) * n/(1024*1024));
 	  (void)make_help_widget_("Memory cannot be allocated for this \
