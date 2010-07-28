@@ -120,40 +120,41 @@ extern Widget color_form, lock_color_widget;
 /*map stuff*/
 
 extern struct{
-    Widget plot,overlay,lift_overlay;
-    Widget input_menu, input,load_file,load_trans,load_input;
-    Widget output_menu, output,dump_win,print,eps;
-    Widget print_current, print_setup, print_menu;
-    Widget print_twoper, print_fourper, print_sixper;
-    Widget set_log, save_win, quit;
-    Widget type_menu, type1, type2, Scalar, Vector, Trajectory, Skewt, Line;
-    Widget color_menu, cotable_sel, color, readtab, fore_to_back;
-    Widget mixer, mixerrgb, mixerhsl, mixer_sel,show_color;
-    Widget default_table, DL_table, custom_table;
-    Widget LD_table, BR_table, GBR_table, MBR_table, RBW_table, VAR_table;
-    Widget color_opts, write_table;
-    Widget loop,help;
-    Widget menu,row1,row2;
-    Widget field_holder,command;
-    Widget plot_menu, plot_att;
-    Widget background_menu, background, map, terrain, annotation;
-    Widget line_att, line_menu, linecolor_menu;
-    Widget linecolorhi_menu, linecolorlo_menu, linecolorbo_menu;
-    Widget colorsel, chi, clo, cbo, cdef;
-    Widget colorb, red, green, blue, grey; 
-    Widget black, white, brown, violet, orange, yellow;
-    Widget colorhi,redhi,greenhi,bluehi, greyhi, yellowhi;
-    Widget blackhi,whitehi,brownhi,violethi,orangehi;
-    Widget colorlo,redlo,greenlo,bluelo, greylo;
-    Widget blacklo,whitelo,brownlo,violetlo,orangelo, yellowlo;
-    Widget linepattern, patternsel, patternb, patternhi, patternlo, patdef;
-    Widget patb, line_solid, dash, dot, dashdot, 
-           dashdotdot, longdash_short,longdash;
-    Widget pathi, line_solidhi, dashhi, dothi, dashdothi,
-           dashdotdothi, longdash_shorthi,longdashhi;
-    Widget patlo, line_solidlo, dashlo, dotlo, dashdotlo,
-           dashdotdotlo, longdash_shortlo,longdashlo;
-    Widget linewidth, widthsel, one, two, three;
+  Widget plot,overlay,lift_overlay;
+  Widget input_menu, input,load_file,load_trans,load_input;
+  Widget output_menu, output,dump_win,print,eps;
+  Widget print_current, print_setup, print_menu;
+  Widget print_twoper, print_fourper, print_sixper;
+  Widget set_log, save_win, quit;
+  Widget type_menu, type1, type2, Scalar, Vector, Trajectory, Skewt, Line;
+  Widget color_menu, cotable_sel, color, readtab, fore_to_back;
+  Widget type3, Surface, Scatter, Wireframe;
+  Widget mixer, mixerrgb, mixerhsl, mixer_sel,show_color;
+  Widget default_table, DL_table, custom_table;
+  Widget LD_table, BR_table, GBR_table, MBR_table, RBW_table, VAR_table;
+  Widget color_opts, write_table;
+  Widget loop,help;
+  Widget menu,row1,row2;
+  Widget field_holder,command;
+  Widget plot_menu, plot_att;
+  Widget background_menu, background, map, terrain, annotation;
+  Widget line_att, line_menu, linecolor_menu;
+  Widget linecolorhi_menu, linecolorlo_menu, linecolorbo_menu;
+  Widget colorsel, chi, clo, cbo, cdef;
+  Widget colorb, red, green, blue, grey; 
+  Widget black, white, brown, violet, orange, yellow;
+  Widget colorhi,redhi,greenhi,bluehi, greyhi, yellowhi;
+  Widget blackhi,whitehi,brownhi,violethi,orangehi;
+  Widget colorlo,redlo,greenlo,bluelo, greylo;
+  Widget blacklo,whitelo,brownlo,violetlo,orangelo, yellowlo;
+  Widget linepattern, patternsel, patternb, patternhi, patternlo, patdef;
+  Widget patb, line_solid, dash, dot, dashdot, 
+    dashdotdot, longdash_short,longdash;
+  Widget pathi, line_solidhi, dashhi, dothi, dashdothi,
+    dashdotdothi, longdash_shorthi,longdashhi;
+  Widget patlo, line_solidlo, dashlo, dotlo, dashdotlo,
+    dashdotdotlo, longdash_shortlo,longdashlo;
+  Widget linewidth, widthsel, one, two, three;
 } main_widget;
 
 extern struct{
@@ -219,6 +220,20 @@ extern struct {
     slide1l, slide1r, slidelab1, button1,
     slide2l, slide2r, slidelab2, button2;
 }point_slicer;
+
+extern struct
+{
+  
+  Widget ThreeD;
+  Widget TransLab,transsep;
+  Widget TransLRt, TransUDt;
+  Widget toggle[4];
+  Widget moveU, moveD, moveL, moveR;
+  Widget RotLab,rotsep;
+  Widget RotUD, RotLR;
+  Widget reset;
+  Widget Objs, UDCol, RLCol, RUDCol, RRLCol;
+}controls_3D;
  
 #define DIR         0
 #define BUTTONS     1
@@ -276,3 +291,4 @@ extern struct {
 #define TRAJ_STEP_VAL_UI 53
 #define TRAJ_BACKGROUND_UI 54
 #define TRAJ_2D_UI 55
+#define THREED_CONTROL_FORM 56
