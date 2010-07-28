@@ -240,7 +240,8 @@ extern void getrvar_(),getivar_(),getlvar_(),getavar_(),getiarr_(),
   setup_contour_form(),setup_line_form(),setup_skewt_form(),setup_traj_form(),
   setup_vector_form(), call_driver(),form_flip_call_l(),  form_flip_call_c(),
   numlines_scale_type_in(), vint_scale_type_in(),point_axis_call(),
-  form_traj_step_call(), form_traj_val_call(), form_traj_background_call();
+  form_traj_step_call(), form_traj_val_call(), form_traj_background_call(),
+  form_3val_call();
 extern int get_button_name();
 
 XmString NewString();
@@ -258,6 +259,7 @@ struct {
   Widget dep_form_v,ind_form_v;
   Widget dep_form_s,ind_form_s;
   Widget dep_form_t,ind_form_t;
+  Widget dep_form_3d,ind_form_3d;
   Widget cont_int, cont_val, clab1, clab2, cont_row;       /*contour*/
   Widget cont_values;                                      /*contour*/
   Widget zero, zerolab;                                    /*contour*/
@@ -272,6 +274,8 @@ struct {
   Widget traj_ind_lab, traj_ind;                             /*trajectory*/
   Widget traj_expl_lab, traj_help;                           /*trajectory*/
   Widget traj_2d;                                             /*trajectory*/
+  Widget threed_value, threedlab, threed_row;                 /*3d*/
+  Widget threed_radio, iso, scatter, wire, mark, translucence; /*3d*/
 /* per plot */
   Widget vect_max, vect_lock, vect_maxlab, vect_locklab;     /*vector*/
   Widget vect_poslab, vect_pos;			             /*vector*/
@@ -316,8 +320,11 @@ struct {
     NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
     NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
-    NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
-    NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+    NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+    NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+    NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+    NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 
 XmString str;
 static char vec_max_D[]="vector_max=D";
@@ -1457,63 +1464,63 @@ void  do_line(parent, fix)
     XmStringFree(str);
 
 }
-    
-    
+   
+
 void  do_vector(parent)
      Widget parent;
 {
-    Pixel bot,top;
-
-    int error = 0, veclock = 0;
-    
-    /*make form but don't manage*/
-    
-    /*DEP FORM*/
-    Properties.dep_form_v = XtVaCreateWidget("Propertiesv",
-					     xmFormWidgetClass,
-					     parent,
-					     XmNtopAttachment,
-					     XmATTACH_FORM,
-					     XmNleftAttachment,
-					     XmATTACH_FORM,
-					     XmNrightAttachment,
-					     XmATTACH_FORM,
-					     XmNresizable, TRUE,
-					     XmNresizePolicy,
-					     XmRESIZE_ANY,
-					     XmNmarginWidth,5,
-					     XmNborderWidth,1,
-					     XmNwidth, 270,
-					     NULL);
-
-
-    /*row 1*/
-
-    str = NewString("Vector");
-    Properties.Vect_c_lab =
-      XtVaCreateManagedWidget("Vect_c_lab",xmLabelWidgetClass,
-			      Properties.dep_form_v,
-			      XmNlabelString,str,
-			      XmNtopAttachment,XmATTACH_FORM,
-			      XmNleftAttachment,XmATTACH_FORM,
-			      XmNrightAttachment,XmATTACH_FORM,
-			      NULL);
-    XmStringFree(str);
-
-
-    
-    str = NewString("Display");
-    Properties.vect_strlab = 
-      XtVaCreateManagedWidget("Vect_strlab",xmLabelWidgetClass,
-			      Properties.dep_form_v,
-			      XmNlabelString,str,
-			      XmNtopAttachment,XmATTACH_WIDGET,
-			      XmNtopWidget, Properties.Vect_c_lab,
-			      XmNleftAttachment,XmATTACH_FORM,
-			      XmNtopOffset,5,
-			      NULL);
-
-    XmStringFree(str);
+  Pixel bot,top;
+  
+  int error = 0, veclock = 0;
+  
+  /*make form but don't manage*/
+  
+  /*DEP FORM*/
+  Properties.dep_form_v = XtVaCreateWidget("Propertiesv",
+					   xmFormWidgetClass,
+					   parent,
+					   XmNtopAttachment,
+					   XmATTACH_FORM,
+					   XmNleftAttachment,
+					   XmATTACH_FORM,
+					   XmNrightAttachment,
+					   XmATTACH_FORM,
+					   XmNresizable, TRUE,
+					   XmNresizePolicy,
+					   XmRESIZE_ANY,
+					   XmNmarginWidth,5,
+					   XmNborderWidth,1,
+					   XmNwidth, 270,
+					   NULL);
+  
+  
+  /*row 1*/
+  
+  str = NewString("Vector");
+  Properties.Vect_c_lab =
+    XtVaCreateManagedWidget("Vect_c_lab",xmLabelWidgetClass,
+			    Properties.dep_form_v,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_FORM,
+			    XmNleftAttachment,XmATTACH_FORM,
+			    XmNrightAttachment,XmATTACH_FORM,
+			    NULL);
+  XmStringFree(str);
+  
+  
+  
+  str = NewString("Display");
+  Properties.vect_strlab = 
+    XtVaCreateManagedWidget("Vect_strlab",xmLabelWidgetClass,
+			    Properties.dep_form_v,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget, Properties.Vect_c_lab,
+			    XmNleftAttachment,XmATTACH_FORM,
+			    XmNtopOffset,5,
+			    NULL);
+  
+  XmStringFree(str);
 
     Properties.vect_strrow = 
       XtVaCreateManagedWidget("Vect_strRow", xmRowColumnWidgetClass,
@@ -2746,7 +2753,7 @@ void do_props(force)
     char temparr[100];
     XmString str;
     int test=0;
-    char plot_type[16], plot_type1[16], plot_type2[16];
+    char plot_type[16], plot_type1[16], plot_type2[16], plot_type3[16];
     int fix[4], pfix[4];
     Widget popup;
     extern int check_points_line_();
@@ -2759,15 +2766,15 @@ void do_props(force)
     for (ivar = 0; ivar<10; ivar++)
 	plot_type1[ivar] = plot_type2[ivar] = '\0';
     
-    test=16;
     (void)getavar_("plotyp1",plot_type1,&error,7,16);
     (void)getavar_("plotyp2",plot_type2,&error,7,16);
+    (void)getavar_("plotyp3",plot_type3,&error,7,16);
     (void)getivar_("use_buttons",&buttons,&error,11);
 
     test=4;
     (void)getiarr_("lock",fix,&test,&error,4);
     (void)getiarr_("ive_plock",pfix,&test,&error,9);
-
+    test=0;
     ivar=0;
     lvar=0;
     if(buttons){
@@ -2776,6 +2783,8 @@ void do_props(force)
 	    else if(fix[test]==2) lvar++;
 	}
 	
+	if(ivar+lvar==1)
+	  sprintf(plot_type,"3D");
 	
 	if((ivar == 2 && lvar == 0) || 
 	   (ivar == 1 && lvar == 1) ||
@@ -2811,218 +2820,299 @@ void do_props(force)
     }
 
     if (Properties.form){
-	if(XtIsManaged(XtParent(Properties.form)))
-	  if (!strcmp(plot_type,old_type))
-	    return;
-	  else
-	    test = 1;
+      if(XtIsManaged(XtParent(Properties.form)))
+	if (!strcmp(plot_type,old_type))
+	  return;
+	else
+	  test = 1;
     }
     else
       test = 0;
-
+    
     if(!test){
-        popup = XtVaCreatePopupShell("Properties",
-                                     transientShellWidgetClass,
-                                     XtParent(Box),
-                                     XmNheight, 315,
-                                     XmNwidth, 270,
-                                     XmNautoUnmanage,FALSE,
-                                     XmNx, 0,
-                                     XmNy, 
-                                     HeightOfScreen(XtScreen(Box))-(215+370),
-                                     XtNallowShellResize,TRUE,NULL);
-        
-        XtAddCallback(popup,XmNdestroyCallback,im_gone_callback,
-                      &Properties.form);
-        XtAddCallback(popup,XmNdestroyCallback,cleanup_form_call,
-                      (XtPointer)CONTOUR_TEXT_BOXES);
-        XtAddCallback(popup,XmNdestroyCallback,cleanup_form_call,
-                      (XtPointer)LINE_TEXT_BOXES);
-        XtAddCallback(popup,XmNdestroyCallback,cleanup_form_call,
-                      (XtPointer)VECTOR_TEXT_BOXES);
-        XtAddCallback(popup,XmNdestroyCallback,cleanup_form_call,
-                      (XtPointer)SKEWT_TEXT_BOXES);
-	
-	Properties.form = XtVaCreateManagedWidget("Properties",
-						  xmFormWidgetClass,
-						  popup,
-						  XmNheight, 315,
-						  XmNwidth, 270,
-						  XmNresizable, TRUE,
-						  XmNautoUnmanage,FALSE,NULL);
-	
-	XtAddCallback(Properties.form, XmNhelpCallback,
-		      check_help_call,NULL);
-	(void)do_contour(Properties.form);
-	(void)do_line(Properties.form, fix);
-	(void)do_vector(Properties.form);
-	(void)do_skewt(Properties.form);
-	(void)do_traj(Properties.form);
+      popup = XtVaCreatePopupShell("Properties",
+				   transientShellWidgetClass,
+				   XtParent(Box),
+				   XmNheight, 315,
+				   XmNwidth, 270,
+				   XmNautoUnmanage,FALSE,
+				   XmNx, 0,
+				   XmNy, 
+				   HeightOfScreen(XtScreen(Box))-(215+370),
+				   XtNallowShellResize,TRUE,NULL);
+      
+      XtAddCallback(popup,XmNdestroyCallback,im_gone_callback,
+		    &Properties.form);
+      XtAddCallback(popup,XmNdestroyCallback,cleanup_form_call,
+		    (XtPointer)CONTOUR_TEXT_BOXES);
+      XtAddCallback(popup,XmNdestroyCallback,cleanup_form_call,
+		    (XtPointer)LINE_TEXT_BOXES);
+      XtAddCallback(popup,XmNdestroyCallback,cleanup_form_call,
+		    (XtPointer)VECTOR_TEXT_BOXES);
+      XtAddCallback(popup,XmNdestroyCallback,cleanup_form_call,
+		    (XtPointer)SKEWT_TEXT_BOXES);
+      
+      Properties.form = XtVaCreateManagedWidget("Properties",
+						xmFormWidgetClass,
+						popup,
+						XmNheight, 315,
+						XmNwidth, 270,
+						XmNresizable, TRUE,
+						XmNautoUnmanage,FALSE,NULL);
+      
+      XtAddCallback(Properties.form, XmNhelpCallback,
+		    check_help_call,NULL);
+      (void)do_contour(Properties.form);
+      (void)do_line(Properties.form, fix);
+      (void)do_vector(Properties.form);
+      (void)do_skewt(Properties.form);
+      (void)do_traj(Properties.form);
     }
-      /*	do_vector(Properties.form)*/
-    if(*plot_type == 'C'){
-	XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
-		      NULL);
-	XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
-		      main_widget.Scalar, NULL);
-	if(!XtIsManaged(XtParent(Properties.form)))
-	  XtManageChild(XtParent(Properties.form));
-	if(!XtIsManaged(Properties.dep_form_c) || force){
-	  setup_contour_form();
-	    XtManageChild(Properties.dep_form_c);
-	    XtManageChild(Properties.ind_form_c);
-	}
-	if(XtIsManaged(Properties.dep_form_l)){
-	    XtUnmanageChild(Properties.dep_form_l);
-	    XtUnmanageChild(Properties.ind_form_l);
-	}
-	if(XtIsManaged(Properties.dep_form_v)){
-	    XtUnmanageChild(Properties.dep_form_v);
-	    XtUnmanageChild(Properties.ind_form_v);
-	}
-	if(XtIsManaged(Properties.dep_form_s))
-	    XtUnmanageChild(Properties.dep_form_s);
-
-	if(XtIsManaged(Properties.dep_form_t))
-	    XtUnmanageChild(Properties.dep_form_t);
+    if(*plot_type == 'C' && *(plot_type+1) == 'o'){
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Scalar, NULL);
+      if(!XtIsManaged(XtParent(Properties.form)))
+	XtManageChild(XtParent(Properties.form));
+      if(!XtIsManaged(Properties.dep_form_c) || force){
+	setup_contour_form();
+	XtManageChild(Properties.dep_form_c);
+	XtManageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
+      
+      if(XtIsManaged(Properties.dep_form_t))
+	XtUnmanageChild(Properties.dep_form_t);
     }
     else if(*plot_type == 'L'){
-	XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
-		      NULL);
-	XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
-		      main_widget.Line, NULL);
-	if(!XtIsManaged(XtParent(Properties.form))){
-	    XtManageChild(XtParent(Properties.form));
-	}
-	if(!XtIsManaged(Properties.dep_form_l) || force){
-	  if(buttons)
-	    setup_line_form(fix,buttons);
-	  else
-	    setup_line_form(pfix,buttons);
-	  XtManageChild(Properties.dep_form_l);
-	  XtManageChild(Properties.ind_form_l);
-	}
-	if(XtIsManaged(Properties.dep_form_c)){
-	    XtUnmanageChild(Properties.dep_form_c);
-	    XtUnmanageChild(Properties.ind_form_c);
-	}
-	if(XtIsManaged(Properties.dep_form_v)){
-	    XtUnmanageChild(Properties.dep_form_v);
-	    XtUnmanageChild(Properties.ind_form_v);
-	}
-	if(XtIsManaged(Properties.dep_form_s))
-	    XtUnmanageChild(Properties.dep_form_s);
-
-	if(XtIsManaged(Properties.dep_form_t))
-	    XtUnmanageChild(Properties.dep_form_t);
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Line, NULL);
+      if(!XtIsManaged(XtParent(Properties.form))){
+	XtManageChild(XtParent(Properties.form));
+      }
+      if(!XtIsManaged(Properties.dep_form_l) || force){
+	if(buttons)
+	  setup_line_form(fix,buttons);
+	else
+	  setup_line_form(pfix,buttons);
+	XtManageChild(Properties.dep_form_l);
+	XtManageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
+      
+      if(XtIsManaged(Properties.dep_form_t))
+	XtUnmanageChild(Properties.dep_form_t);
     }
-    else if(*plot_type == 'S') {
-	XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
-		      NULL);
-	XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
-		      main_widget.Skewt, NULL);
-	if(!XtIsManaged(XtParent(Properties.form))){
-	    XtManageChild(XtParent(Properties.form));
-	}
-	if(!XtIsManaged(Properties.dep_form_s) || force){
-	    setup_skewt_form();
-	    XtManageChild(Properties.dep_form_s);
-	}
-	if(XtIsManaged(Properties.dep_form_c)){
-	    XtUnmanageChild(Properties.dep_form_c);
-	    XtUnmanageChild(Properties.ind_form_c);
-	}
-	if(XtIsManaged(Properties.dep_form_v)){
-	    XtUnmanageChild(Properties.dep_form_v);
-	    XtUnmanageChild(Properties.ind_form_v);
-	}
-	if(XtIsManaged(Properties.dep_form_l)){
-	    XtUnmanageChild(Properties.dep_form_l);
-	    XtUnmanageChild(Properties.ind_form_l);
-	}
-	if(XtIsManaged(Properties.dep_form_t))
-	    XtUnmanageChild(Properties.dep_form_t);
-
+    else if(*plot_type == 'S' &&*(plot_type+1) == 'k' ) {
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Skewt, NULL);
+      if(!XtIsManaged(XtParent(Properties.form))){
+	XtManageChild(XtParent(Properties.form));
+      }
+      if(!XtIsManaged(Properties.dep_form_s) || force){
+	setup_skewt_form();
+	XtManageChild(Properties.dep_form_s);
+      }
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_t))
+	XtUnmanageChild(Properties.dep_form_t);
+      
     }
     else if(*plot_type == 'T') {
-	XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
-		      NULL);
-	XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
-		      main_widget.Trajectory, NULL);
-	if(!XtIsManaged(XtParent(Properties.form))){
-	    XtManageChild(XtParent(Properties.form));
-	}
-	if(!XtIsManaged(Properties.dep_form_t) || force){
-	  	    setup_traj_form();
-	    XtManageChild(Properties.dep_form_t);
-	    /*	    XtManageChild(Properties.ind_form_v);*/
-	}
-	if(XtIsManaged(Properties.dep_form_c)){
-	    XtUnmanageChild(Properties.dep_form_c);
-	    XtUnmanageChild(Properties.ind_form_c);
-	}
-	if(XtIsManaged(Properties.dep_form_v)){
-	    XtUnmanageChild(Properties.dep_form_v);
-	    XtUnmanageChild(Properties.ind_form_v);
-	}
-	if(XtIsManaged(Properties.dep_form_l)){
-	    XtUnmanageChild(Properties.dep_form_l);
-	    XtUnmanageChild(Properties.ind_form_l);
-	}
-	if(XtIsManaged(Properties.dep_form_s))
-	    XtUnmanageChild(Properties.dep_form_s);
-
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Trajectory, NULL);
+      if(!XtIsManaged(XtParent(Properties.form))){
+	XtManageChild(XtParent(Properties.form));
+      }
+      if(!XtIsManaged(Properties.dep_form_t) || force){
+	setup_traj_form();
+	XtManageChild(Properties.dep_form_t);
+	/*	    XtManageChild(Properties.ind_form_v);*/
+      }
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
+      
     }
     else if(*plot_type == 'V'){
-	XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
-		      NULL);
-	XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
-		      main_widget.Vector, NULL);
-	if(!XtIsManaged(XtParent(Properties.form)))
-	  XtManageChild(XtParent(Properties.form));
-	if(!XtIsManaged(Properties.dep_form_v) || force){
-	    setup_vector_form();
-	    XtManageChild(Properties.dep_form_v);
-	    XtManageChild(Properties.ind_form_v);
-	}
-	if(XtIsManaged(Properties.dep_form_c)){
-	    XtUnmanageChild(Properties.dep_form_c);
-	    XtUnmanageChild(Properties.ind_form_c);
-	}
-	if(XtIsManaged(Properties.dep_form_l)){
-	    XtUnmanageChild(Properties.dep_form_l);
-	    XtUnmanageChild(Properties.ind_form_l);
-	}
-	if(XtIsManaged(Properties.dep_form_s))
-	    XtUnmanageChild(Properties.dep_form_s);
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Vector, NULL);
+      if(!XtIsManaged(XtParent(Properties.form)))
+	XtManageChild(XtParent(Properties.form));
+      if(!XtIsManaged(Properties.dep_form_v) || force){
+	setup_vector_form();
+	XtManageChild(Properties.dep_form_v);
+	XtManageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
+    }
+    else if(*plot_type == 'S' && *(plot_type+1) == 'U'){
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type3,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Surface, NULL);
+      if(!XtIsManaged(XtParent(Properties.form)))
+	XtManageChild(XtParent(Properties.form));
+      if(!XtIsManaged(Properties.dep_form_3d) || force){
+	setup_3d_form();
+	XtManageChild(Properties.dep_form_3d);
+	XtManageChild(Properties.ind_form_3d);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
+    }
+    else if(*plot_type == 'P'){
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type3,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Scatter, NULL);
+      if(!XtIsManaged(XtParent(Properties.form)))
+	XtManageChild(XtParent(Properties.form));
+      if(!XtIsManaged(Properties.dep_form_3d) || force){
+	setup_3d_form();
+	XtManageChild(Properties.dep_form_3d);
+	XtManageChild(Properties.ind_form_3d);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
+    }
+    else if(*plot_type == 'W'){
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type3,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Wireframe, NULL);
+      if(!XtIsManaged(XtParent(Properties.form)))
+	XtManageChild(XtParent(Properties.form));
+      if(!XtIsManaged(Properties.dep_form_3d) || force){
+	setup_3d_form();
+	XtManageChild(Properties.dep_form_3d);
+	XtManageChild(Properties.ind_form_3d);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
     }
     else {
-	if(XtIsManaged(Properties.dep_form_c)){
-	    XtUnmanageChild(Properties.dep_form_c);
-	    XtUnmanageChild(Properties.ind_form_c);
-	}
-	if(XtIsManaged(Properties.dep_form_l)){
-	    XtUnmanageChild(Properties.dep_form_l);
-	    XtUnmanageChild(Properties.ind_form_l);
-	}
-	if(XtIsManaged(Properties.dep_form_v)){
-	    XtUnmanageChild(Properties.dep_form_v);
-	    XtUnmanageChild(Properties.ind_form_v);
-	}
-	if(XtIsManaged(Properties.dep_form_s))
-	    XtUnmanageChild(Properties.dep_form_s);
-	XtUnmanageChild(XtParent(Properties.form));
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
+      XtUnmanageChild(XtParent(Properties.form));
     }
     if (XtIsManaged(Properties.form) && XtIsManaged(XtParent(Properties.form)))
-	XRaiseWindow(XtDisplay(Properties.form),
-		     XtWindow(XtParent(Properties.form)));
-	
+      XRaiseWindow(XtDisplay(Properties.form),
+		   XtWindow(XtParent(Properties.form)));
+    
 }
+
 
 void do_props_(force)
      int *force;
 {
-    do_props(*force);
+  do_props(*force);
 }
 
 /********************COLOR FORM********************/
@@ -3033,264 +3123,264 @@ void init_color(w,data,call)/*The callbacks for this form are in color_misc.c*/
      caddr_t data;          /*additional places                              */
      XmAnyCallbackStruct *call;
 {
-    Widget popup, lab1, lab2, lab3;
-    int error, ival;
-    float rval;
-    char fieldc[80], button[80], avar[256];
-
-    XmString str;
-    char buff[10];
-    extern void color_reset_callback();
-    extern void color_lock_callback();
-    extern void color_shift_callback();
-    extern void color_table_callback();
-    if (Properties.color_form){
-	if(XtIsManaged(XtParent(Properties.color_form)))
-	  /*XtUnmanageChild(XtParent(Properties.color_form));*/
-	  return;
-	else
-	  XtManageChild(XtParent(Properties.color_form));
-	return;
-    }
-
-    /*make form but don't manage*/
-
-    popup = XtVaCreatePopupShell("Color Options",
+  Widget popup, lab1, lab2, lab3;
+  int error, ival;
+  float rval;
+  char fieldc[80], button[80], avar[256];
+  
+  XmString str;
+  char buff[10];
+  extern void color_reset_callback();
+  extern void color_lock_callback();
+  extern void color_shift_callback();
+  extern void color_table_callback();
+  if (Properties.color_form){
+    if(XtIsManaged(XtParent(Properties.color_form)))
+      /*XtUnmanageChild(XtParent(Properties.color_form));*/
+      return;
+    else
+      XtManageChild(XtParent(Properties.color_form));
+    return;
+  }
+  
+  /*make form but don't manage*/
+  
+  popup = XtVaCreatePopupShell("Color Options",
                                transientShellWidgetClass,
-				 XtParent(Box),
-				 XmNheight, 100,
-				 XmNwidth, 230,
-				 XmNautoUnmanage,FALSE,
-				 XmNx, 0,
-				 XmNy, HeightOfScreen(XtScreen(w))-(215 + 260),
-				 XtNallowShellResize,TRUE, NULL); 
-    XtAddCallback(popup,XmNdestroyCallback,im_gone_callback,
-		  &Properties.color_form);
-
-    Properties.color_form = XtVaCreateManagedWidget("Color Options",
-					     xmFormWidgetClass,popup,
-					     XmNheight, 100,
-					     XmNwidth, 230, XmNautoUnmanage,
-					     FALSE, NULL);
-    XtManageChild(Properties.color_form);
-
-    /*row 1*/
-    lab1 =
-      XtVaCreateManagedWidget("Shift Colors\n Up/Down (</>)",
-			      xmLabelWidgetClass,
-			      Properties.color_form,
-			      XmNleftAttachment,XmATTACH_FORM,
-			      XmNtopAttachment,XmATTACH_FORM,
-			      NULL);
-    
-    Properties.color_left = XtVaCreateManagedWidget("Left",
-						    xmArrowButtonWidgetClass,
-						    Properties.color_form,
-						    XmNleftAttachment,
-						     XmATTACH_WIDGET,
-						     XmNleftWidget,
-						     lab1,
-						     XmNleftOffset, 10,
-						     XmNtopAttachment,
-						     XmATTACH_FORM,
-						    XmNarrowDirection,
-						    XmARROW_LEFT, NULL);
-
-    Properties.color_right = XtVaCreateManagedWidget("Right",
-						     xmArrowButtonWidgetClass,
-						     Properties.color_form,
-						     XmNleftAttachment,
-						     XmATTACH_WIDGET,
-						     XmNleftWidget,
-						     Properties.color_left,
-						     XmNleftOffset, 10,
-						     XmNtopAttachment,
-						     XmATTACH_FORM,
-						     XmNarrowDirection,
-						     XmARROW_RIGHT, NULL);
-
-      XtAddCallback(Properties.color_left,
-		    XmNactivateCallback,color_shift_callback,(XtPointer)"L");
-
-      XtAddCallback(Properties.color_right,
-		    XmNactivateCallback,color_shift_callback,(XtPointer)"R");
-
-    /*    Properties.color_shift = XtVaCreateManagedWidget("Shift",
-						     xmTextFieldWidgetClass,
-						     Properties.color_form,
-						     XmNleftAttachment,
-						     XmATTACH_WIDGET,
-						     XmNleftWidget,
-						     lab1,
-						     XmNleftOffset, 10,
-						     XmNtopAttachment,
-						     XmATTACH_FORM,
-						     XmNcolumns, 4,
-						     NULL);
-
-      XtVaCreateManagedWidget("Intervals",
-			      xmLabelWidgetClass,
-			      Properties.color_form,
-			      XmNleftAttachment,XmATTACH_WIDGET,
-			      XmNleftWidget, Properties.color_shift,
-			      XmNleftOffset, 5,
-			      XmNtopAttachment,XmATTACH_FORM,
-			      XmNtopOffset, 5,
-			      NULL);
-
-    XtAddCallback(Properties.color_shift,XmNactivateCallback,
-		  cleanup_box_call,(XtPointer)COLOR_SHIFT);
-    XtAddCallback(Properties.color_shift,XmNmodifyVerifyCallback,check_num,(XtPointer)COLOR_SHIFT);
-    XtAddCallback(Properties.color_shift,XmNmotionVerifyCallback,
-		  text_box_motion,(XtPointer)COLOR_SHIFT);
-    XtAddCallback(Properties.color_shift,XmNactivateCallback,
-		  color_shift_callback,NULL);
-    */
-    /*row 2*/
-    lab2 = 
-      XtVaCreateManagedWidget("Lock Color\nTable:",xmLabelWidgetClass,
-			      Properties.color_form,
-			      XmNleftAttachment,
-			      XmATTACH_FORM,
-			      XmNtopAttachment,
-			      XmATTACH_WIDGET,
-			      XmNtopWidget,
-			      lab1,
-			      XmNtopOffset, 5,
-			      NULL);
-
-    (void)getrvar_("lock_int",  &rval, &error, 8);
-    if(!error && rval != 0){
-      (void)getavar_("lock_field", fieldc, &error, 10, 80);
-      if(!get_button_name(fieldc,button)){
-	sprintf(avar,"%s Locked",button);
-	str = NewString(avar);
-      }
-      else{
-	str = NewString("Free");
-      }
+			       XtParent(Box),
+			       XmNheight, 100,
+			       XmNwidth, 230,
+			       XmNautoUnmanage,FALSE,
+			       XmNx, 0,
+			       XmNy, HeightOfScreen(XtScreen(w))-(215 + 260),
+			       XtNallowShellResize,TRUE, NULL); 
+  XtAddCallback(popup,XmNdestroyCallback,im_gone_callback,
+		&Properties.color_form);
+  
+  Properties.color_form = XtVaCreateManagedWidget("Color Options",
+						  xmFormWidgetClass,popup,
+						  XmNheight, 100,
+						  XmNwidth, 230, XmNautoUnmanage,
+						  FALSE, NULL);
+  XtManageChild(Properties.color_form);
+  
+  /*row 1*/
+  lab1 =
+    XtVaCreateManagedWidget("Shift Colors\n Up/Down (</>)",
+			    xmLabelWidgetClass,
+			    Properties.color_form,
+			    XmNleftAttachment,XmATTACH_FORM,
+			    XmNtopAttachment,XmATTACH_FORM,
+			    NULL);
+  
+  Properties.color_left = XtVaCreateManagedWidget("Left",
+						  xmArrowButtonWidgetClass,
+						  Properties.color_form,
+						  XmNleftAttachment,
+						  XmATTACH_WIDGET,
+						  XmNleftWidget,
+						  lab1,
+						  XmNleftOffset, 10,
+						  XmNtopAttachment,
+						  XmATTACH_FORM,
+						  XmNarrowDirection,
+						  XmARROW_LEFT, NULL);
+  
+  Properties.color_right = XtVaCreateManagedWidget("Right",
+						   xmArrowButtonWidgetClass,
+						   Properties.color_form,
+						   XmNleftAttachment,
+						   XmATTACH_WIDGET,
+						   XmNleftWidget,
+						   Properties.color_left,
+						   XmNleftOffset, 10,
+						   XmNtopAttachment,
+						   XmATTACH_FORM,
+						   XmNarrowDirection,
+						   XmARROW_RIGHT, NULL);
+  
+  XtAddCallback(Properties.color_left,
+		XmNactivateCallback,color_shift_callback,(XtPointer)"L");
+  
+  XtAddCallback(Properties.color_right,
+		XmNactivateCallback,color_shift_callback,(XtPointer)"R");
+  
+  /*    Properties.color_shift = XtVaCreateManagedWidget("Shift",
+	xmTextFieldWidgetClass,
+	Properties.color_form,
+	XmNleftAttachment,
+	XmATTACH_WIDGET,
+	XmNleftWidget,
+	lab1,
+	XmNleftOffset, 10,
+	XmNtopAttachment,
+	XmATTACH_FORM,
+	XmNcolumns, 4,
+	NULL);
+	
+	XtVaCreateManagedWidget("Intervals",
+	xmLabelWidgetClass,
+	Properties.color_form,
+	XmNleftAttachment,XmATTACH_WIDGET,
+	XmNleftWidget, Properties.color_shift,
+	XmNleftOffset, 5,
+	XmNtopAttachment,XmATTACH_FORM,
+	XmNtopOffset, 5,
+	NULL);
+	
+	XtAddCallback(Properties.color_shift,XmNactivateCallback,
+	cleanup_box_call,(XtPointer)COLOR_SHIFT);
+	XtAddCallback(Properties.color_shift,XmNmodifyVerifyCallback,check_num,(XtPointer)COLOR_SHIFT);
+	XtAddCallback(Properties.color_shift,XmNmotionVerifyCallback,
+	text_box_motion,(XtPointer)COLOR_SHIFT);
+	XtAddCallback(Properties.color_shift,XmNactivateCallback,
+	color_shift_callback,NULL);
+  */
+  /*row 2*/
+  lab2 = 
+    XtVaCreateManagedWidget("Lock Color\nTable:",xmLabelWidgetClass,
+			    Properties.color_form,
+			    XmNleftAttachment,
+			    XmATTACH_FORM,
+			    XmNtopAttachment,
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    lab1,
+			    XmNtopOffset, 5,
+			    NULL);
+  
+  (void)getrvar_("lock_int",  &rval, &error, 8);
+  if(!error && rval != 0){
+    (void)getavar_("lock_field", fieldc, &error, 10, 80);
+    if(!get_button_name(fieldc,button)){
+      sprintf(avar,"%s Locked",button);
+      str = NewString(avar);
     }
     else{
       str = NewString("Free");
     }
-    Properties.lock_color_widget = 
-      XtVaCreateManagedWidget("lock widget",xmPushButtonWidgetClass,
-			      Properties.color_form, 
-			      XmNleftAttachment,
-			      XmATTACH_WIDGET,
-			      XmNleftWidget, lab2,
-			      XmNtopAttachment,
-			      XmATTACH_WIDGET,
-			      XmNtopWidget,
-			      lab1,
-			      XmNtopOffset, 5,
-			      NULL);
-    
-    XtAddCallback(Properties.lock_color_widget,
-		  XmNactivateCallback,color_lock_callback,NULL);
-
-    XtVaSetValues(Properties.lock_color_widget,XmNlabelString,
-		  str,NULL);
-
-    XmStringFree(str);
-
-/// TEST FOR WHICH COLOR TABLE OPTION
-
-
-    lab3 = 
-      XtVaCreateManagedWidget("Color\nTable:",xmLabelWidgetClass,
-			      Properties.color_form,
-			      XmNleftAttachment,
-			      XmATTACH_FORM,
-			      XmNtopAttachment,
-			      XmATTACH_WIDGET,
-			      XmNtopWidget,
-			      lab1,
-			      XmNtopOffset, 5,
-				  XmNleftOffset, 115,
-			      NULL);
-
-    Properties.which_coltab = 
-      XtVaCreateManagedWidget("Which Color Table",xmPushButtonWidgetClass,
-			      Properties.color_form, 
-			      XmNleftAttachment,
-			      XmATTACH_WIDGET,
-			      XmNleftWidget, lab3,
-			      XmNtopAttachment,
-			      XmATTACH_WIDGET,
-			      XmNtopWidget,
-			      lab1,
-			      XmNtopOffset, 5,
-			      NULL);
-
-	str = NewString("Standard");
-	//str = NewString("Trajectory");
-
-    XtAddCallback(Properties.which_coltab,XmNactivateCallback,color_table_callback,NULL);
-
-    XtVaSetValues(Properties.which_coltab,XmNlabelString,str,NULL);
-    XmStringFree(str);
-
-/// END TEST
-    
-    /*row 3*/
-    Properties.color_reset = XtVaCreateManagedWidget("Reset",
-						     xmPushButtonWidgetClass,
-						     Properties.color_form, 
-						     XmNleftAttachment,
-						     XmATTACH_FORM,
-						     XmNtopAttachment,
-						     XmATTACH_WIDGET,
-						     XmNtopWidget,
-					         Properties.lock_color_widget,
-						     XmNtopOffset, 10,
-						     XmNleftOffset, 2,
-						     NULL);
-
-    XtAddCallback(Properties.color_reset,XmNactivateCallback,
-		  color_reset_callback,NULL);
-
-
-    Properties.color_toggle = 
-      XtVaCreateManagedWidget("Toggle Background",
-			      xmPushButtonWidgetClass,
-			      Properties.color_form,
-			      XmNleftAttachment,
-			      XmATTACH_WIDGET,
-			      XmNleftWidget,
-			      Properties.color_reset,
-			      XmNleftOffset, 8,
-			      XmNtopAttachment,
-			      XmATTACH_WIDGET,
-			      XmNtopWidget,
-			      Properties.lock_color_widget,
-			      XmNtopOffset, 10,
-			      NULL);
-
-    XtAddCallback(Properties.color_toggle,XmNactivateCallback,
-		  swap_colors_callback,NULL);
-
-    Properties.color_bar = XtVaCreateManagedWidget("Color Bar",
+  }
+  else{
+    str = NewString("Free");
+  }
+  Properties.lock_color_widget = 
+    XtVaCreateManagedWidget("lock widget",xmPushButtonWidgetClass,
+			    Properties.color_form, 
+			    XmNleftAttachment,
+			    XmATTACH_WIDGET,
+			    XmNleftWidget, lab2,
+			    XmNtopAttachment,
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    lab1,
+			    XmNtopOffset, 5,
+			    NULL);
+  
+  XtAddCallback(Properties.lock_color_widget,
+		XmNactivateCallback,color_lock_callback,NULL);
+  
+  XtVaSetValues(Properties.lock_color_widget,XmNlabelString,
+		str,NULL);
+  
+  XmStringFree(str);
+  
+  /// TEST FOR WHICH COLOR TABLE OPTION
+  
+  
+  lab3 = 
+    XtVaCreateManagedWidget("Color\nTable:",xmLabelWidgetClass,
+			    Properties.color_form,
+			    XmNleftAttachment,
+			    XmATTACH_FORM,
+			    XmNtopAttachment,
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    lab1,
+			    XmNtopOffset, 5,
+			    XmNleftOffset, 115,
+			    NULL);
+  
+  Properties.which_coltab = 
+    XtVaCreateManagedWidget("Which Color Table",xmPushButtonWidgetClass,
+			    Properties.color_form, 
+			    XmNleftAttachment,
+			    XmATTACH_WIDGET,
+			    XmNleftWidget, lab3,
+			    XmNtopAttachment,
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    lab1,
+			    XmNtopOffset, 5,
+			    NULL);
+  
+  str = NewString("Standard");
+  //str = NewString("Trajectory");
+  
+  XtAddCallback(Properties.which_coltab,XmNactivateCallback,color_table_callback,NULL);
+  
+  XtVaSetValues(Properties.which_coltab,XmNlabelString,str,NULL);
+  XmStringFree(str);
+  
+  /// END TEST
+  
+  /*row 3*/
+  Properties.color_reset = XtVaCreateManagedWidget("Reset",
 						   xmPushButtonWidgetClass,
-						   Properties.color_form,
-						   XmNrightAttachment,
+						   Properties.color_form, 
+						   XmNleftAttachment,
 						   XmATTACH_FORM,
 						   XmNtopAttachment,
 						   XmATTACH_WIDGET,
 						   XmNtopWidget,
-					   Properties.lock_color_widget,
+						   Properties.lock_color_widget,
 						   XmNtopOffset, 10,
-						   XmNleftAttachment,
-						   XmATTACH_WIDGET,
-						   XmNleftWidget,
-						   Properties.color_toggle,
-						   XmNleftOffset, 8,
-						   XmNrightOffset, 2,
+						   XmNleftOffset, 2,
 						   NULL);
-
-    XtAddCallback(Properties.color_bar,XmNactivateCallback,color_bar_callback,
-		  NULL);
-    XtManageChild(popup);
+  
+  XtAddCallback(Properties.color_reset,XmNactivateCallback,
+		color_reset_callback,NULL);
+  
+  
+  Properties.color_toggle = 
+    XtVaCreateManagedWidget("Toggle Background",
+			    xmPushButtonWidgetClass,
+			    Properties.color_form,
+			    XmNleftAttachment,
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.color_reset,
+			    XmNleftOffset, 8,
+			    XmNtopAttachment,
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.lock_color_widget,
+			    XmNtopOffset, 10,
+			    NULL);
+  
+  XtAddCallback(Properties.color_toggle,XmNactivateCallback,
+		swap_colors_callback,NULL);
+  
+  Properties.color_bar = XtVaCreateManagedWidget("Color Bar",
+						 xmPushButtonWidgetClass,
+						 Properties.color_form,
+						 XmNrightAttachment,
+						 XmATTACH_FORM,
+						 XmNtopAttachment,
+						 XmATTACH_WIDGET,
+						 XmNtopWidget,
+						 Properties.lock_color_widget,
+						 XmNtopOffset, 10,
+						 XmNleftAttachment,
+						 XmATTACH_WIDGET,
+						 XmNleftWidget,
+						 Properties.color_toggle,
+						 XmNleftOffset, 8,
+						 XmNrightOffset, 2,
+						 NULL);
+  
+  XtAddCallback(Properties.color_bar,XmNactivateCallback,color_bar_callback,
+		NULL);
+  XtManageChild(popup);
 }
 
 init_color_(){
@@ -3300,213 +3390,597 @@ init_color_(){
 /********************PRINTER SETUP FORM********************/
 
 struct {
-    Widget form;
-    Widget printer_name;
-    Widget color_lab;
-    Widget color;
-    Widget landscape;
-    char current[256];
+  Widget form;
+  Widget printer_name;
+  Widget color_lab;
+  Widget color;
+  Widget landscape;
+  char current[256];
 }printer_setup={NULL,NULL,NULL,NULL,NULL,"\0"};
 
 char **get_printers(){
-    static char *ptr[100];
-    char buff[256], *dummy;
-    FILE *printcap;
-    int i;
-
-
-    if((printcap = fopen("/etc/printcap", "r")) == NULL){
-	ptr[0] == NULL;
-	return(ptr);
-    }
-
-    if((ptr[0] = (char *)malloc(5))==NULL){
-      make_help_widget_("Out of memory in get_printers");
-      ptr[1] = NULL;
-      return(ptr);
-    }
-      
-    strcpy(ptr[0],"File");
-    i = 1;
-    while (fgets(buff,255,printcap) != NULL){
-	switch(buff[0]){
-	  case '#' :
-	  case ' ' :
-	  case '\t':
-	  case '\n':
-	    break;
-	  default  :
-	    /* must be a printer */
-	    dummy = (char *)strchr(buff, '|');
-	    if(dummy == NULL)
-	      dummy = (char *)strchr(buff, ':');
-	    if(dummy == NULL)break;
-	    *dummy = '\0';
-	    if((ptr[i] = (char *)malloc(strlen(buff)+1)) == NULL){
-		make_help_widget_("Out of memory in get_printers");
-		ptr[i] = NULL;
-		return(ptr);
-	    }
-	    strcpy(ptr[i],buff);
-	    i++;
-	    break;
-	}
-    }
-    ptr[i] = NULL;
+  static char *ptr[100];
+  char buff[256], *dummy;
+  FILE *printcap;
+  int i;
+  
+  
+  if((printcap = fopen("/etc/printcap", "r")) == NULL){
+    ptr[0] == NULL;
     return(ptr);
+  }
+  
+  if((ptr[0] = (char *)malloc(5))==NULL){
+    make_help_widget_("Out of memory in get_printers");
+    ptr[1] = NULL;
+    return(ptr);
+  }
+  
+  strcpy(ptr[0],"File");
+  i = 1;
+  while (fgets(buff,255,printcap) != NULL){
+    switch(buff[0]){
+    case '#' :
+    case ' ' :
+    case '\t':
+    case '\n':
+      break;
+    default  :
+      /* must be a printer */
+      dummy = (char *)strchr(buff, '|');
+      if(dummy == NULL)
+	dummy = (char *)strchr(buff, ':');
+      if(dummy == NULL)break;
+      *dummy = '\0';
+      if((ptr[i] = (char *)malloc(strlen(buff)+1)) == NULL){
+	make_help_widget_("Out of memory in get_printers");
+	ptr[i] = NULL;
+	return(ptr);
+      }
+      strcpy(ptr[i],buff);
+      i++;
+      break;
+    }
+  }
+  ptr[i] = NULL;
+  return(ptr);
 }
-	    
+
 void init_printsetup(w,data,call)
      Widget w;              /*This is due to their being called from         */
      caddr_t data;          /*additional places                              */
      XmAnyCallbackStruct *call;
 {
-    Widget popup, done;
-    int i,j;
-    int color_printer,error;
-    XmString str;
-    char **printers;
-    char * current_printer;
-    if(printer_setup.form)
-      if(XtIsManaged(XtParent(printer_setup.form)))
-	XtUnmanageChild(XtParent(Properties.color_form));
-      else{
-	  XtManageChild(XtParent(printer_setup.form));
-	  return;
-      }
-    
-    
-    /*make form but don't manage*/
-    
-    popup = XtVaCreatePopupShell("Printer Options",
-				 transientShellWidgetClass,
-				 XtParent(Box) ,
-				 XmNautoUnmanage,FALSE,
-				 XmNy, 
-				 HeightOfScreen(XtScreen(w))-(215 + 260),
-				 NULL);
-    XtAddCallback(popup,XmNdestroyCallback,im_gone_callback,
-		  &printer_setup.form);
-    
-    str = NewString("Printer Setup");
-    printer_setup.form = XtVaCreateManagedWidget("Printer Setup",
-						 xmFormWidgetClass,
-						 popup,
-						 XmNlabelString, str,
-						 XmNwidth,260,
-						 XmNheight, 270,
-						 NULL);
-    XmStringFree(str);
-    XtAddCallback(printer_setup.form, XmNhelpCallback,
-                  check_help_call,NULL);
-
-    str = NewString("Printers");
-    printer_setup.printer_name = 
-      XtVaCreateManagedWidget("Printer",
-			      xmSelectionBoxWidgetClass, printer_setup.form,
-			      XmNtopAttachment, XmATTACH_FORM,
-			      XmNselectionPolicy,XmBROWSE_SELECT,
-			      XmNwidth,260,
-			      XmNheight,230,
-			      XmNlistLabelString,str,
-			      XmNmarginHeight,10,
-			      XmNmarginWidth,2,
-			      NULL);
-    XtVaCreateManagedWidget("Sep",xmSeparatorWidgetClass,printer_setup.form,
-			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNtopAttachment, XmATTACH_WIDGET,
-			    XmNtopWidget,printer_setup.printer_name,
+  Widget popup, done;
+  int i,j;
+  int color_printer,error;
+  XmString str;
+  char **printers;
+  char * current_printer;
+  if(printer_setup.form)
+    if(XtIsManaged(XtParent(printer_setup.form)))
+      XtUnmanageChild(XtParent(Properties.color_form));
+    else{
+      XtManageChild(XtParent(printer_setup.form));
+      return;
+    }
+  
+  
+  /*make form but don't manage*/
+  
+  popup = XtVaCreatePopupShell("Printer Options",
+			       transientShellWidgetClass,
+			       XtParent(Box) ,
+			       XmNautoUnmanage,FALSE,
+			       XmNy, 
+			       HeightOfScreen(XtScreen(w))-(215 + 260),
+			       NULL);
+  XtAddCallback(popup,XmNdestroyCallback,im_gone_callback,
+		&printer_setup.form);
+  
+  str = NewString("Printer Setup");
+  printer_setup.form = XtVaCreateManagedWidget("Printer Setup",
+					       xmFormWidgetClass,
+					       popup,
+					       XmNlabelString, str,
+					       XmNwidth,260,
+					       XmNheight, 270,
+					       NULL);
+  XmStringFree(str);
+  XtAddCallback(printer_setup.form, XmNhelpCallback,
+		check_help_call,NULL);
+  
+  str = NewString("Printers");
+  printer_setup.printer_name = 
+    XtVaCreateManagedWidget("Printer",
+			    xmSelectionBoxWidgetClass, printer_setup.form,
+			    XmNtopAttachment, XmATTACH_FORM,
+			    XmNselectionPolicy,XmBROWSE_SELECT,
+			    XmNwidth,260,
+			    XmNheight,230,
+			    XmNlistLabelString,str,
+			    XmNmarginHeight,10,
+			    XmNmarginWidth,2,
 			    NULL);
-
-    
+  XtVaCreateManagedWidget("Sep",xmSeparatorWidgetClass,printer_setup.form,
+			  XmNleftAttachment, XmATTACH_FORM,
+			  XmNrightAttachment, XmATTACH_FORM,
+			  XmNtopAttachment, XmATTACH_WIDGET,
+			  XmNtopWidget,printer_setup.printer_name,
+			  NULL);
+  
+  
+  XmStringFree(str);
+  str = NewString("Set Printer");
+  XtVaSetValues(printer_setup.printer_name, XmNokLabelString, str, NULL);
+  
+  XtVaGetValues(printer_setup.printer_name, XmNcancelButton, &done, NULL);
+  XtUnmanageChild(done);
+  /*    str = NewString("Done");
+	XtVaSetValues(done, XmNlabelString, str, NULL);
+  */
+  
+  
+  XtVaSetValues(XmSelectionBoxGetChild(printer_setup.printer_name,
+				       XmDIALOG_LIST),
+		XmNheight, 100, NULL);
+  XmStringFree(str);
+  XtAddCallback(printer_setup.printer_name, XmNcancelCallback,
+		done_pparent_callback,NULL);
+  XtAddCallback(printer_setup.printer_name, XmNokCallback,
+		form_printer_call,NULL);
+  
+  str = NewString("Color Lines?");
+  printer_setup.color_lab = 
+    XtVaCreateManagedWidget("ColorLab",
+			    xmLabelWidgetClass, printer_setup.form,
+			    XmNlabelString,str,
+			    XmNbottomAttachment, XmATTACH_FORM,
+			    XmNleftAttachment, XmATTACH_FORM,
+			    XmNleftOffset, 10,
+			    XmNbottomOffset, 10,
+			    NULL);
+  XmStringFree(str);
+  
+  (void)getlvar_("color_printer", &color_printer, &error, 13);
+  if(color_printer)
+    str = NewString("Yes");
+  else
+    str = NewString("No ");
+  printer_setup.color = 
+    XtVaCreateManagedWidget("PrintColor",
+			    xmPushButtonWidgetClass, 
+			    printer_setup.form,
+			    XmNlabelString,str,
+			    XmNbottomAttachment, XmATTACH_FORM,
+			    XmNleftAttachment, XmATTACH_WIDGET,
+			    XmNleftWidget, printer_setup.color_lab,
+			    XmNleftOffset, 10,
+			    XmNbottomOffset, 10,
+			    NULL);
+  XmStringFree(str);
+  XtAddCallback(printer_setup.color, XmNactivateCallback,
+		form_color_lines_call, NULL);
+  
+  (void)getivar_("landscape",&i,&j,9);
+  if (i) str = NewString("Landscape");
+  else str = NewString("Portrait");
+  printer_setup.landscape = 
+    XtVaCreateManagedWidget("Landscape",
+			    xmPushButtonWidgetClass, 
+			    printer_setup.form,
+			    XmNbottomAttachment, XmATTACH_FORM,
+			    XmNleftAttachment, XmATTACH_WIDGET,
+			    XmNleftWidget, printer_setup.color,
+			    XmNlabelString,str,
+			    XmNleftOffset, 30,
+			    XmNbottomOffset, 10,
+			    NULL);
+  XmStringFree(str);
+  XtAddCallback(printer_setup.landscape, XmNactivateCallback,
+		form_landscape_callback, NULL);
+  
+  printers = get_printers();
+  for(i = 0; printers[i] != NULL; i++){
+    str = NewString(printers[i]);
+    XmListAddItemUnselected(
+			    XmSelectionBoxGetChild 
+			    (printer_setup.printer_name, XmDIALOG_LIST),
+			    str, 0);
     XmStringFree(str);
-    str = NewString("Set Printer");
-    XtVaSetValues(printer_setup.printer_name, XmNokLabelString, str, NULL);
-
-    XtVaGetValues(printer_setup.printer_name, XmNcancelButton, &done, NULL);
-    XtUnmanageChild(done);
-/*    str = NewString("Done");
-    XtVaSetValues(done, XmNlabelString, str, NULL);
-    */
-    
-
-    XtVaSetValues(XmSelectionBoxGetChild(printer_setup.printer_name,
-					 XmDIALOG_LIST),
-		  XmNheight, 100, NULL);
+    free(printers[i]);
+  }
+  if(printer_setup.current[0] != '\0'){
+    str = NewString(printer_setup.current);
+    XtVaSetValues(printer_setup.printer_name,XmNtextString,
+		  str, NULL);
     XmStringFree(str);
-    XtAddCallback(printer_setup.printer_name, XmNcancelCallback,
-		  done_pparent_callback,NULL);
-    XtAddCallback(printer_setup.printer_name, XmNokCallback,
-		  form_printer_call,NULL);
-
-    str = NewString("Color Lines?");
-    printer_setup.color_lab = 
-      XtVaCreateManagedWidget("ColorLab",
-			      xmLabelWidgetClass, printer_setup.form,
-			      XmNlabelString,str,
-			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNleftAttachment, XmATTACH_FORM,
-			      XmNleftOffset, 10,
-			      XmNbottomOffset, 10,
-			      NULL);
-    XmStringFree(str);
-
-    (void)getlvar_("color_printer", &color_printer, &error, 13);
-    if(color_printer)
-	str = NewString("Yes");
-    else
-	str = NewString("No ");
-    printer_setup.color = 
-      XtVaCreateManagedWidget("PrintColor",
-			      xmPushButtonWidgetClass, 
-			      printer_setup.form,
-			      XmNlabelString,str,
-			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNleftAttachment, XmATTACH_WIDGET,
-			      XmNleftWidget, printer_setup.color_lab,
-			      XmNleftOffset, 10,
-			      XmNbottomOffset, 10,
-			      NULL);
-    XmStringFree(str);
-    XtAddCallback(printer_setup.color, XmNactivateCallback,
-		  form_color_lines_call, NULL);
-      
-    (void)getivar_("landscape",&i,&j,9);
-    if (i) str = NewString("Landscape");
-    else str = NewString("Portrait");
-    printer_setup.landscape = 
-	XtVaCreateManagedWidget("Landscape",
-			      xmPushButtonWidgetClass, 
-			      printer_setup.form,
-			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNleftAttachment, XmATTACH_WIDGET,
-			      XmNleftWidget, printer_setup.color,
-			      XmNlabelString,str,
-			      XmNleftOffset, 30,
-			      XmNbottomOffset, 10,
-			      NULL);
-    XmStringFree(str);
-    XtAddCallback(printer_setup.landscape, XmNactivateCallback,
-		  form_landscape_callback, NULL);
-
-    printers = get_printers();
-    for(i = 0; printers[i] != NULL; i++){
-	str = NewString(printers[i]);
-	XmListAddItemUnselected(
-				XmSelectionBoxGetChild 
-				(printer_setup.printer_name, XmDIALOG_LIST),
-				 str, 0);
-	XmStringFree(str);
-	free(printers[i]);
-    }
-    if(printer_setup.current[0] != '\0'){
-	str = NewString(printer_setup.current);
-	XtVaSetValues(printer_setup.printer_name,XmNtextString,
-		      str, NULL);
-	XmStringFree(str);
-    }
-    XtManageChild(popup);
+  }
+  XtManageChild(popup);
 }
 
+void  do_3d(parent)
+     Widget parent;
+{
+  int lock[4],four = 4,error;    
+  
+  
+  /*make form but don't manage*/
+  
+  /*DEP FORM*/
+  Properties.dep_form_3d = XtVaCreateWidget("Properties",
+					    xmFormWidgetClass,
+					    parent,
+					    XmNtopAttachment,
+					    XmATTACH_FORM,
+					    XmNleftAttachment,
+					    XmATTACH_FORM,
+					    XmNrightAttachment,
+					    XmATTACH_FORM,
+					    XmNresizable,TRUE,
+					    XmNresizePolicy,
+					    XmRESIZE_ANY,
+					    XmNmarginWidth,5,
+					    XmNborderWidth,1,
+					    NULL);
+  
+  /*row 1*/
+  XtAddCallback(Properties.dep_form_3d,XmNhelpCallback,
+		check_help_call,NULL);
+  
+  str = NewString("Surface");
+  Properties.threedlab = 
+    XtVaCreateManagedWidget("Surface Values",xmLabelWidgetClass,
+			    Properties.dep_form_3d,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_FORM,
+			    XmNleftAttachment,XmATTACH_FORM,
+			    XmNtopOffset,5,
+			    NULL);
+  XmStringFree(str);
+  
+  Properties.threed_value = 
+    XtVaCreateManagedWidget("Values",
+			    xmTextFieldWidgetClass,
+			    Properties.dep_form_c,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.threedlab,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    XmNrightAttachment, 
+			    XmATTACH_FORM,
+			    XmNleftOffset, 10,
+			    XmNrightOffset, 10,
+			    NULL);
+  
+  
+  
+  
+  XtAddCallback(Properties.threed_value,XmNactivateCallback,
+		form_3val_call,NULL);
+  XtAddCallback(Properties.threed_value,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)ThreeVALS);
+  XtAddCallback(Properties.threed_value,XmNmodifyVerifyCallback,
+		check_num,(XtPointer)ThreeVALS);
+  XtAddCallback(Properties.threed_value,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)ThreeVALS);
+  XtAddEventHandler(Properties.threed_value, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  
+  
+  
+  /********************END OF DEPENDANT VAR FORM********************/
+  /*****************AND END OF NONDEPENDANT VAR FORM****************/
+  
+  Properties.ind_form_3d = XtVaCreateWidget("Properties",
+					    xmFormWidgetClass,
+					    parent,
+					    XmNtopAttachment,
+					    XmATTACH_WIDGET,
+					    XmNtopWidget,
+					    Properties.dep_form_3d,
+					    XmNleftAttachment,
+					    XmATTACH_FORM,
+					    XmNrightAttachment,
+					    XmATTACH_FORM,
+					    XmNresizable, TRUE,
+					    XmNresizePolicy,
+					    XmRESIZE_ANY,
+					    XmNborderWidth,1,
+					    XmNmarginWidth,5,
+					    NULL);
+  
+  XtAddCallback(Properties.ind_form_3d, XmNhelpCallback,
+		check_help_call,NULL);
+  /*row 1*/
+  
+  str = NewString("Horizontal Axis");
+  Properties.ihaxeslab = 
+    XtVaCreateManagedWidget("Abscissa lab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_c,
+			    XmNlabelString,str,
+			    XmNtopAttachment,
+			    XmATTACH_FORM,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    NULL);
+  XmStringFree(str);
+  
+  Properties.ihaxesrow = 
+    XtVaCreateManagedWidget("LINLOG", xmRowColumnWidgetClass,
+			    Properties.ind_form_c,
+			    XmNtopAttachment,XmATTACH_FORM,
+			    XmNleftAttachment,XmATTACH_WIDGET,
+			    XmNleftWidget, Properties.ihaxeslab,
+			    XmNradioBehavior, True,
+			    XmNpacking,XmPACK_TIGHT,
+			    XmNorientation, XmHORIZONTAL,
+			    XmNisHomogeneous, True,
+			    XmNentryClass,xmToggleButtonWidgetClass,
+			    NULL);
+  
+  str = NewString("Linear");
+  Properties.ihaxeslin =  
+    XtVaCreateManagedWidget("linlog ",
+			    xmToggleButtonWidgetClass,
+			    Properties.ihaxesrow, 
+			    XmNlabelString, str,
+			    NULL);
+  XmStringFree(str);
+  
+  XtAddCallback(Properties.ihaxeslin,XmNarmCallback,form_linlog,(XtPointer)"h");
+  
+  str = NewString("Logarithmic");
+  Properties.ihaxeslog =  
+    XtVaCreateManagedWidget("LinLog ",
+			    xmToggleButtonWidgetClass,
+			    Properties.ihaxesrow, 
+			    XmNlabelString, str,
+			    NULL);
+  XmStringFree(str);
+  XtAddCallback(Properties.ihaxeslog,XmNarmCallback,form_linlog,(XtPointer)"h");
+  
+  
+  /*row 2*/   
+  
+  str = NewString("Major tic\ninterval");
+  Properties.xmajorlab = 
+    XtVaCreateManagedWidget("Majlab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_c,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ihaxesrow,
+			    XmNtopOffset, 10,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    NULL);
+  XmStringFree(str);
+  
+  
+  Properties.xmajor =     
+    XtVaCreateManagedWidget("ABSCISSA",
+			    xmTextFieldWidgetClass,
+			    Properties.ind_form_c,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ihaxesrow,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.xmajorlab,
+			    XmNcolumns, 8,
+			    NULL);
+  
+  XtAddCallback(Properties.xmajor,XmNactivateCallback,form_tick_call,(XtPointer)"X");
+  XtAddCallback(Properties.xmajor,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)XMAJOR);
+  XtAddCallback(Properties.xmajor,XmNmodifyVerifyCallback,check_num,(XtPointer)XMAJOR);
+  XtAddCallback(Properties.xmajor,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)XMAJOR);
+  XtAddEventHandler(Properties.xmajor, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  Properties.xminor =     
+    XtVaCreateManagedWidget("abscissa",
+			    xmTextFieldWidgetClass,
+			    Properties.ind_form_c,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ihaxesrow,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.xmajor,
+			    XmNcolumns, 8,
+			    NULL);
+  
+  XtAddCallback(Properties.xminor,XmNactivateCallback,form_tick_call,(XtPointer)"x");
+  XtAddCallback(Properties.xminor,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)XMINOR);
+  XtAddCallback(Properties.xminor,XmNmodifyVerifyCallback,check_num,(XtPointer)XMINOR);
+  XtAddCallback(Properties.xminor,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)XMINOR);
+  XtAddEventHandler(Properties.xminor, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  
+  str = NewString("Minor tic\ninterval");
+  Properties.xminorlab = 
+    XtVaCreateManagedWidget("Minlab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_c,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ihaxesrow,
+			    XmNtopOffset, 10,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.xminor,
+			    NULL);
+  XmStringFree(str);
+  
+  
+  
+  /*row 3*/
+  
+  str = NewString("Vertical Axis ");
+  Properties.ivaxeslab = 
+    XtVaCreateManagedWidget("Vhaxes",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_c,
+			    XmNlabelString,str,
+			    XmNtopAttachment,
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.xmajor,
+			    XmNtopOffset, 10,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    NULL);
+  XmStringFree(str);
+  
+  Properties.ivaxesrow = 
+    XtVaCreateManagedWidget("LINLOG", xmRowColumnWidgetClass,
+			    Properties.ind_form_c,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget, Properties.xmajor,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment,XmATTACH_WIDGET,
+			    XmNleftWidget, Properties.ivaxeslab,
+			    XmNradioBehavior, True,
+			    XmNorientation, XmHORIZONTAL,
+			    XmNisHomogeneous, True,
+			    XmNentryClass,xmToggleButtonWidgetClass,
+			    XmNpacking,XmPACK_TIGHT,
+			    NULL);
+  
+  str = NewString("Linear");
+  Properties.ivaxeslin =  
+    XtVaCreateManagedWidget("linlog ",
+			    xmToggleButtonWidgetClass,
+			    Properties.ivaxesrow, 
+			    XmNlabelString, str,
+			    NULL);
+  XmStringFree(str);
+  
+  XtAddCallback(Properties.ivaxeslin,XmNarmCallback,form_linlog,(XtPointer)"v");
+  
+  str = NewString("Logarithmic");
+  Properties.ivaxeslog =  
+    XtVaCreateManagedWidget("LinLog",
+			    xmToggleButtonWidgetClass,
+			    Properties.ivaxesrow, 
+			    XmNlabelString, str,
+			    NULL);
+  XmStringFree(str);
+  
+  XtAddCallback(Properties.ivaxeslog,XmNarmCallback,form_linlog,(XtPointer)"v");
+  
+  
+  
+  
+  str = NewString("Major tic\ninterval");
+  Properties.ymajorlab = 
+    XtVaCreateManagedWidget("Majlab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_c,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ivaxesrow ,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    XmNbottomOffset, 10,
+			    NULL);
+  XmStringFree(str);
+  
+  Properties.ymajor =     
+    XtVaCreateManagedWidget("ORDINATE",
+			    xmTextFieldWidgetClass,
+			    Properties.ind_form_c,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ivaxesrow  ,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.ymajorlab,
+			    XmNcolumns, 8,
+			    XmNbottomOffset, 10,
+			    NULL);
+  
+  XtAddCallback(Properties.ymajor,XmNactivateCallback,form_tick_call,(XtPointer)"Y");
+  XtAddCallback(Properties.ymajor,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)YMAJOR);
+  XtAddCallback(Properties.ymajor,XmNmodifyVerifyCallback,check_num,(XtPointer)YMAJOR);
+  XtAddCallback(Properties.ymajor,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)YMAJOR);
+  XtAddEventHandler(Properties.ymajor, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  
+  Properties.yminor =     
+    XtVaCreateManagedWidget("ordinate",
+			    xmTextFieldWidgetClass,
+			    Properties.ind_form_c,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ivaxesrow,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.ymajor,
+			    XmNcolumns, 8,
+			    XmNbottomOffset, 10,
+			    NULL);
+  
+  XtAddCallback(Properties.yminor,XmNactivateCallback,form_tick_call,(XtPointer)"y");
+  XtAddCallback(Properties.yminor,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)YMINOR);
+  XtAddCallback(Properties.yminor,XmNmodifyVerifyCallback,check_num,(XtPointer)YMINOR);
+  XtAddCallback(Properties.yminor,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)YMINOR);
+  XtAddEventHandler(Properties.yminor, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  
+  str = NewString("Minor tic\ninterval");
+  Properties.yminorlab = 
+    XtVaCreateManagedWidget("Minlab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_c,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ivaxesrow  ,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.yminor,
+			    XmNbottomOffset, 10,
+			    NULL);
+  XmStringFree(str);
+  
+  
+  
+}
 
