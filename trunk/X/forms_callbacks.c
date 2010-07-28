@@ -448,6 +448,25 @@ void form_tcint_call(w, data, call)
     }
 }
 
+void form_3val_call(w, data, call)
+     Widget w;
+     int data;
+     XmAnyCallbackStruct *call;
+{
+    
+    char *str,buff[256],buff2[256];
+    Bool set;
+    float rvar;
+    int error;
+    int ivar;
+    str = XmTextFieldGetString(terrain_forms.cont_values);
+    if(str[0] == '\0')return;
+    sprintf(buff,"3d_values=%s",str);
+    driver(buff);
+    free(str);
+}
+
+
 void form_terrain_call(w, data, call)
      Widget w;
      caddr_t data;
@@ -1080,6 +1099,18 @@ void cleanup_box_call(w, data, call)
 	    swap_fg(w);
 	}
 	break;
+    case ThreeD_TEXT_BOXES:
+	if(threed_text_boxes[-box]){
+	    threed_text_boxes[-box] = 0;
+	    swap_fg(w);
+	}
+	break;
+    case ThreeD_CONTROL_TEXT_BOXES:
+	if(threed_control_text_boxes[-box]){
+	    threed_control_text_boxes[-box] = 0;
+	    swap_fg(w);
+	}
+	break;
     }
 }
 
@@ -1160,6 +1191,16 @@ void cleanup_form_call(w, data, call)
 		color_text_boxes[box] = 0;
 	    }
 	    break;
+	case ThreeD_TEXT_BOXES:
+	    for(box = 0; box < MAX_ThreeD_BOXES; box++){
+		threed_text_boxes[box] = 0;
+	  }
+	  break;
+	case ThreeD_CONTROL_TEXT_BOXES:
+	    for(box = 0; box < MAX_ThreeD_CONTROL_BOXES; box++){
+		threed_control_text_boxes[box] = 0;
+	  }
+	break;
 	}
 }
 
@@ -1260,6 +1301,18 @@ void text_box_motion(w, data, call)
     case COLOR_TEXT_BOXES:
       if(!color_text_boxes[-box]){
 	color_text_boxes[-box] = 1;
+	swap_fg(w);
+      }
+      break;
+    case ThreeD_TEXT_BOXES:
+      if(!threed_text_boxes[-box]){
+	threed_text_boxes[-box] = 1;
+	swap_fg(w);
+      }
+      break;
+    case ThreeD_CONTROL_TEXT_BOXES:
+      if(!threed_control_text_boxes[-box]){
+	threed_control_text_boxes[-box] = 1;
 	swap_fg(w);
       }
       break;
