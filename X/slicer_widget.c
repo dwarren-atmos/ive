@@ -196,12 +196,13 @@ float fix_slicer_value(int slicer, float value)
 {
     static int four=4, one=1;
     static float zero=0.0;
+    float *SValues;
     double intercept[4], slope [4];
     int error;
     int j;
 
     if (nSlicer_Values[slicer]) {
-	float *SValues = (float *)malloc(sizeof(float)*nSlicer_Values[slicer]);
+	SValues = (float *)malloc(sizeof(float)*nSlicer_Values[slicer]);
 
 	memcpy(SValues, fSlicer_Values[slicer],
 	       sizeof(float)*nSlicer_Values[slicer]);
