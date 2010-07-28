@@ -400,6 +400,9 @@ endif
 ifeq (${machine}, Linux)
 include configs/config.linux
 endif
+ifeq (${machine}, x86_64)
+include configs/config.linux
+endif
 
 ifdef DBG
 FOPT = -g
