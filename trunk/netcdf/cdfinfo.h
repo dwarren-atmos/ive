@@ -121,7 +121,7 @@ matter how it appears in the netCDF file.
   */
 
 typedef struct {
-    char name[MAX_NC_NAME];	/* Dimension name */
+    char name[NC_MAX_NAME+1];	/* Dimension name */
     int size;			/* Dimension size */
 } dim_info;
 
@@ -161,16 +161,16 @@ typedef struct {
 
 typedef struct {
   int  temporary;               /* true if var should be garbage collected*/
-  char name[MAX_NC_NAME];	  /* Variable name */
-  char button_name[MAX_NC_NAME];/* Variable button name */
+  char name[NC_MAX_NAME+1];	  /* Variable name */
+  char button_name[NC_MAX_NAME+1];/* Variable button name */
   nc_type datatype;		  /* Variable type */
   int ndims;			  /* Number of dimensions */
   int natts;			  /* Number of attributes */
   float misdat;		  /* Missing data */
   vardim_info *dims;		  /* Per dimension information */
-  char data_units[MAX_NC_NAME] ;
-  char data_display_units[MAX_NC_NAME] ;
-  char data_display_units_orig[MAX_NC_NAME] ;
+  char data_units[NC_MAX_NAME+1] ;
+  char data_display_units[NC_MAX_NAME+1] ;
+  char data_display_units_orig[NC_MAX_NAME+1] ;
   int in_file;                /* is it from a file 1 or calc 0 */
   float *values;		/* Data values - set when read, 0 otherwise */
   var_attributes vatts;       /* IVE var attribute structure */
@@ -185,8 +185,8 @@ typedef struct {
     int nvars;			/* Number of variables */
     int ngatts;			/* Number of global attributes */
     int recdim;			/* ID of unlimited dimension */
-    char domain_display_units[4][MAX_NC_NAME] ;
-    char domain_display_units_orig[4][MAX_NC_NAME] ;
+    char domain_display_units[4][NC_MAX_NAME+1] ;
+    char domain_display_units_orig[4][NC_MAX_NAME+1] ;
     dim_info *dims;		/* Dimensions */
     var_info *vars;		/* Variables */
     int file_dim;		/* Dimension for file tag on mult. file sets */
