@@ -257,7 +257,7 @@ int len1, len2, len3;
 	  VAR_INFO.dims[i].min = dommin[jfor];
 	  VAR_INFO.dims[i].max = dommax[jfor];
 	}
-	else if (ncattgetf(var_file.id, *var_id, minstr,
+	else if (nc_get_att_float(var_file.id, *var_id, minstr,
 			   &VAR_INFO.dims[i].min) != -1) {
 	  if (delta[jfor] == 0.)
 	    VAR_INFO.dims[i].max = dommax[jfor];
@@ -269,14 +269,14 @@ int len1, len2, len3;
 	    Old style attributes.
 	  */
 	  ominstr[0] = dname[jfor];
-	  if (ncattgetf(var_file.id, *var_id, ominstr,
+	  if (nc_get_att_float(var_file.id, *var_id, ominstr,
 			&VAR_INFO.dims[i].min) != -1) {
 	    omaxstr[0] = dname[jfor];
-	    if (ncattgetf(var_file.id, *var_id, omaxstr,
+	    if (nc_get_att_float(var_file.id, *var_id, omaxstr,
 			  &VAR_INFO.dims[i].max) == -1)
 	      VAR_INFO.dims[i].max = dommax[jfor];
 	    ostag[0] = dname[jfor];
-	    ncattgetf(var_file.id, *var_id, ostag,
+	    nc_get_att_float(var_file.id, *var_id, ostag,
 		      &VAR_INFO.dims[i].stagger);
 	  }
 	  else {
@@ -325,13 +325,13 @@ int len1, len2, len3;
       /* 
 	 Get missing data value.
       */
-      status = ncattgetf(var_file.id,*var_id,"missing_value",
+      status = nc_get_att_float(var_file.id,*var_id,"missing_value",
 			 &VAR_INFO.misdat);
-      if(status == -1) status = ncattgetf(var_file.id,*var_id,"_FillValue",
+      if(status != NC_NOERR) status = nc_get_att_float(var_file.id,*var_id,"_FillValue",
 					  &VAR_INFO.misdat);
-      if(status == -1) status = ncattgetf(var_file.id,*var_id,"missing_data",
+      if(status != NC_NOERR) status = nc_get_att_float(var_file.id,*var_id,"missing_data",
 					  &VAR_INFO.misdat);
-      if(status == -1) VAR_INFO.misdat=var_file.misdat;
+      if(status != NC_NOERR) VAR_INFO.misdat=var_file.misdat;
       
       /* Get data units and data display units. If units display units are
 	 not found, set display units = units.
@@ -341,11 +341,11 @@ int len1, len2, len3;
 	  VAR_INFO.data_units[j] =  '\0';
 	  VAR_INFO.data_display_units_orig[j] = '\0';
 	}
-	status = ncattget(var_file.id, *var_id, "units",
+	status = nc_get_att(var_file.id, *var_id, "units",
 			  VAR_INFO.data_units);
-	status = ncattget(var_file.id, *var_id, "display_units",
+	status = nc_get_att(var_file.id, *var_id, "display_units",
 			  VAR_INFO.data_display_units_orig);
-	if ( status == -1 ) 
+	if ( status != NC_NOERR ) 
 	  strcpy (VAR_INFO.data_display_units_orig,VAR_INFO.data_units);
 	if (VAR_INFO.data_display_units[0] == '\0')
 	  strcpy(VAR_INFO.data_display_units,
@@ -362,7 +362,6 @@ int len1, len2, len3;
 	if(*ndims > 4) jfor = dims2go[i];
 	if(jfor < 0) continue;
 	dims[jfor] = VAR_INFO.dims[i].size;
-	printf("dims[%d] = %d, index %d\n",jfor,dims[jfor],i);
       }
       if (VAR_INFO.values == NULL) {
 	/*
@@ -378,6 +377,7 @@ this field.\nPlease use FREE to delete a field from memory and try again.");
 	    return ((float *) 0);
 	  }
 	}
+	n=1;
 	for (i=0; i < *ndims; ++i) {
 	  int jfor = *ndims-1-i;
 	  if(*ndims > 4) jfor = dims2go[i];
@@ -390,12 +390,9 @@ this field.\nPlease use FREE to delete a field from memory and try again.");
 	    length[i] = VAR_INFO.dims[i].size;
 	    start[i] = 0;
 	  }
-	  printf("n = %ld\n",n);
 	}
-	printf("1\n");
 	VAR_INFO.values =
 	  (float *) memalign(sizeof(float), sizeof(float) * n);
-	printf("2\n");
 	if (VAR_INFO.values == NULL) {
 	  printf("tried to allocate %ld meg\n",sizeof(float) * n/(1024*1024));
 	  (void)make_help_widget_("Memory cannot be allocated for this \
@@ -406,8 +403,10 @@ field.\nPlease use FREE to delete a field from memory and try again.");
 	  }
 	  return ((float *) 0);
 	}
-	i = nc_get_vara_float(var_file.id, *var_id, start, length,
-			      VAR_INFO.values);
+	//i = nc_get_vara_float(var_file.id, *var_id, start, length,
+	//		      VAR_INFO.values);
+	// read entire field in this part
+	i = nc_get_var_float(var_file.id, *var_id, VAR_INFO.values);
 	if (*ndims) {
 	  free(start);
 	  free(length);
@@ -479,9 +478,9 @@ this field.\nPlease use FREE to delete a field from memory and try again.");
 	    }
 	    for (i=0; i < VAR_INFO.dims[3-var_file.file_dim].size; ++i) {
 
-		ncclose(var_file.id);
-		if ((var_file.id = ncopen(var_file.file_names+i*256,
-					  NC_NOWRITE)) == -1) {
+		nc_close(var_file.id);
+		if ((status = nc_open(var_file.file_names+i*256,
+					   NC_NOWRITE,&var_file.id)) != NC_NOERR) {
 		    char error[1100];
 
 		    sprintf(error, "Cannot open %s",
@@ -555,86 +554,86 @@ this field.\nPlease use FREE to delete a field from memory and try again.");
     return (VAR_INFO.values);
 }
 
-#ifndef NC_FILL_BYTE
+//#ifndef NC_FILL_BYTE
 
 /* This routine is part of netcdf version 3. */
 
-#include <errno.h>
+//#include <errno.h>
 
-int nc_get_vara_float(ncid, varid, start, count, ip)
-    int ncid, varid;
-    long start[], count[];
-    float *ip;
-    
-{
-    int i, j, n;
-    
-    n = 1;
-    for (i=0; i < var_file.vars[varid].ndims; i ++)
-	n *= var_file.vars[varid].dims[i].size;
-    switch (var_file.vars[varid].datatype) {
-    case NC_FLOAT:
-	i = ncvarget(ncid, varid, start, count, (void *) ip);
-	return i;
-    case NC_BYTE:
-    case NC_CHAR:
-    {
-	char *ctmp = (char *) memalign(sizeof(long), sizeof(char) *n);
-
-	if (ctmp == NULL) return errno;
-
-	i = ncvarget(ncid, varid, start, count, (void *) ctmp);
-	if (i == 0) {
-	    for (j=0; j < n; j++) {
-		ip[j] = ctmp[j];
-	    }
-	}
-	free(ctmp);
-	return i;
-    }
-    case NC_SHORT:
-    {
-	short *stmp = (short *) memalign(sizeof(long), sizeof(short) *n);
-	
-	if (stmp == NULL) return errno;
-	i = ncvarget(ncid, varid, start, count, (void *) stmp);
-	if (i == 0) {
-	    for (j=0; j < n; j++) {
-		ip[j] = stmp[j];
-	    }
-	}
-	free(stmp);
-	return i;
-    }
-    case NC_LONG:
-    {
-	nclong *ltmp = (nclong *) memalign(sizeof(long), sizeof(nclong) *n);
-	
-	if (ltmp == NULL) return errno;
-	i = ncvarget(ncid, varid, start, count, (void *) ltmp);
-	if (i == 0) {
-	    for (j=0; j < n; j++) {
-		ip[j] = ltmp[j];
-	    }
-	}
-	free(ltmp);
-	return i;
-    }
-    case NC_DOUBLE:
-    {
-	double *dtmp = (double *) memalign(sizeof(double), sizeof(double) *n);
-		
-	if (dtmp == NULL) return errno;
-	i = ncvarget(ncid, varid, start, count, (void *) dtmp);
-	if (i == 0) {
-	    for (j=0; j < n; j++) {
-		ip[j] = dtmp[j];
-	    }
-	}
-	free(dtmp);
-	return i;
-    }
-    }
- }
- 
-#endif NETCDF3
+//int nc_get_vara_float(ncid, varid, start, count, ip)
+//    int ncid, varid;
+//    long start[], count[];
+//    float *ip;
+//    
+//{
+//    int i, j, n;
+//    
+//    n = 1;
+//    for (i=0; i < var_file.vars[varid].ndims; i ++)
+//	n *= var_file.vars[varid].dims[i].size;
+//    switch (var_file.vars[varid].datatype) {
+//    case NC_FLOAT:
+//	i = ncvarget(ncid, varid, start, count, (void *) ip);
+//	return i;
+//    case NC_BYTE:
+//    case NC_CHAR:
+//    {
+//	char *ctmp = (char *) memalign(sizeof(long), sizeof(char) *n);
+//
+//	if (ctmp == NULL) return errno;
+//
+//	i = ncvarget(ncid, varid, start, count, (void *) ctmp);
+//	if (i == 0) {
+//	    for (j=0; j < n; j++) {
+//		ip[j] = ctmp[j];
+//	    }
+//	}
+//	free(ctmp);
+//	return i;
+//    }
+//    case NC_SHORT:
+//    {
+//	short *stmp = (short *) memalign(sizeof(long), sizeof(short) *n);
+//	
+//	if (stmp == NULL) return errno;
+//	i = ncvarget(ncid, varid, start, count, (void *) stmp);
+//	if (i == 0) {
+//	    for (j=0; j < n; j++) {
+//		ip[j] = stmp[j];
+//	    }
+//	}
+//	free(stmp);
+//	return i;
+//    }
+//    case NC_LONG:
+//    {
+//	nclong *ltmp = (nclong *) memalign(sizeof(long), sizeof(nclong) *n);
+//	
+//	if (ltmp == NULL) return errno;
+//	i = ncvarget(ncid, varid, start, count, (void *) ltmp);
+//	if (i == 0) {
+//	    for (j=0; j < n; j++) {
+//		ip[j] = ltmp[j];
+//	    }
+//	}
+//	free(ltmp);
+//	return i;
+//    }
+//    case NC_DOUBLE:
+//    {
+//	double *dtmp = (double *) memalign(sizeof(double), sizeof(double) *n);
+//		
+//	if (dtmp == NULL) return errno;
+//	i = ncvarget(ncid, varid, start, count, (void *) dtmp);
+//	if (i == 0) {
+//	    for (j=0; j < n; j++) {
+//		ip[j] = dtmp[j];
+//	    }
+//	}
+//	free(dtmp);
+//	return i;
+//    }
+//    }
+// }
+// 
+//#endif NETCDF3

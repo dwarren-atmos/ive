@@ -236,7 +236,8 @@ int len1, len2, len3, len4;
     static int first=1;
     int file_dim;	/* Dimension used for file names if data set is
 			   in multiple files */
-    int i, j, k, status, dim[MAX_VAR_DIMS], oldncopts, len ;
+    int i, j, k, status, dim[NC_MAX_VAR_DIMS], oldncopts;
+    size_t len ;
     char data_units[80], data_display_units[80];
     int find_domain[4]; /* Did we find the domain info yet? */
     nc_type datatype;
@@ -297,28 +298,33 @@ int len1, len2, len3, len4;
     /*
       Open the netcdf file and get header information.
       */
-    if ((var_file.id = ncopen(name, NC_NOWRITE|NC_64BIT_OFFSET)) == -1) {
+    //((var_file.id = ncopen(name, NC_NOWRITE)) == -1) {
+    if ((status = nc_open(name, NC_NOWRITE,&var_file.id)) != NC_NOERR) {
 	if (*temp) var_file = var_file_old;
 	else if (var_file_old.nvars > 0) free(var_file_old.vars);
 	ncopts = oldncopts;
 	return(-1);
     }
-    ncinquire(var_file.id, &var_file.ndims, &var_file.nvars,
-	      &var_file.ngatts, &var_file.recdim);
+    //ncinquire(var_file.id, &var_file.ndims, &var_file.nvars,
+    //	      &var_file.ngatts, &var_file.recdim);
+    nc_inq(var_file.id, &var_file.ndims, &var_file.nvars,
+	   &var_file.ngatts, &var_file.recdim);
     /*
       Look for global missing data attribute.
     */
-    status = ncattgetf(var_file.id,NC_GLOBAL,"missing_value",
-		       &var_file.misdat);
-    if(status == -1) status = ncattgetf(var_file.id,NC_GLOBAL,"_FillValue",
+    //status = ncattgetf(var_file.id,NC_GLOBAL,"missing_value",
+    //		       &var_file.misdat);
+    status = nc_get_att_float(var_file.id,NC_GLOBAL,"missing_value",
+			      &var_file.misdat);
+    if(status != NC_NOERR) status = ncattgetf(var_file.id,NC_GLOBAL,"_FillValue",
 					&var_file.misdat);
-    if(status == -1) status = ncattgetf(var_file.id,NC_GLOBAL,"missing_data",
+    if(status != NC_NOERR) status = ncattgetf(var_file.id,NC_GLOBAL,"missing_data",
 					&var_file.misdat);
-    if(status == -1) status = ncattgetf(var_file.id,NC_GLOBAL,"missing",
+    if(status != NC_NOERR) status = ncattgetf(var_file.id,NC_GLOBAL,"missing",
 					&var_file.misdat);
-    if(status == -1) status = ncattgetf(var_file.id,NC_GLOBAL,"miss",
+    if(status != NC_NOERR) status = ncattgetf(var_file.id,NC_GLOBAL,"miss",
 					&var_file.misdat);
-    if(status == -1) var_file.misdat=0.0;
+    if(status != NC_NOERR) var_file.misdat=0.0;
 
     /*
       Get the names and sizes of the dimensions.
@@ -326,10 +332,12 @@ int len1, len2, len3, len4;
     var_file.dims = 
 	(dim_info *) malloc(var_file.ndims * sizeof(dim_info));
     for (i=0; i < var_file.ndims; ++i) {
-	long size;
+      size_t size;
 
-	ncdiminq(var_file.id, i, var_file.dims[i].name, 
-		 &size);
+	//ncdiminq(var_file.id, i, var_file.dims[i].name, 
+	//	 &size);
+	nc_inq_dim(var_file.id, i, var_file.dims[i].name, 
+		   &size);
 	var_file.dims[i].size = size;
     }
     /*
@@ -338,32 +346,32 @@ int len1, len2, len3, len4;
     for (i=0; i < 4; ++i){
 	minstr[0] = dname[i];
 	find_domain[i] = 1;	
-	if (ncattgetf(var_file.id,NC_GLOBAL,minstr,dmin+i) == -1) {
+	if (nc_get_att_float(var_file.id,NC_GLOBAL,minstr,dmin+i) != NC_NOERR) {
 	    ominstr[3] = dname[i];
-	    if (ncattgetf(var_file.id,NC_GLOBAL,ominstr,dmin+i) == -1) {
+	    if (nc_get_att_float(var_file.id,NC_GLOBAL,ominstr,dmin+i) != NC_NOERR) {
 		dmin[i]=0.0;
 		find_domain[i] = 0;
 	    }
 	}
 	maxstr[0] = dname[i];
-	if (ncattgetf(var_file.id,NC_GLOBAL,maxstr,dmax+i) == -1) {
+	if (nc_get_att_float(var_file.id,NC_GLOBAL,maxstr,dmax+i) != NC_NOERR) {
 	    omaxstr[3] = dname[i];
-	    if (ncattgetf(var_file.id,NC_GLOBAL,omaxstr,dmax+i) == -1)
+	    if (nc_get_att_float(var_file.id,NC_GLOBAL,omaxstr,dmax+i) != NC_NOERR)
 		dmax[i]=0.0;
 	}
 	unitstr[0] = dname[i];
-	status = ncattget(var_file.id, NC_GLOBAL, unitstr, 
+	status = nc_get_att(var_file.id, NC_GLOBAL, unitstr, 
 			   domain_units+i*len2);
 	dunitstr[0] = dname[i];
-     	if(ncattget(var_file.id, NC_GLOBAL, dunitstr, 
-		     var_file.domain_display_units_orig[i]) == -1)
+     	if(nc_get_att(var_file.id, NC_GLOBAL, dunitstr, 
+		     var_file.domain_display_units_orig[i]) ==NC_NOERR )
 	    strcpy (var_file.domain_display_units_orig[i], 
 		    domain_units+i*len2);
 	deltastr[0] = dname[i];
-     	if (ncattgetf(var_file.id, NC_GLOBAL, deltastr, delta+i) == -1)
+     	if (nc_get_att_float(var_file.id, NC_GLOBAL, deltastr, delta+i) != NC_NOERR)
 	    delta[i] = 0.;
 	labstr[0] = dname[i];
-     	if (ncattget(var_file.id, NC_GLOBAL, labstr, label+i*len4) == -1) {
+     	if (nc_get_att(var_file.id, NC_GLOBAL, labstr, label+i*len4) != NC_NOERR) {
 	    *(label+i*len4) = toupper(dname[i]);
 	    *(label+i*len4+1) = '\0';
 	}
@@ -372,9 +380,9 @@ int len1, len2, len3, len4;
       Get the names and sizes of the variables.
       */
     var_file.vars = 
-      (var_info *) malloc(var_file.nvars * sizeof(var_info));
+      (var_info *) malloc((1+var_file.nvars) * sizeof(var_info));
     for (i=0; i < var_file.nvars; ++i) {
-	ncvarinq(var_file.id, i, var_file.vars[i].name,
+	nc_inq_var(var_file.id, i, var_file.vars[i].name,
 		 &var_file.vars[i].datatype, &var_file.vars[i].ndims,
 		 dim, &var_file.vars[i].natts);
 	var_file.vars[i].dims = (vardim_info *) malloc(var_file.vars[i].ndims
@@ -392,19 +400,20 @@ int len1, len2, len3, len4;
 	  Report a variable with the "no_button" attribute set to 1 or
 	  with the same name as a dimension as a blank.
 	  */
-	if (ncattinq(var_file.id, i, "no_button", &datatype, &len) != -1
-	   && len == 1 && datatype == NC_LONG) {
-	    nclong value;
-
-	    ncattget(var_file.id, i, "no_button", (void *) &value);
-	    if (value) var_file.vars[i].button_name[0] = '\0';
+	if (nc_inq_att(var_file.id, i, "no_button", &datatype, &len) != NC_NOERR
+	    && len == 1 && datatype == NC_LONG) {
+	  size_t value;
+	  nc_get_att(var_file.id, i, "no_button", (void *) &value);
+	  if (value) {
+	    var_file.vars[i].button_name[0] = '\0';
+	  }
 	}
 	else
-	    for (j=0; j < var_file.ndims; ++j)
-		if (strcmp(var_file.dims[j].name,var_file.vars[i].name) == 0) {
-		    var_file.vars[i].button_name[0] = '\0';
-		    break;
-		}
+	  for (j=0; j < var_file.ndims; ++j)
+	    if (strcmp(var_file.dims[j].name,var_file.vars[i].name) == 0) {
+	      var_file.vars[i].button_name[0] = '\0';
+	      break;
+	    }
 	var_file.vars[i].temporary = 0;
 	var_file.vars[i].units_forced=0;
 	if (!*temp) {
@@ -460,8 +469,8 @@ int len1, len2, len3, len4;
 		}
 	    }
 	    if (var_file.vars[i].ndims == maxndim) {
-	      dims_placement_trans_(&maxndim, dims2go,
-				    var_file.vars[i].name);
+	      //dims_placement_trans_(&maxndim, dims2go,
+	      //		    var_file.vars[i].name);
 	      /*
 		we can only really deal with 4 dimensions, so one of them 
 		beter be 1 (so it can be ignored) - transform tells us which
@@ -730,7 +739,7 @@ int len1, len2, len3, len4;
     }
     if (*temp) {
 	i = var_file.id;
-	ncclose(var_file.id);
+	nc_close(var_file.id);
 	free(var_file.dims);
 	for (i=0; i < var_file.nvars; i++) {
 	    if(var_file.vars[i].dims != (vardim_info *)0)
