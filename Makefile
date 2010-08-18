@@ -432,8 +432,8 @@ LD=insure -Zsl
 COPT=-g
 endif
 
-CFLAGS = ${COPT} ${DEC} ${DOBETA}\
-	-I${PWD}/h -I${PWD}/h/haru ${UDPOSIX_INCLUDE} ${BROWSER}
+CFLAGS = ${COPT} -I${PWD}/h ${DEC} ${DOBETA}\
+	-I${PWD}/h/haru ${UDPOSIX_INCLUDE} ${BROWSER}
 FFLAGS = ${FOPT} ${FDEC} ${ALPHA} ${FCPP}
 #
 #
