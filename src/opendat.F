@@ -213,9 +213,12 @@ c
 
             domain_slope(i) = 1.0
             domain_intercept(i) = 0.0
-            status = convert_units (domain_units(i), 
-     &                              domain_display_units(i), 
-     &                             domain_slope(i), domain_intercept(i))
+            status = convert_units (domain_units(i)
+     &           (strbeg(domain_units(i)):
+     &           strend(domain_units(i)))//char(0), 
+     &           domain_display_units(i)(strbeg(domain_display_units(i))
+     &           :strend(domain_display_units(i)))//char(0), 
+     &           domain_slope(i), domain_intercept(i))
             if ( status .eq. 0 ) then
                call scale (plmin_scaled(i), 1, domain_slope(i), 
      &                     domain_intercept(i), 0.0)
