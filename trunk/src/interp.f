@@ -434,3 +434,9 @@ c
       end
 
  
+      real function deref2d(data, nx,ny,i,j)
+      integer nx,ny,i,j
+      real data(nx,ny)
+      deref2d=data(i,j)
+      return
+      end

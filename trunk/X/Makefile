@@ -358,7 +358,7 @@ OBJS = 	Window_Dump.o add_credits.o add_filelist.o \
 	ive_ui_update.o loop_calls.o loop_control.o \
 	loop_quit.o loop_setup.o loop_setup_calls.o \
 	loopem.o pattern_form.o points_widget.o points_callbacks.o \
-        nup_forms.o \
+        nup_forms.o widget3d.o \
 	save_pixmap.o save_window.o \
 	terrain_form.o
 #

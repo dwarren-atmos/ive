@@ -1108,6 +1108,9 @@ c           Command resize
 c           Command ROTA.
             call setrot (error)
             if((iflag .eq. 0) .and. .not.error) call ui_update (ROT_UI)
+         elseif (keynum .eq. P_ROTATE3D) then
+c           Command ROTATE3D.
+            call rot3d (error)
          elseif (keynum .eq. P_RUN_SUB) then
 c           Command RUN_SUB.
             call run_sub_trans (error)
@@ -1237,6 +1240,9 @@ c           Command TOPO_SCALE.
             if ( (iflag .eq. 0) .and. .not.error )  then 
                call ui_update (TOPOSCALE_UI)
             endif
+         elseif (keynum .eq. P_TRANSLATE3D) then
+c           Command TRANSLATE3D.
+            call trans3d (error)
          elseif (keynum .eq. P_TRANSFORM_FILE) then
 c           Command TRANSFORM_FILE.
             call settrfil (error)
@@ -1557,6 +1563,9 @@ c           Command ZPOINTS.
             mapwin_u2=0.0
             mapwin_v1=0.0
             mapwin_v2=0.0
+         elseif (keynum .eq. P_ZOOM3D) then
+c           Command XTICS
+            call zoom3d (error)
          endif
 c
 c

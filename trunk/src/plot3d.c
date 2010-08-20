@@ -2,14 +2,7 @@
 #include <Xm/Xm.h>
 #include <X11/Intrinsic.h>
 #define DEF3DSTUFF
-//myuw netid is
-#include <Xm/RowColumn.h>
-#include <Xm/PushB.h>
-#include <Xm/BulletinB.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/DrawingA.h>
+#include <Xm/XmAll.h>
 #include <X11/Shell.h>
 #include <X11/StringDefs.h>
 #include <stdio.h>
@@ -25,6 +18,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <volume.h>
+#include <ive_widgets.h>
 //#include <ive_gks.h>
 extern Widget xgks_widget;
 
@@ -61,11 +55,12 @@ float clip(float clipD, float changeClip)
   return clipD;
 }// changes clip distance on key press (change call to change amount of clipping)
 
-void reDraw(Objects *obj){//wires can probably be eliminated from the program entirely... artifact from previous version
+
+void reDraw(Objects *obj){
   int blargh;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glLoadIdentity();
-  glOrtho(xPosition-xStretch,xPosition+xStretch,yPosition-yStretch,yPosition+yStretch,-clipDistanceIVE2,clipDistanceIVE); 
+  glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE); 
   glRotatef(xRotation,1,0,0);
   glRotatef(yRotation,0,1,0);
   glRotatef(zRotation,0,0,1);
@@ -81,17 +76,24 @@ void reDraw(Objects *obj){//wires can probably be eliminated from the program en
     glXSwapBuffers(dpy, XtWindow(xgks_widget) );
 }//clears and redraws object in new location after rotate move or clip or anything
 
-int move_x(int in, int x){
+void toggleRef(Widget w,  ToggleButton *t, XmAnyCallbackStruct *call)
+{
+  Bool set;
+  set = XmToggleButtonGetState(w);
+  if(set == TRUE)
+    t->O->objectOn[t->N]=1;
+  else
+    t->O->objectOn[t->N]=0;
+  reDraw(t->O);
+}
+
+ 
+int move(int in, int x){
   x= in+x;
   return x;
-}//move along x direction
+}//move in specified direction by specified amount
 
-int move_y(int in, int y){
-  y= in+y;
-  return y;
-}// move along y-direction
-
-int rotate_y(int in, int rotatey){
+int rotate(int in, int rotatey){
   rotatey= in+rotatey;
   if(rotatey<0)
       {
@@ -102,20 +104,7 @@ int rotate_y(int in, int rotatey){
 	rotatey=rotatey-360;
       }
   return rotatey;
-}//rotate about y-axis
-
-int rotate_x(int in, int rotatex){
-  rotatex= in+rotatex;
-  if(rotatex<0)
-      {
-	rotatex=rotatex+360;
-      }
-  if(rotatex>360)
-      {
-	rotatex=rotatex-360;
-      }
-  return rotatex;
-}//rotate about x-axis
+}//rotate about either
 
 static int pressed=0;
 static int oldx,oldy;
@@ -125,6 +114,118 @@ void reset_wheel(){
   ignorewheel=0;
 }
 
+void reset_all_3d()
+{
+  int i,error;
+  float mins[4],maxs[4];
+  i = 4;
+  (void)getrarr_("plmin_scaled",mins,&i,&error,12);
+  (void)getrarr_("plmax_scaled",maxs,&i,&error,12);
+  LRMult=abs((int)(maxs[0]-mins[0])/20.);
+  UDMult=abs((int)(maxs[1]-mins[1])/20.);
+  xRotation=0;
+  yRotation=0;
+  zRotation=0;
+  xPosition=0;
+  yPosition=0;
+  xStretch=mids[0];
+  yStretch=mids[1];
+  StretchPercent=1;
+  clipDistanceIVE2=clipDistanceIVE;
+  i = THREED_CONTROL_FORM;
+  (void)ui_update_(&i);
+}
+
+void reset_button_3d(Widget w, Objects *obj)
+{
+  reset_all_3d();
+  reDraw(obj);
+}
+
+void StretchFun(Widget w, Objects *obj, XmAnyCallbackStruct *call)
+{
+  int i;
+  XmScaleGetValue(w,&i);
+  StretchPercent=(float)i/100.;
+  reDraw(obj);  
+}
+
+void rotaR(Widget w, Objects *obj)
+{
+  yRotation=rotate(1, yRotation);
+  reDraw(obj);
+}
+
+void rotaL(Widget w, Objects *obj)
+{
+  yRotation=rotate(-1, yRotation);
+	reDraw(obj);
+}
+void rotaLR(Widget w, Objects *obj, XmAnyCallbackStruct *call)
+{
+  int rot;
+  XmScaleGetValue(w,&rot);
+  yRotation=(rot+360)%360;
+  reDraw(obj);
+}
+
+void rotaU(Widget w, Objects *obj)
+{
+  xRotation=rotate(-1, xRotation);
+  reDraw(obj);
+}
+
+void rotaUD(Widget w, Objects *obj, XmAnyCallbackStruct *call)
+{
+  int rot;
+  XmScaleGetValue(w,&rot);
+  xRotation=(rot+360)%360;
+  reDraw(obj);
+}
+
+void rotaD(Widget w, Objects *obj)
+{
+	xRotation=rotate(1, xRotation);
+	reDraw(obj);
+}
+
+void movU(Widget w, Objects *obj)
+{
+	yPosition=move(-scalarY*UDMult, yPosition);
+	reDraw(obj);
+}
+
+void movD(Widget w, Objects *obj)
+{
+	yPosition=move(scalarY*UDMult, yPosition);
+	reDraw(obj);
+}
+
+void movR(Widget w, Objects *obj)
+{
+	xPosition=move(-scalarX*LRMult, xPosition);
+	reDraw(obj);
+}
+
+void movL(Widget w, Objects *obj)
+{
+	xPosition=move(scalarX*LRMult, xPosition);
+	reDraw(obj);
+}
+void set3dLRMult(Widget w, long data,XmAnyCallbackStruct *call )
+{
+  char *str;
+  str = XmTextFieldGetString(w);
+  LRMult= atoi(str);
+  free(str);
+}
+void set3dUDMult(Widget w, long data,XmAnyCallbackStruct *call )
+{
+  char *str;
+  str = XmTextFieldGetString(w);
+  UDMult= atoi(str);
+  free(str);
+}
 void ive_3dinput(w, data, event, dispatch)
      Widget w;
      void * *data;
@@ -141,7 +242,6 @@ void ive_3dinput(w, data, event, dispatch)
   XButtonEvent *xbutton = (XButtonEvent *)event;
   XKeyEvent *xkey = (XKeyEvent *)event;
   XMotionEvent *xmove = (XMotionEvent *)event;
-  static int wires;
   if (event->type == ButtonPress) {
     if(xbutton->button == Button1){
       pressed=1;
@@ -159,12 +259,12 @@ void ive_3dinput(w, data, event, dispatch)
     // diffy = xbutton->y - oldy;
     // pressed = 0;
     // if(abs(diffx)>abs(diffy)){
-    //	yRotation=rotate_y(abs(diffx)/diffx,yRotation);
+    //	yRotation=rotate(abs(diffx)/diffx,yRotation);
     // } 
     //else{ 
     //  	if (diffy) 
     //{
-    //	 xRotation=  rotate_x(abs(diffy)/diffy, xRotation);
+    //	 xRotation=  rotate(abs(diffy)/diffy, xRotation);
     // }
     //}
     //reDraw(&IVE_Objects);
@@ -186,28 +286,28 @@ void ive_3dinput(w, data, event, dispatch)
   if (event->type == KeyPress) {
     switch(XKeycodeToKeysym(XtDisplay(w), xkey->keycode, 0)){
     case XK_Up:
-      yPosition = move_y(-scalarY, yPosition);
+      yPosition = move(-scalarY, yPosition);
        break;
     case XK_Down:
-      yPosition = move_y(scalarY, yPosition);
+      yPosition = move(scalarY, yPosition);
       break;
     case XK_Right:
-      xPosition = move_x(-scalarX, xPosition);
+      xPosition = move(-scalarX, xPosition);
       break;
     case XK_Left:
-      xPosition = move_x(scalarX, xPosition);
+      xPosition = move(scalarX, xPosition);
       break;
     case XK_a:
-      yRotation = rotate_y(-1, yRotation);
+      yRotation = rotate(-1, yRotation);
        break;
     case XK_d:
-      yRotation = rotate_y(1, yRotation);
+      yRotation = rotate(1, yRotation);
        break;
     case XK_w:
-      xRotation = rotate_x(-1, xRotation);
+      xRotation = rotate(-1, xRotation);
        break;
     case XK_s:
-      xRotation = rotate_x(1, xRotation);
+      xRotation = rotate(1, xRotation);
        break;
     case XK_comma:
       clipDistanceIVE2 = clip(clipDistanceIVE2,-1);
@@ -230,18 +330,8 @@ void ive_3dinput(w, data, event, dispatch)
     case XK_5:
       IVE_Object.objectOn[4]=toggle(IVE_Object.objectOn[4]);
       break;
-    case XK_q:
-      wires=(toggle(wires));
-      break;
     case XK_BackSpace:
-      xRotation=0;
-      yRotation=0;
-      zRotation=0;
-      xPosition=0;
-      yPosition=0;
-      xStretch=mids[0];
-      yStretch=mids[1];
-      clipDistanceIVE2=clipDistanceIVE;
+      reset_all_3d();
       break;
     }
     reDraw(&IVE_Object);
@@ -296,36 +386,38 @@ void plot3d(mins, maxs, IVE_Objects)
   //fprintf(file,"triangles: %d\n", IVE_Objects->Surface[0].size);
   //fprintf(file,"normals: %d\n",IVE_Objects->NormalList[0].size);
   //fprintf(file,"min:{%f, %f, %f}\n",
-  // mins[0],mins[2],mins[1]);
+  //mins[0],mins[2],mins[1]);
   //	  mins[slab_3.xaxis-1],mins[slab_3.yaxis-1],mins[slab_3.zaxis-1]);
   //fprintf(file,"max:{%f, %f, %f}\n",
-  // 	  maxs[0],maxs[2],maxs[1]);
+  //maxs[0],maxs[2],maxs[1]);
   //maxs[slab_3.xaxis-1],maxs[slab_3.yaxis-1],maxs[slab_3.zaxis-1]);
   //for (i=0;i<IVE_Objects->Surface[0].size;i++)
   //{   
-  //  fprintf(file,"{%f, %f, %f}[%d] {%f, %f, %f}[%d] {%f, %f, %f}[%d]\n",
-  //	      IVE_Objects->Surface[0].items[i].pt[0].xCoord,IVE_Objects->Surface[0].items[i].pt[0].yCoord,IVE_Objects->Surface[0].items[i].pt[0].zCoord,IVE_Objects->Surface[0].items[i].pt[0].normalRef,
-  //	      IVE_Objects->Surface[0].items[i].pt[1].xCoord,IVE_Objects->Surface[0].items[i].pt[1].yCoord,IVE_Objects->Surface[0].items[i].pt[1].zCoord,IVE_Objects->Surface[0].items[i].pt[1].normalRef,
-  //	      IVE_Objects->Surface[0].items[i].pt[2].xCoord,IVE_Objects->Surface[0].items[i].pt[2].yCoord,IVE_Objects->Surface[0].items[i].pt[2].zCoord,IVE_Objects->Surface[0].items[i].pt[2].normalRef);
-  //   }
+      //fprintf(file,"{%f, %f, %f}[%d] {%f, %f, %f}[%d] {%f, %f, %f}[%d]\n",
+      //      IVE_Objects->Surface[0].items[i].pt[0].xCoord,IVE_Objects->Surface[0].items[i].pt[0].yCoord,IVE_Objects->Surface[0].items[i].pt[0].zCoord,IVE_Objects->Surface[0].items[i].pt[0].normalRef,
+      //      IVE_Objects->Surface[0].items[i].pt[1].xCoord,IVE_Objects->Surface[0].items[i].pt[1].yCoord,IVE_Objects->Surface[0].items[i].pt[1].zCoord,IVE_Objects->Surface[0].items[i].pt[1].normalRef,
+      //      IVE_Objects->Surface[0].items[i].pt[2].xCoord,IVE_Objects->Surface[0].items[i].pt[2].yCoord,IVE_Objects->Surface[0].items[i].pt[2].zCoord,IVE_Objects->Surface[0].items[i].pt[2].normalRef);
+  //}
   //for(i=0; i<IVE_Objects->NormalList[0].size; i++){
-  //  fprintf(file,"{%f, %f, %f}\n",IVE_Objects->NormalList[0].normal[i].xCoord,IVE_Objects->NormalList[0].normal[i].yCoord,IVE_Objects->NormalList[0].normal[i].zCoord);
+  //fprintf(file,"{%f, %f, %f}\n",IVE_Objects->NormalList[0].normal[i].xCoord,IVE_Objects->NormalList[0].normal[i].yCoord,IVE_Objects->NormalList[0].normal[i].zCoord);
   //}
   //fclose(file);
 
-   for(i=0;i<IVE_Objects->objects;i++)
+  for(i=0;i<IVE_Objects->objects;i++)
     {
-      for(j=0;j<IVE_Objects->Surface[i].size;j++)
-	{
-	  for(k=0;k<3;k++)
-	    {
-	      IVE_Objects->Surface[i].items[j].pt[k].xCoord= IVE_Objects->Surface[i].items[j].pt[k].xCoord-mids[0];
-	      IVE_Objects->Surface[i].items[j].pt[k].yCoord= IVE_Objects->Surface[i].items[j].pt[k].yCoord-mids[1];
-	      IVE_Objects->Surface[i].items[j].pt[k].zCoord= IVE_Objects->Surface[i].items[j].pt[k].zCoord-mids[2];
-	    }
-	}
+      if(!IVE_Objects->objectDone[i])
+	for(j=0;j<IVE_Objects->Surface[i].size;j++)
+	  {
+	    for(k=0;k<3;k++)
+	      {
+		IVE_Objects->Surface[i].items[j].pt[k].xCoord= IVE_Objects->Surface[i].items[j].pt[k].xCoord-mids[0];
+		IVE_Objects->Surface[i].items[j].pt[k].yCoord= IVE_Objects->Surface[i].items[j].pt[k].yCoord-mids[1];
+		IVE_Objects->Surface[i].items[j].pt[k].zCoord= IVE_Objects->Surface[i].items[j].pt[k].zCoord-mids[2];
+	      }
+	    IVE_Objects->objectDone[i]=1;
+	  }
       IVE_Objects->Surface[i].color=i;//This line determines the color, add a line here to check to see if a color is already specified if you don't want it to default colors.
-      }
+    }
 
   xStretch=mids[0];
   yStretch=mids[1];
@@ -381,7 +473,7 @@ void plot3d(mins, maxs, IVE_Objects)
   //glLightfv(GL_LIGHT1,GL_AMBIENT,white);
 
 
-  glOrtho(xPosition-xStretch,xPosition+xStretch,yPosition-yStretch,yPosition+yStretch,-clipDistanceIVE2,clipDistanceIVE);// This line (repeated in redraw) sets window size and location
+  glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE);// This line (repeated in redraw) sets window size and location
   glPushMatrix();
 
   //      (void) glPointSize(5.0);
@@ -393,7 +485,8 @@ void plot3d(mins, maxs, IVE_Objects)
       IVE_Objects->listName[k]=glGenLists(1);
       glNewList(IVE_Objects->listName[k], GL_COMPILE);//sets a List for each file passed      
       glEnable(GL_NORMALIZE);
-
+      printf("Object %d Name %s color %d size %d\n", k, IVE_Objects->Field[k],IVE_Objects->Surface[k].color,
+	    IVE_Objects->Surface[k].size );
 	  for (place2BeC=0;place2BeC<IVE_Objects->Surface[k].size;place2BeC++)
 	    {
 	      glBegin(GL_TRIANGLES);
@@ -447,10 +540,12 @@ void plot3d(mins, maxs, IVE_Objects)
  for(k=0;IVE_Objects->listName[k];k++)
     {
       if (IVE_Objects->objectOn[k]) 
+	printf("turn on object %d\n",k);
 	glCallList(IVE_Objects->listName[k]);
     }
    if ( IveDblBufferFlag )
      glXSwapBuffers( dpy, IveGlxWindow );
   glFlush();
+  controlPad3D(IVE_Objects);
 }
 

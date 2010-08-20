@@ -231,8 +231,9 @@ extern struct
   Widget moveU, moveD, moveL, moveR;
   Widget RotLab,rotsep;
   Widget RotUD, RotLR;
+  Widget ZoomLab, StrSlide;
   Widget reset;
-  Widget Objs, UDCol, RLCol, RUDCol, RRLCol;
+  Widget scroll, Objs, UDCol, RLCol, RUDCol, RRLCol;
 }controls_3D;
  
 #define DIR         0

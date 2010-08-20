@@ -395,7 +395,7 @@ OBJS = 	add_to_list.o average.o catnull.o catof.o  \
 	setvector.o setveclock.o setvec_pos.o setvin.o setvmax.o  setwin.o  \
 	setxti.o slicer.o slicer1d.o slicer1d1a.o slicer1d2a.o \
 	slicer2d1a.o slicer2d2a.o slicer3d.o \
-	strbeg.o strmln1.o \
+	strbeg.o strmln1.o transrot3d.o \
 	tic_setup.o upcase.o  uwperim.o vdom.o  \
 	vect2d.o  vlimit.o winstack.o write_frame.o \
 	write_log.o write_message.o write_1d.o ybar.o \

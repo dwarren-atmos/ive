@@ -48,6 +48,7 @@ extern struct {
   Widget dep_form_v,ind_form_v;
   Widget dep_form_s,ind_form_s;
   Widget dep_form_t,ind_form_t;
+  Widget dep_form_3d,ind_form_3d;
   Widget cont_int, cont_val, clab1, clab2, cont_row;       /*contour*/
   Widget cont_values;                                      /*contour*/
   Widget zero, zerolab;                                    /*contour*/
@@ -62,6 +63,8 @@ extern struct {
   Widget traj_ind_lab, traj_ind;                              /*trajectory*/
   Widget traj_expl_lab, traj_help;                           /*trajectory*/
   Widget traj_2d;
+  Widget threed_value, threedlab, threed_row;                 /*3d*/
+  Widget threed_radio, iso, scatter, wire, mark, translucence; /*3d*/  
   /* per plot */
   Widget vect_max, vect_lock, vect_maxlab, vect_locklab;   /*vector*/
   Widget vect_poslab, vect_pos;			     /*vector*/

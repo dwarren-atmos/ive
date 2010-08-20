@@ -33,22 +33,15 @@ extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
   getdvar_(),scale_();
 extern int convert();
 
-#ifndef MAX
-#define MAX(x, y) ((x) > (y)? (x):(y))
-#endif
-#ifndef MIN
-#define MIN(x, y) ((x) < (y)? (x):(y))
-#endif
-#define slab_dep(x,y,z) *(slab_3.slab + (x) + (((y) + ((z) * njs)) * nis))
-#define wslab_dep(x,y,z) *(wslab + (x) + (((y) + ((z) * *nj)) * *ni))
-#define phpts3_dep(x,y,z) (phpts3.pt + (x) + (((y) + ((z) * njs)) * nis))
-//#define slab_dep(x,y,z) *(slab_3.slab + (x) + (y)*nis + z*njs*nis)
-//#define wslab_dep(x,y,z) *(wslab + (x) + (y)*(*ni) + (z)*(*nj)*(*ni))
-//#define phpts3_dep(x,y,z) (phpts3.pt + (x) + (y)*nis + (z)*nis*njs)
-
-
 
 static int nis, njs, nks;
+
+static struct point {
+    float x,y,z;
+};
+static struct point2d {
+    float x,y;
+};
 
 struct {
     int locked, dimavg, phys;
@@ -62,20 +55,40 @@ struct {
 	    0, 0, 0, 
 	    "",""};
 
-static struct point {
-    float x,y,z;
-};
 struct point3{
     struct point ***pt;
     int numx;
     int numy;
     int numz;
 } ;
+struct point2{
+    struct point2d **pt;
+    int numx;
+    int numy;
+} ;
+
+extern struct point2 phpts;
 struct point3 phpts3 = {(struct point ***)0,
 			0, 0, 0};
 struct wpt3 wp3;
+struct wpt wp;
 
 extern double interp_();
+#ifndef MAX
+#define MAX(x, y) ((x) > (y)? (x):(y))
+#endif
+#ifndef MIN
+#define MIN(x, y) ((x) < (y)? (x):(y))
+#endif
+#define slab_dep(x,y,z) *(slab_3.slab + (x) + (((y) + ((z) * njs)) * nis))
+#define wslab_dep(x,y,z) *(wslab + (x) + (((y) + ((z) * *nj)) * *ni))
+#define phpts3_dep(x,y,z) (phpts3.pt + (x) + (((y) + ((z) * njs)) * nis))
+#define phpts_dep(x,y) (phpts.pt + (x) + ((y)*nis))
+//#define slab_dep(x,y,z) *(slab_3.slab + (x) + (y)*nis + z*njs*nis)
+//#define wslab_dep(x,y,z) *(wslab + (x) + (y)*(*ni) + (z)*(*nj)*(*ni))
+//#define phpts3_dep(x,y,z) (phpts3.pt + (x) + (y)*nis + (z)*nis*njs)
+
+
 
 float 
   *slicer3d_(data, nx, ny, nz, nt,
@@ -479,7 +492,7 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
     for ( kcounter = 0; kcounter < nks; kcounter++ )
 	for (dcounter = 0; dcounter < njs; dcounter++ )
 	    for ( icounter = 0; icounter < nis; icounter++ ) {
-		struct point *pt = phpts3_dep(icounter, dcounter, kcounter);
+	      struct point *pt = ( struct point *)phpts3_dep(icounter, dcounter, kcounter);
 		if (min[slab_3.xaxis-1] < max[slab_3.xaxis-1]) {
 		    if (pt->x > min[slab_3.xaxis-1]
 			&& icounter < wp3.imin)
@@ -558,5 +571,35 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 	    wslab_dep(i, j, k) = slab_dep(i+wp3.imin, j+wp3.jmin, k+wp3.kmin);
 	  }
     window_points3_ = wp3;
+    wp.x1=wp3.x1;
+    wp.x2=wp3.x2;
+    wp.y1=wp3.y1;
+    wp.y2=wp3.y2;
+    wp.imin=wp3.imin;
+    wp.imax=wp3.imax;
+    wp.jmin=wp3.jmin;
+    wp.jmax=wp3.jmax;
+    wp.xaxis = wp3.xaxis;
+    wp.yaxis = wp3.yaxis;
+    wp.window_axes=wp3.window_axes;
+    wp.reverse=wp3.reverse;
+    window_points_ = wp;
+    phpts.numx=phpts3.numx;
+    phpts.numy=phpts3.numy;
+    if(phpts.pt)free(phpts.pt);
+    if((phpts.pt=(struct point2d **)malloc(phpts3.numx * sizeof(struct point2d *))) != 0){
+      for(i=0;i<phpts3.numx;i++)
+    	if((phpts.pt[i]=(struct point2d *)malloc(njs * sizeof(struct point2d)))==0){
+    	  for(k=0; k<i; k++)free(phpts.pt[k]);
+    	  free(phpts.pt);
+    	  (void)make_help_widget_("allocation for 2d slice to find terrain failed - errors may occur");
+	  return(wslab);
+    	}
+      for(i=0;i<phpts3.numx;i++)
+	for(j=0;j<phpts3.numy;j++){
+	  phpts.pt[i][j].x=phpts3.pt[i][j][0].x;
+	  phpts.pt[i][j].y=phpts3.pt[i][j][0].y;
+	}
+    }
     return(wslab);
 }

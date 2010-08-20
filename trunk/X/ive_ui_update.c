@@ -250,6 +250,12 @@ static char ident[] = "$Id: ive_ui_update.c,v 1.68 2002/11/27 00:30:52 warren Ex
  * Initial CVS checkin of IVE.
  *
  *****************************************************************************/
+#ifdef MEMDBG
+#include <mnemosyne.h>
+#else
+#include <stdlib.h>
+#include <malloc.h>
+#endif
 #include <X11/Intrinsic.h>
 #include <Xm/XmAll.h>
 #include <string.h>
@@ -258,8 +264,7 @@ static char ident[] = "$Id: ive_ui_update.c,v 1.68 2002/11/27 00:30:52 warren Ex
 #include <loop_setup.h>
 #include <ive_text_enum.h>
 #include <file_widgets.h>
-#include <malloc.h>
-#include <stdlib.h>
+#include <volume.h>      
 
 extern int fixed_index[4]; /*for slicing use*/
 extern double epsilon_();
@@ -1582,6 +1587,29 @@ void ui_update_(window)
 	      XtVaSetValues(Properties.traj_val, XmNvalue, avar, NULL);
 	  }
 	}
+      }
+      break;
+    case THREED_CONTROL_FORM: 
+      if(controls_3D.ThreeD){
+	extern ToggleButton t[4];
+	for (i=0; i<4; i++){
+	  if(t[i].O != NULL){
+	    if(t[i].O->objectOn[i])
+	      XmToggleButtonSetState(controls_3D.toggle[i],TRUE,FALSE);
+	    else
+	      XmToggleButtonSetState(controls_3D.toggle[i],FALSE,FALSE);
+	  }
+	}
+
+	sprintf(avar,"%d",LRMult);
+	XtVaSetValues(controls_3D.TransLRt,XmNvalue,avar,NULL);
+	sprintf(avar,"%d",UDMult);
+	XtVaSetValues(controls_3D.TransUDt,XmNvalue,avar,NULL);
+
+	XtVaSetValues(controls_3D.RotUD,XmNvalue,((int)yRotation-360)%180,NULL);
+	XtVaSetValues(controls_3D.RotLR,XmNvalue,((int)xRotation-360)%180,NULL);
+
+	XtVaSetValues(controls_3D.StrSlide,XmNvalue,(int)(StretchPercent*100),NULL);
       }
       break;
     }/*end switch(*window)*/

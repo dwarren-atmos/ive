@@ -176,8 +176,12 @@ static char ident[] = "$Id: gks_widgets.c,v 1.37 2002/12/26 22:48:11 warren Exp 
 #include <ive_gks.h>
 #include <ive_gl.h>
 #include <X11/Xcms.h>
-#include <malloc.h>
+#ifdef MEMDBG
+#include <mnemosyne.h>
+#else
 #include <stdlib.h>
+#include <malloc.h>
+#endif
 
 extern void ive_3dinput();
 
@@ -553,11 +557,9 @@ static void do_slice_popup(parent)
     
 /*end of line menu*/
     XtAddEventHandler(parent, ButtonPressMask, False, 
-                      postmenu, over_menu);
-    XtAddEventHandler(parent, ButtonPressMask, False,
-		    ive_3dinput, NULL);
-    XtAddEventHandler(parent, KeyPressMask, False,
-		    ive_3dinput, NULL);
+		      postmenu, over_menu);
+    XtAddEventHandler(parent, KeyPressMask|ButtonPressMask, False,
+    		      ive_3dinput, NULL);
   
 }
 
