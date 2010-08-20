@@ -31,6 +31,7 @@ open(CINC, ">../h/cmndlst.h");
 print CINC       "/* derived from command_list by command_list.perl */\n";
 while (<INPUT>) {
     if (/^\#/) {next;}
+    s///;
     chop;
     print CINC       "#define P_$_ $max_commands\n";
     $max_commands++;

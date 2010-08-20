@@ -60,6 +60,7 @@ typedef struct {
   Surface *Surface;
   NormalList *NormalList;
   int objectOn[10];
+  int objectDone[10];
   GLuint listName[10];
   char *Field[10];
 }Objects;
@@ -70,9 +71,9 @@ typedef struct
 	int N;
 }ToggleButton;
 
-
-static float xPosition=0.f;
-static float yPosition=0.f;
+float StretchPercent;
+float xPosition;
+float yPosition;
 static float xStretch;
 static float yStretch;
 float xRotation;

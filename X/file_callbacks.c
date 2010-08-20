@@ -287,7 +287,7 @@ void trans_ok_callback(w, client, call)
     if(client == NULL){
 	update_fsb(&trans_widget.fsb, call);
 	XmStringGetLtoR(call->value, XmSTRING_DEFAULT_CHARSET,&choice);
-	sprintf(buff,"trans=%s",choice);
+	sprintf(buff,"transform=%s",choice);
 	driver(buff);
 	XtFree((choice));
     }

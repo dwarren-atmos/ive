@@ -1,9 +1,9 @@
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef MEMDBG
+#include <mnemosyne.h>
+#endif
 #include <in_commands.h>
 extern struct {
   int curseg, curoverlay[15], curlist, curplot, segs[8*15], maxplot;
