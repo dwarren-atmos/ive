@@ -87,7 +87,8 @@ int convert_units_ (from_units, to_units, slope, intercept,
        Convert units strings to binary structure representation.
        */
     status = utScan(from_units, &unit1) ;
-    if (status == 0) status = utScan(to_units, &unit2) ;
+    if (status == 0) 
+      status = utScan(to_units, &unit2) ;
     if ( status != 0 ) {
 	switch ( status ) {
 	case UT_ENOINIT :
