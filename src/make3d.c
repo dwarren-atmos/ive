@@ -32,8 +32,10 @@ void reset_nobjects()
   nObjects=0;
   for(i=0; i<10; i++){
     IVE_Object.objectOn[i] = 1;
+    if(glIsList(IVE_Object.listName[i]))
+      glDeleteLists(IVE_Object.listName[i],1);
     IVE_Object.listName[i] = 0;
-}
+  }
 }
 
 static void compute_normal(v, p1, p2, p3)
@@ -129,7 +131,7 @@ void make3d_(varpt, x, y, z, t)
   int count = 0, allocated_norms, allocated_triangles;
   struct{float x,y,z;}bpt[8];
   struct TRIANGLES triangles,smalltri,tertris;
-  
+  terrmesh terrainmesh;
   FILE *file;
   char field[80];
   //  extern void ive_draw_surf(),  ive_draw_box(), ive_draw_points(),
@@ -210,7 +212,11 @@ void make3d_(varpt, x, y, z, t)
   allocated_triangles=3*ni*nj;
   allocated_norms=ni;
   if(!saveflag){
+    struct plainpoint *plpt;
     terrain=malloc(ni*nj*sizeof(float));
+    terrainmesh.x=ni;
+    terrainmesh.y=nj;
+    terrainmesh.points=(GLfloat *)malloc(ni*nj*3*sizeof(GLfloat));
     (void)horiz_ter_trans_(terrain,&ni,&nj,&stag[0],&stag[1],
 			   &mins[2],&error);
     if(!error){
@@ -312,6 +318,7 @@ void make3d_(varpt, x, y, z, t)
 			 tertris.tri[i].p1, 
 			 tertris.tri[i].p2,
 			 tertris.tri[i].p3);
+	  goto skip;
 	  for (m=0; m<tertris.num_normals; m++){
 	    if(!p1done && equal_ter(tertris.tri[i].p1,tertris.norm_points[m],
 				    mindelta))
@@ -346,7 +353,7 @@ void make3d_(varpt, x, y, z, t)
 	      }
 	    if(p1done&&p2done&&p3done)break;
 	  }
-	  
+	skip:
 	  if(!p1done){
 	    tertris.norm_counts[tertris.num_normals]=1;
 	    tertris.normals[tertris.num_normals].x = mynormal.x;
@@ -389,7 +396,6 @@ void make3d_(varpt, x, y, z, t)
 	tertris.normals[i].z= (tertris.normals[i].z/(float)tertris.norm_counts[i]);
       }
 
-      (void)reset_all_3d();
       nObjects=1;
       IVE_Object.objects = nObjects;
       IVE_Object.Surface = malloc(nObjects*sizeof(Surface));
@@ -574,6 +580,7 @@ void make3d_(varpt, x, y, z, t)
 		   triangles.tri[i].p2,
 		   triangles.tri[i].p3);
     //    if(!(i%10000))printf("check %d\n",i);
+    goto skip2;
     for (m=triangles.num_normals-1; m<=0;m--){
       
       if(!p1done && equal_points(triangles.tri[i].p1,triangles.norm_points[m],mindelta))
@@ -609,7 +616,7 @@ void make3d_(varpt, x, y, z, t)
       if(triangles.normals[m].x < (triangles.tri[i].p1.x - 10*dx))break;
     }
     if(p1done && p2done && p3done)continue;
-	    
+  skip2:	    
     if(triangles.num_normals+(3-p1done-p2done-p3done)> allocated_norms-1){
       void *ptr;
       allocated_norms += 100;
@@ -672,8 +679,8 @@ void make3d_(varpt, x, y, z, t)
     triangles.normals[i].y= -1.*(triangles.normals[i].y/(float)triangles.norm_counts[i]);
     triangles.normals[i].z= -1.*(triangles.normals[i].z/(float)triangles.norm_counts[i]);
   }
-  printf("got %d triangles %d normals\n",
-	 triangles.num_triangles,triangles.num_normals);
+  //  printf("got %d triangles %d normals\n",
+  //triangles.num_triangles,triangles.num_normals);
 
  
   
@@ -682,6 +689,7 @@ void make3d_(varpt, x, y, z, t)
 
   if(nObjects++){
     void *ptr;
+    (void)reset_all_3d();
     IVE_Object.objects = nObjects;
     ptr = realloc( IVE_Object.Surface, nObjects*sizeof(Surface));
     IVE_Object.Surface = ptr;
