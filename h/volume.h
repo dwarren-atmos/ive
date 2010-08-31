@@ -9,7 +9,7 @@
 #include <xgks.h>
 #include <ive_gks.h>
 
-
+#define terrlist 100
 
 #ifndef IVE_CUBE_PLOTS
 extern int ive_checkcube();
@@ -42,6 +42,8 @@ struct plainpoint {
     float x,y,z;
 };
 
+GLuint ive_font_base;
+
 typedef struct {float xCoord, yCoord, zCoord; int normalRef;} Point;
 
 typedef struct {Point pt[3];} Triangle;
@@ -65,6 +67,11 @@ typedef struct {
   char *Field[10];
 }Objects;
 
+typedef struct {
+  int x,y;
+  GLfloat *points
+}terrmesh;
+
 typedef struct
 {
 	Objects *O;
@@ -74,13 +81,13 @@ typedef struct
 float StretchPercent;
 float xPosition;
 float yPosition;
-static float xStretch;
-static float yStretch;
+float xStretch;
+float yStretch;
 float xRotation;
 float yRotation;
-static float zRotation=0.f;
-static float clipDistanceIVE=0;
-static float clipDistanceIVE2=0;
+float zRotation;
+float clipDistanceIVE;
+float clipDistanceIVE2;
 static int scalarX=1, scalarY=1, scalarZ=1;
 int LRMult,UDMult;
 static float mins3[3], maxs3[3], mids3[3];

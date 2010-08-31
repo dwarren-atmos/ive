@@ -26,6 +26,7 @@ extern void rotaR();
 extern void set3dLRMult();
 extern void set3dUDMult();
 extern void StretchFun();
+extern void print3d();
 XmString NewString();
 
 ToggleButton t[4]={{NULL,0},{NULL,1},{NULL,2},{NULL,3}};
@@ -50,6 +51,7 @@ void controlPad3D(Objects *OBJ)
 
   
   Widget ThreeD;
+  Widget print;
   XmString str2;
   char* WidgNames[] = {"ObjectOn1", "ObjectOn2","ObjectOn3","ObjectOn4","ObjectOn5"};
   char* WidgLabels[] = {"1","2","3","4","5"};
@@ -369,6 +371,22 @@ void controlPad3D(Objects *OBJ)
 						XmNrightOffset,10,
 						NULL);
     XtAddCallback(controls_3D.reset ,XmNactivateCallback,reset_button_3d,OBJ);
+    XmStringFree(str2);
+    
+    str2 = NewString("Print");
+    print = XtVaCreateManagedWidget("Print3d",
+						xmPushButtonWidgetClass,
+						controls_3D.ThreeD,
+						XmNlabelString,str2,
+						XmNtopAttachment,XmATTACH_WIDGET,
+						XmNtopWidget, controls_3D.reset,
+						XmNleftAttachment,XmATTACH_WIDGET,
+						XmNleftWidget, controls_3D.scroll,
+						XmNleftOffset,10,
+						XmNrightAttachment,XmATTACH_FORM,
+						XmNrightOffset,10,
+						NULL);
+    XtAddCallback(print ,XmNactivateCallback,print3d,OBJ);
     XmStringFree(str2);
     
     
