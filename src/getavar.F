@@ -1781,6 +1781,8 @@ c
 c
 c     plotops variables.
 c
+      elseif ( string(ibeg:iend) .eq. 'aratio' ) then
+         value = aratio
       elseif ( string(ibeg:iend) .eq. 'linwdth' ) then
          value = linwdth
       elseif ( string(ibeg:iend) .eq. 'xloc' ) then
