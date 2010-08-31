@@ -60,10 +60,12 @@ void reDraw(Objects *obj){
   int blargh;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glLoadIdentity();
-  glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE); 
   glRotatef(xRotation,1,0,0);
   glRotatef(yRotation,0,1,0);
   glRotatef(zRotation,0,0,1);
+  glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE); 
+  if(glIsList(terrlist))
+    glCallList(terrlist);
   for (blargh=0;blargh<obj->objects;blargh++)
     {
       if (obj->objectOn[blargh])
@@ -131,7 +133,7 @@ void reset_all_3d()
   xStretch=mids[0];
   yStretch=mids[1];
   StretchPercent=1;
-  clipDistanceIVE2=clipDistanceIVE;
+  clipDistanceIVE2=clipDistanceIVE=0.;
   i = THREED_CONTROL_FORM;
   (void)ui_update_(&i);
 }
@@ -165,7 +167,7 @@ void rotaLR(Widget w, Objects *obj, XmAnyCallbackStruct *call)
 {
   int rot;
   XmScaleGetValue(w,&rot);
-  yRotation=(rot+360)%360;
+  yRotation=360-((rot+360)%360);
   reDraw(obj);
 }
 
@@ -338,7 +340,35 @@ void ive_3dinput(w, data, event, dispatch)
     return;//above check for key press and take appropriate action before going to redraw
   }
 }
- 
+static int font_inited=0;
+static void
+init_font(char* f)
+{
+   XFontStruct* font_info;
+   int first;
+   int last;
+   
+   if(font_inited)return;
+   ive_font_base = glGenLists(256);
+   if (!glIsList(ive_font_base)) {
+      fprintf(stderr, "my_init(): Out of display lists. - Exiting.\n");
+      exit (-1);
+   }
+   /* Load the font. */
+   font_info = XLoadQueryFont(dpy, f);
+   if (!font_info) {
+     fprintf(stderr, "XLoadQueryFont() failed - Exiting.\n");
+     exit(-1);
+   }
+   else {
+     /* Tell GLX which font & glyphs to use. */
+     first = font_info->min_char_or_byte2;
+     last  = font_info->max_char_or_byte2;
+     glXUseXFont(font_info->fid, first, last-first+1, ive_font_base+first);
+   }
+   font_inited=1;
+}
+
 void plot3d(mins, maxs, IVE_Objects)
      float *mins, *maxs;
      Objects *IVE_Objects;
@@ -349,6 +379,7 @@ void plot3d(mins, maxs, IVE_Objects)
   float crossProductArray[3][2];//used for non-smoothing normals
 
   int k,i,j;
+  int saveflag,error;
   int place2BeA=0;
   int place2BeB=0;
   int place2BeC=0;
@@ -356,11 +387,14 @@ void plot3d(mins, maxs, IVE_Objects)
   int pt2Ref;
   int pt3Ref;
   float fixNegY=1, fixNegX=1, fixNegZ=1;
-  
+  struct plainpoint *plpt;
+
   GLfloat lightpos0[] = {-15,0,-5, 0};
   GLfloat lightpos1[] = {15,0,-15, 0};
   GLfloat lightpos2[] = {0,15,0, 0};
   GLfloat lightpos3[] = {0,0,-15, 0};
+  GLfloat lightpos4[4];
+  GLfloat lightpos5[4];
   GLfloat light0col[]={1.f,.8f,.8f,1.f};
   GLfloat light1col[]={.8f,1.f,.8f,1.f};
   GLfloat light2col[]={.8f,.8f,1.f,1.f};
@@ -374,9 +408,13 @@ void plot3d(mins, maxs, IVE_Objects)
   GLfloat yellow[] ={.5f,.5f,.0f,1};
   GLfloat purple[] ={.5f,.0f,.5f,1};
   GLfloat *IVEcolors[]={red,green,blue,grey,yellow,purple,white,black};
-
+  GLfloat lightgrey[] ={.1f,.1f,.1f,.5};
+  GLfloat ground[] = {.3,.06,.06,.1};
   FILE *file;
 
+  dpy = XtDisplay(xgks_widget);
+  init_font("fixed");
+  (void)getlvar_("savflg", &saveflag, &error, 6);
   mids[0]=(mins[0]+maxs[0])/2;
   mids[2]=(mins[1]+maxs[1])/2;
   mids[1]=(mins[2]+maxs[2])/2;
@@ -403,6 +441,48 @@ void plot3d(mins, maxs, IVE_Objects)
   //}
   //fclose(file);
 
+  // make sure we are not an overlay//
+  if(!IVE_Objects->objectDone[0]){
+    int dx,dy,dz;
+    if(glIsList(terrlist))
+      glDeleteLists(terrlist,1);
+    glNewList(terrlist, GL_COMPILE);//sets a List for each file passed      
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, lightgrey);
+    dx=(maxs[0]-mins[0])/20;
+    dy=(maxs[2]-mins[2])/20; //here z means font back not up down
+    dz=(maxs[1]-mins[1])/20;
+    glBegin(GL_LINES);
+    for (i=mins[0]; i<maxs[0]; i+=dx){
+      glVertex3f(i-mids[0],mins[2]-mids[1],mins[1]-mids[2]);
+      glVertex3f(i-mids[0],mins[2]-mids[1],maxs[1]-mids[2]);
+    }
+    for (i=mins[1]; i<maxs[1]; i+=dz){
+      glVertex3f(mins[0]-mids[0],mins[2]-mids[1],i-mids[2]);
+      glVertex3f(maxs[0]-mids[0],mins[2]-mids[1],i-mids[2]);
+    }
+    glEnd();
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, purple);
+    for (i=mins[0];i<maxs[0]; i += (maxs[0]-mins[0])/3){
+      char s[10];
+      sprintf(s,"%d",i);
+      glRasterPos3f(i-mids[0],mins[2]-mids[1],mins[1]-mids[2]);
+      glPushAttrib(GL_LIST_BIT);
+      glListBase(ive_font_base);
+      glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *)s);
+      glPopAttrib();
+    }
+    for (i=mins[1]; i<maxs[1]; i+=(dz*5)){
+      char s[10];
+      sprintf(s,"%d",i);
+      glRasterPos3f(mins[0]-mids[0],mins[2]-mids[1],i-mids[2]);
+      glPushAttrib(GL_LIST_BIT);
+      glListBase(ive_font_base);
+      glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *)s);
+      glPopAttrib();
+    }
+    glEndList();
+  }
+  //  
   for(i=0;i<IVE_Objects->objects;i++)
     {
       if(!IVE_Objects->objectDone[i])
@@ -416,7 +496,10 @@ void plot3d(mins, maxs, IVE_Objects)
 	      }
 	    IVE_Objects->objectDone[i]=1;
 	  }
-      IVE_Objects->Surface[i].color=i;//This line determines the color, add a line here to check to see if a color is already specified if you don't want it to default colors.
+      if(!strncmp(IVE_Objects->Field[i],"Terrain",7))
+	IVE_Objects->Surface[i].color=-1    ;
+      else
+	IVE_Objects->Surface[i].color=i;//This line determines the color, add a line here to check to see if a color is already specified if you don't want it to default colors.
     }
 
   xStretch=mids[0];
@@ -424,9 +507,8 @@ void plot3d(mins, maxs, IVE_Objects)
   clipDistanceIVE=mids[2];
 
   //ginqcolorrep(WS_X,colorindex,GREALIZED,&gkscolor);
-  dpy = XtDisplay(xgks_widget);
-  clipDistanceIVE=clipDistanceIVE*1.1*fixNegZ;//little buffer just to make sure rounding errors don't accidentally clip something
-  clipDistanceIVE2=clipDistanceIVE;//used for to avoid background clipping when intentionally clipping foreground
+  clipDistanceIVE=clipDistanceIVE*2.5*fixNegZ;//little buffer just to make sure rounding errors don't accidentally clip something
+  clipDistanceIVE2=1.1*clipDistanceIVE;//used for to avoid background clipping when intentionally clipping foreground
 
   //xStretch= 5;
   //yStretch= 5;
@@ -449,51 +531,68 @@ void plot3d(mins, maxs, IVE_Objects)
 
   
   glXMakeCurrent(dpy,IveGlxWindow,IveGlxContext);
-
-
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE);
   glClearColor( 1.0, 1.0, 1.0, 1.0 );//set background to white
   glEnable(GL_DEPTH_TEST);//prevents background from displaying infront of foreground
   glDepthMask(GL_TRUE);//necessary for depth testing... forgot why...
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glLoadIdentity();
-  glShadeModel(GL_SMOOTH);//allows for a triangle to have different colors at each vertex without this you just get one color per object
-  glEnable(GL_LIGHTING);//enables lights
-   glEnable(GL_LIGHT0);
-   glEnable(GL_LIGHT1);
-   glEnable(GL_LIGHT2);
-   glEnable(GL_LIGHT3);//4 lights in total
-   glLightfv(GL_LIGHT0, GL_POSITION, lightpos0);
-  glLightfv(GL_LIGHT1, GL_POSITION, lightpos1);
-  glLightfv(GL_LIGHT2, GL_POSITION, lightpos2);
-  glLightfv(GL_LIGHT3, GL_POSITION, lightpos3);//set position of lights (using GL floats from in main function)
-  glLightfv(GL_LIGHT0,GL_DIFFUSE,light0col);
-  //glLightfv(GL_LIGHT1,GL_DIFFUSE,light1col);
-  glLightfv(GL_LIGHT2,GL_DIFFUSE,light2col);
-  glLightfv(GL_LIGHT3,GL_DIFFUSE,light3col);//set colors of lights (using floats above)
-  //glLightfv(GL_LIGHT1,GL_AMBIENT,white);
-
+  if(!saveflag){
+    glShadeModel(GL_SMOOTH);//allows for a triangle to have different colors at each vertex without this you just get one color per object
+    glEnable(GL_LIGHTING);//enables lights
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+    glEnable(GL_LIGHT2);
+    glEnable(GL_LIGHT3);//4 lights in total
+    glEnable(GL_LIGHT4);//5 lights in total
+    glEnable(GL_LIGHT5);//6 lights in total
+    glLightfv(GL_LIGHT0, GL_POSITION, lightpos0);
+    glLightfv(GL_LIGHT1, GL_POSITION, lightpos1);
+    glLightfv(GL_LIGHT2, GL_POSITION, lightpos2);
+    glLightfv(GL_LIGHT3, GL_POSITION, lightpos3);//set position of lights (using GL floats from in main function)
+    lightpos4[0]=mids[0];
+    lightpos4[1]=maxs[2]+.1*(maxs[2]-mins[2]);
+    lightpos4[2]=mins[1]-.1*(maxs[1]-mins[1]);
+    lightpos4[3]=0;
+    lightpos5[0]=mids[0];
+    lightpos5[1]=mins[2]-.1*(maxs[2]-mins[2]);
+    lightpos5[2]=mins[1]-.1*(maxs[1]-mins[1]);
+    lightpos5[3]=0;
+    glLightfv(GL_LIGHT4, GL_POSITION, lightpos4);//set position of lights (using GL floats from in main function)
+    glLightfv(GL_LIGHT5, GL_POSITION, lightpos5);//set position of lights (using GL floats from in main function)
+    glLightfv(GL_LIGHT0,GL_DIFFUSE,light0col);
+    //glLightfv(GL_LIGHT1,GL_DIFFUSE,light1col);
+    glLightfv(GL_LIGHT2,GL_DIFFUSE,light2col);
+    glLightfv(GL_LIGHT3,GL_DIFFUSE,light3col);//set colors of lights (using floats above)
+    glLightfv(GL_LIGHT1,GL_AMBIENT,light1col);
+    glLightfv(GL_LIGHT4,GL_SPECULAR,light1col); 
+    glLightfv(GL_LIGHT5,GL_SPECULAR,light1col);
+  }
 
   glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE);// This line (repeated in redraw) sets window size and location
   glPushMatrix();
 
   //      (void) glPointSize(5.0);
 
-  printf("%f,%f,%f\n",xStretch,yStretch,clipDistanceIVE);
+  //printf("%f,%f,%f\n",xStretch,yStretch,clipDistanceIVE);
 
   for(k=0; k<nObjects;k++)
-    { 
-      IVE_Objects->listName[k]=glGenLists(1);
-      glNewList(IVE_Objects->listName[k], GL_COMPILE);//sets a List for each file passed      
+    {
+      if(glIsList(IVE_Objects->listName[k]))continue;
+      IVE_Objects->listName[k]=k+1;
+      glNewList(IVE_Objects->listName[k], GL_COMPILE);//sets a List for each file passed  object    
       glEnable(GL_NORMALIZE);
-      printf("Object %d Name %s color %d size %d\n", k, IVE_Objects->Field[k],IVE_Objects->Surface[k].color,
-	    IVE_Objects->Surface[k].size );
-	  for (place2BeC=0;place2BeC<IVE_Objects->Surface[k].size;place2BeC++)
+      glBegin(GL_TRIANGLES);
+      for (place2BeC=0;place2BeC<IVE_Objects->Surface[k].size;place2BeC++)
 	    {
-	      glBegin(GL_TRIANGLES);
 
 
 	      // glNormal3f(Objects.NormalList[k].normal[place2BeC].xCoord, Objects.NormalList[k].normal[place2BeC].yCoord,Objects.NormalList[k].normal[place2BeC].zCoord);//old normal method
-	      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, IVEcolors[IVE_Objects->Surface[k].color]);//set color of object
+	      if(IVE_Objects->Surface[k].color<0)
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, ground);//set color of object
+	      else
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, IVEcolors[IVE_Objects->Surface[k].color]);//set color of object
+	      
 	      glNormal3f(IVE_Objects->NormalList[k].normal[IVE_Objects->Surface[k].items[place2BeC].pt[0].normalRef].xCoord/((maxs[0]-mins[0])/10),
 			 IVE_Objects->NormalList[k].normal[IVE_Objects->Surface[k].items[place2BeC].pt[0].normalRef].yCoord/((maxs[1]-mins[1])/10),
 			 IVE_Objects->NormalList[k].normal[IVE_Objects->Surface[k].items[place2BeC].pt[0].normalRef].zCoord/((maxs[2]-mins[2])/10));//normal for point 1
@@ -511,7 +610,6 @@ void plot3d(mins, maxs, IVE_Objects)
 			 IVE_Objects->NormalList[k].normal[IVE_Objects->Surface[k].items[place2BeC].pt[2].normalRef].zCoord/((maxs[2]-mins[2])/10));//normal for point 3
 	      
 	      glVertex3f(IVE_Objects->Surface[k].items[place2BeC].pt[2].xCoord,IVE_Objects->Surface[k].items[place2BeC].pt[2].yCoord,IVE_Objects->Surface[k].items[place2BeC].pt[2].zCoord);
-	      glEnd();
 
 	      /*  glBegin(GL_LINES);
 	      glVertex3f(Objects.Surface[k].items[place2BeC].pt[0].xCoord,Objects.Surface[k].items[place2BeC].pt[0].yCoord,Objects.Surface[k].items[place2BeC].pt[0].zCoord);
@@ -531,12 +629,17 @@ void plot3d(mins, maxs, IVE_Objects)
 			 glEnd();*/
 
 	    }
+	      glEnd();
 	  glEndList();
     }
 
 
 
   glPopMatrix();
+  if(glIsList(terrlist)){
+    printf("trun on terrain\n");
+    glCallList(terrlist);
+  }
  for(k=0;IVE_Objects->listName[k];k++)
     {
       if (IVE_Objects->objectOn[k]) 
