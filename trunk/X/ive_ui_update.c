@@ -1610,6 +1610,7 @@ void ui_update_(window)
 	XtVaSetValues(controls_3D.RotLR,XmNvalue,((int)xRotation-360)%180,NULL);
 
 	XtVaSetValues(controls_3D.StrSlide,XmNvalue,(int)(StretchPercent*100),NULL);
+	XSync(XtDisplay(Box), FALSE);	    
       }
       break;
     }/*end switch(*window)*/
