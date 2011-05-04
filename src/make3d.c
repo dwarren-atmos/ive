@@ -35,6 +35,8 @@ void reset_nobjects()
     if(glIsList(IVE_Object.listName[i]))
       glDeleteLists(IVE_Object.listName[i],1);
     IVE_Object.listName[i] = 0;
+    if(glIsList(terrlist))
+      glDeleteLists(terrlist,1);
   }
 }
 
@@ -279,7 +281,7 @@ void make3d_(varpt, x, y, z, t)
 	  (void)scale_(&tertris.tri[k].p3.z,&npts,
 	  	       domain_slope+2,domain_intercept+2,&special);
 	  
-	  if(tertris.tri[k].p1.z>mins[2] ||tertris.tri[k].p2.z>mins[2] ||tertris.tri[k].p3.z>mins[2])
+	  if(tertris.tri[k].p1.z>mins[2] && tertris.tri[k].p2.z>mins[2] && tertris.tri[k].p3.z>mins[2])
 	    {
 	      k++;
 	      tertris.tri[k].p1.x=tertris.tri[k-1].p1.x;
@@ -305,7 +307,7 @@ void make3d_(varpt, x, y, z, t)
 	  (void)scale_(&tertris.tri[k].p3.z,&npts,
 		       domain_slope+2,domain_intercept+2,&special);
 	  
-	  if(tertris.tri[k].p1.z>mins[2] ||tertris.tri[k].p2.z>mins[2] ||tertris.tri[k].p3.z>mins[2])
+	  if(tertris.tri[k].p1.z>mins[2] && tertris.tri[k].p2.z>mins[2] && tertris.tri[k].p3.z>mins[2])
 	    k++;
 	}
       }
@@ -390,11 +392,11 @@ void make3d_(varpt, x, y, z, t)
 	    tertris.num_normals++;
 	  }
 	}
-      for(i=0; i<k; i++){
-	tertris.normals[i].x= (tertris.normals[i].x/(float)tertris.norm_counts[i]);
-	tertris.normals[i].y= (tertris.normals[i].y/(float)tertris.norm_counts[i]);
-	tertris.normals[i].z= (tertris.normals[i].z/(float)tertris.norm_counts[i]);
-      }
+      //for(i=0; i<k; i++){
+      //tertris.normals[i].x= (tertris.normals[i].x/(float)tertris.norm_counts[i]);
+      //tertris.normals[i].y= (tertris.normals[i].y/(float)tertris.norm_counts[i]);
+      //tertris.normals[i].z= (tertris.normals[i].z/(float)tertris.norm_counts[i]);
+      //}
 
       nObjects=1;
       IVE_Object.objects = nObjects;
@@ -407,6 +409,7 @@ void make3d_(varpt, x, y, z, t)
       OBN.normal = malloc(OBN.size*sizeof(Point));
       IVE_Object.Field[0] = malloc(8*sizeof(char));    
       strcpy(IVE_Object.Field[nObjects-1],"Terrain");
+#pragma omp parallel for default(shared)
       for(i=0; i<tertris.num_triangles; i++){
 	OBS.items[i].pt[0].xCoord = tertris.tri[i].p1.x;
 	OBS.items[i].pt[0].yCoord = tertris.tri[i].p1.z;
@@ -421,6 +424,7 @@ void make3d_(varpt, x, y, z, t)
 	OBS.items[i].pt[2].zCoord = tertris.tri[i].p3.y;
 	OBS.items[i].pt[2].normalRef = tertris.tri[i].normal3;
       }
+#pragma omp parallel for default(shared)
       for(i=0; i<tertris.num_normals; i++){
 	OBN.normal[i].xCoord = tertris.normals[i].x;
 	OBN.normal[i].yCoord = tertris.normals[i].z;
@@ -674,11 +678,11 @@ void make3d_(varpt, x, y, z, t)
   }
   printf("here\n");
 
-  for (i=0; i<triangles.num_normals; i++){
-    triangles.normals[i].x= -1.*(triangles.normals[i].x/(float)triangles.norm_counts[i]);
-    triangles.normals[i].y= -1.*(triangles.normals[i].y/(float)triangles.norm_counts[i]);
-    triangles.normals[i].z= -1.*(triangles.normals[i].z/(float)triangles.norm_counts[i]);
-  }
+  //for (i=0; i<triangles.num_normals; i++){
+  //triangles.normals[i].x= -1.*(triangles.normals[i].x/(float)triangles.norm_counts[i]);
+  //triangles.normals[i].y= -1.*(triangles.normals[i].y/(float)triangles.norm_counts[i]);
+  //triangles.normals[i].z= -1.*(triangles.normals[i].z/(float)triangles.norm_counts[i]);
+  //}
   //  printf("got %d triangles %d normals\n",
   //triangles.num_triangles,triangles.num_normals);
 
@@ -712,6 +716,7 @@ void make3d_(varpt, x, y, z, t)
   OBS.items = malloc(OBS.size*sizeof(Triangle));
   OBN.size = triangles.num_normals;//change this line when we hop over to point normals instead of triangle normals.
   OBN.normal = malloc(OBN.size*sizeof(Point));
+#pragma omp parallel for default(shared)
   for(i=0; i<triangles.num_triangles; i++){
     OBS.items[i].pt[0].xCoord = triangles.tri[i].p1.x;
     OBS.items[i].pt[0].yCoord = triangles.tri[i].p1.y;
@@ -726,6 +731,7 @@ void make3d_(varpt, x, y, z, t)
     OBS.items[i].pt[2].zCoord = triangles.tri[i].p3.z;
     OBS.items[i].pt[2].normalRef = triangles.tri[i].normal3;
   }
+#pragma omp parallel for default(shared)
   for(i=0; i<triangles.num_normals; i++){
     OBN.normal[i].xCoord = triangles.normals[i].x;
     OBN.normal[i].yCoord = triangles.normals[i].y;

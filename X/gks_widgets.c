@@ -183,6 +183,7 @@ static char ident[] = "$Id: gks_widgets.c,v 1.37 2002/12/26 22:48:11 warren Exp 
 #include <malloc.h>
 #endif
 
+
 extern void ive_3dinput();
 
 int singleBufferAttributess[] = {
@@ -201,6 +202,16 @@ int doubleBufferAttributes[] = {
   GLX_RED_SIZE,      1,     /* the maximum number of bits per component    */
   GLX_GREEN_SIZE,    1, 
   GLX_BLUE_SIZE,     1,
+    None
+};
+int stereoAttributes[] = {
+  GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+  GLX_RENDER_TYPE,   GLX_RGBA_BIT,
+  GLX_DOUBLEBUFFER,  True,  /* Request a double-buffered color buffer with */
+  GLX_RED_SIZE,      1,     /* the maximum number of bits per component    */
+  GLX_GREEN_SIZE,    1, 
+  GLX_BLUE_SIZE,     1,
+  GLX_STEREO,
     None
 };
 
@@ -563,7 +574,7 @@ static void do_slice_popup(parent)
   
 }
 
-
+extern Boolean Ive_Stereo;
 void setup_3D(Widget widg)
 {
   Display *dpy;
@@ -581,16 +592,23 @@ void setup_3D(Widget widg)
     return;
   }
   xwin = XtWindow(widg);
-  fbConfigs = glXChooseFBConfig( dpy, DefaultScreen(dpy),
-				 doubleBufferAttributes, &numReturned );
-
-  if ( fbConfigs == NULL ) {  /* no double buffered configs available */
+  if(Ive_Stereo){
     fbConfigs = glXChooseFBConfig( dpy, DefaultScreen(dpy),
-				   singleBufferAttributess, &numReturned );
-
+				   stereoAttributes, &numReturned );
+      IveDblBufferFlag = 1;
   }
   else{
-    IveDblBufferFlag = 1;
+    fbConfigs = glXChooseFBConfig( dpy, DefaultScreen(dpy),
+				   doubleBufferAttributes, &numReturned );
+    
+    if ( fbConfigs == NULL ) {  /* no double buffered configs available */
+      fbConfigs = glXChooseFBConfig( dpy, DefaultScreen(dpy),
+				     singleBufferAttributess, &numReturned );
+    
+    }
+    else{
+      IveDblBufferFlag = 1;
+    }
   }
   IveGlxVisInfo = glXGetVisualFromFBConfig(dpy, fbConfigs[0]);
 

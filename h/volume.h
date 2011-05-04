@@ -10,6 +10,7 @@
 #include <ive_gks.h>
 
 #define terrlist 100
+#define labellist 200
 
 #ifndef IVE_CUBE_PLOTS
 extern int ive_checkcube();

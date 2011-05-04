@@ -249,17 +249,20 @@ static XrmOptionDescRec options[] = {
     {"-trans",		"*transformFile",	XrmoptionSepArg, NULL},
     {"-transform_file",	"*transformFile",	XrmoptionSepArg, NULL},
     {"-debug",		"*Debug",		XrmoptionNoArg,  "True"},
+    {"-stereo",		"*Stereo",		XrmoptionNoArg,  "True"},
 };
 
 typedef struct {
-    char *input_file;
-    char *allocate_cmap;
-    char *log_file;
-    char *transform_file;
-    Boolean debug;
+  char *input_file;
+  char *allocate_cmap;
+  char *log_file;
+  char *transform_file;
+  Boolean debug;
+  Boolean stereo;
 } AppData , *AppDataPtr;
 
 AppData app_data;
+Boolean Ive_Stereo = False;
 	
 static XtResource resources[] = {
 {   "inputFile", "InputFile", XtRString, sizeof(char*),
@@ -273,6 +276,9 @@ static XtResource resources[] = {
 },
 {   "debug", "Debug", XtRBoolean, sizeof(Boolean),
     XtOffset(AppDataPtr, debug), XtRImmediate, (XtPointer) False,
+},
+{   "stereo", "Stereo", XtRBoolean, sizeof(Boolean),
+    XtOffset(AppDataPtr, stereo), XtRImmediate, (XtPointer) False,
 },
 {   "transformFile", "InputFile", XtRString, sizeof(char*),
     XtOffset(AppDataPtr, transform_file), XtRString, NULL,
@@ -581,7 +587,7 @@ allocate new color map [y\\n]? ", i-10);
 	if (app_data.debug) strcat(buff, ",debug");
 	driver_notwin(buff);
     }
-
+    if (app_data.stereo) Ive_Stereo = True;
     (void)getavar_("transform_path",buff,&error,14,256);
     if ( buff[0]=='\0'){
 	(void)make_help_widget_(
