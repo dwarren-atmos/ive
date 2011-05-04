@@ -84,7 +84,7 @@ void threedheader(FILE *file){
   fprintf(file, "%%%%Creator: %s (using OpenGL feedback)\n", "IVE");
   WIDTHMULT=(8*72)/(viewport[3]-viewport[1]);
   HEIGHTMULT=(11*72)/(viewport[2]-viewport[0]);
-  if(aspect>0.){
+  if(aspect!=0.){
     if(aspect<1.)
       WIDTHMULT *= aspect;
     else if(aspect>1)
@@ -152,7 +152,7 @@ void check_error(int s){
 
 print3d(Widget w, Objects *obj, XmAnyCallbackStruct *call )
 {
-  GLfloat feedBuffer[3000000];
+  GLfloat *feedBuffer;
   GLfloat *token,*end;
   GLint nvertices,smooth;
   GLuint size;
@@ -163,10 +163,9 @@ print3d(Widget w, Objects *obj, XmAnyCallbackStruct *call )
   GLfloat xnext, ynext, rnext, gnext, bnext, distance;  
   GLfloat red, green, blue;
   
-  int i;
+  int i,numtri;
   FILE *file;
   
-  bzero(feedBuffer,3000000);
   file = fopen("ive3d.ps", "w");
   threedheader(file);
   //glMatrixMode (GL_PROJECTION);
@@ -179,7 +178,12 @@ print3d(Widget w, Objects *obj, XmAnyCallbackStruct *call )
 	  yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE);
   s=glGetError();
   check_error(s);
-  glFeedbackBuffer (3000000, GL_3D_COLOR, feedBuffer);
+  numtri=0;
+  for (i=0;i<obj->objects;i++)
+    if(numtri < obj->Surface[i].size)numtri=obj->Surface[i].size;
+  feedBuffer=(GLfloat *)malloc(30*numtri*sizeof(GLfloat)); //10 vals for each vertex xyztttrgba
+  bzero(feedBuffer,30*numtri*sizeof(GLfloat));
+  glFeedbackBuffer (30*numtri, GL_3D_COLOR, feedBuffer);
   s=glGetError();
   check_error(s);
   (void) glRenderMode (GL_FEEDBACK);
@@ -193,23 +197,23 @@ print3d(Widget w, Objects *obj, XmAnyCallbackStruct *call )
     check_error(s);
   }
   for (i=0;i<obj->objects;i++)
-   {
-     if(glIsList(obj->listName[i]))
-       {
-	 glCallList(obj->listName[i]);
-	 s=glGetError();
-	 check_error(s);
-       }
-     glFlush();
-     if ( IveDblBufferFlag )
-       glXSwapBuffers(XtDisplay(xgks_widget), XtWindow(xgks_widget) );
-   }
+    {
+      if(glIsList(obj->listName[i]))
+	{
+	  glCallList(obj->listName[i]);
+	  s=glGetError();
+	  check_error(s);
+	}
+      glFlush();
+      // if ( IveDblBufferFlag )
+     // glXSwapBuffers(XtDisplay(xgks_widget), XtWindow(xgks_widget) );
+    }
   size = glRenderMode (GL_RENDER);
   s=glGetError();
   check_error(s);
   
   
-  end=feedBuffer+3000000;
+  end=feedBuffer+(30*numtri);
   token=feedBuffer;
   while (token<end && *token>0) {
     switch((int)(*token)){
@@ -312,7 +316,7 @@ print3d(Widget w, Objects *obj, XmAnyCallbackStruct *call )
 	 red = vertex[0].red;
 	 green = vertex[0].green;
 	 blue = vertex[0].blue;
-	 smooth = 0;
+	 smooth = 1;
 	 for (i = 1; i < nvertices; i++) {
 	   if (red != vertex[i].red || green != vertex[i].green || blue != vertex[i].blue) {
 	     smooth = 1;
@@ -369,17 +373,18 @@ print3d(Widget w, Objects *obj, XmAnyCallbackStruct *call )
        token += 8;
        //printf ("ARRGH!!! Other_TOKEN\n");
        break;
-     }
-   }
-    fputs("%Add `showpage' to the end of this file to be able to print to a printer.\n",
-	  file);
-    fputs("grestore\n\n", file);
-    fprintf(file,"%%%%Trailer\n");
-    fprintf(file, "%%%%BoundingBox: %g %g %g %g\n",
-	    (minx)*WIDTHMULT,(miny)*HEIGHTMULT,(maxx+19)*WIDTHMULT,(maxy+113)*HEIGHTMULT);
-    fprintf(file,"%%%%EOF\n");
-    
-
+    }
+  }
+  
+  fputs("%Add `showpage' to the end of this file to be able to print to a printer.\n",
+	file);
+  fputs("grestore\n\n", file);
+  fprintf(file,"%%%%Trailer\n");
+  fprintf(file, "%%%%BoundingBox: %g %g %g %g\n",
+	  (minx)*WIDTHMULT,(miny)*HEIGHTMULT,(maxx+19)*WIDTHMULT,(maxy+113)*HEIGHTMULT);
+  fprintf(file,"%%%%EOF\n");
+  free(feedBuffer);
+  
   fclose(file);
 }
 

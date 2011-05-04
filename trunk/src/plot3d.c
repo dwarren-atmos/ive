@@ -19,8 +19,10 @@
 #include <signal.h>
 #include <volume.h>
 #include <ive_widgets.h>
+#include <FTGL/ftgl.h>
 //#include <ive_gks.h>
 extern Widget xgks_widget;
+extern Boolean Ive_Stereo;
 
 float mids[3];
 
@@ -55,14 +57,14 @@ float clip(float clipD, float changeClip)
   return clipD;
 }// changes clip distance on key press (change call to change amount of clipping)
 
-
-void reDraw(Objects *obj){
+void DoreDraw(Objects *obj){
   int blargh;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glLoadIdentity();
   glRotatef(xRotation,1,0,0);
   glRotatef(yRotation,0,1,0);
   glRotatef(zRotation,0,0,1);
+
   glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE); 
   if(glIsList(terrlist))
     glCallList(terrlist);
@@ -73,10 +75,56 @@ void reDraw(Objects *obj){
 	  glCallList(obj->listName[blargh]);
 	}
     }
+  if(glIsList(labellist))
+    glCallList(labellist);
   glFlush();
   if ( IveDblBufferFlag )
     glXSwapBuffers(dpy, XtWindow(xgks_widget) );
 }//clears and redraws object in new location after rotate move or clip or anything
+
+void reDraw(Objects *obj){
+  if(Ive_Stereo){
+    int width,height;
+    float right = 1.3125;
+    float left  = -.6875;
+    float eyesep= .5;
+    float asp;
+    XtVaGetValues(xgks_widget,XmNheight, &height, XmNwidth, &width, NULL);
+    asp = (float)height/(float)width;
+    
+     /* First left eye.  */
+    glDrawBuffer(GL_BACK_LEFT);
+    glLoadIdentity();                                        //reset modelview matrix
+    gluLookAt(-eyesep/2,                                        //set camera position  x=-IOD/2
+	      0.0,                                           //                     y=0.0
+	      0.0,                                           //                     z=0.0
+	      0.0,                                           //set camera "look at" x=0.0
+	      0.0,                                           //                     y=0.0
+	      clipDistanceIVE,                                       //                     z=screenplane
+	      0.0,                                           //set camera up vector x=0.0
+	      1.0,                                           //                     y=1.0
+	      0.0);                                          //                     z=0.0
+    
+    DoreDraw(obj);
+    glPopMatrix();
+
+    /* Then right eye.  */
+    glLoadIdentity();                                        //reset modelview matrix
+    gluLookAt(eyesep/2,                                        //set camera position  x=-IOD/2
+	      0.0,                                           //                     y=0.0
+	      0.0,                                           //                     z=0.0
+	      0.0,                                           //set camera "look at" x=0.0
+	      0.0,                                           //                     y=0.0
+	      clipDistanceIVE,                                       //                     z=screenplane
+	      0.0,                                           //set camera up vector x=0.0
+	      1.0,                                           //                     y=1.0
+	      0.0);                                          //                     z=0.0
+
+    DoreDraw(obj);
+    glPopMatrix();
+  } else
+    DoreDraw(obj);
+}
 
 void toggleRef(Widget w,  ToggleButton *t, XmAnyCallbackStruct *call)
 {
@@ -133,7 +181,9 @@ void reset_all_3d()
   xStretch=mids[0];
   yStretch=mids[1];
   StretchPercent=1;
-  clipDistanceIVE2=clipDistanceIVE=0.;
+  clipDistanceIVE=mids[2];
+  clipDistanceIVE=clipDistanceIVE*2.5;
+  clipDistanceIVE2=1.1*clipDistanceIVE;
   i = THREED_CONTROL_FORM;
   (void)ui_update_(&i);
 }
@@ -341,14 +391,20 @@ void ive_3dinput(w, data, event, dispatch)
   }
 }
 static int font_inited=0;
+static FTGLfont *ftglfont;
 static void
-init_font(char* f)
+init_font(char* f, int size)
 {
    XFontStruct* font_info;
    int first;
    int last;
    
    if(font_inited)return;
+   ftglfont=(FTGLfont *)ftglCreateTextureFont("/usr/share/fonts/truetype/msttcorefonts/arial.ttf");
+   ftglSetFontFaceSize(ftglfont, size, 300);
+   //ftglSetFontCharMap(ftglfont, ft_encoding_unicode);
+   font_inited=1;
+   return;
    ive_font_base = glGenLists(256);
    if (!glIsList(ive_font_base)) {
       fprintf(stderr, "my_init(): Out of display lists. - Exiting.\n");
@@ -413,76 +469,12 @@ void plot3d(mins, maxs, IVE_Objects)
   FILE *file;
 
   dpy = XtDisplay(xgks_widget);
-  init_font("fixed");
   (void)getlvar_("savflg", &saveflag, &error, 6);
   mids[0]=(mins[0]+maxs[0])/2;
   mids[2]=(mins[1]+maxs[1])/2;
   mids[1]=(mins[2]+maxs[2])/2;
 
 
-  //  file = fopen("pointsafter","w+");
-  //fprintf(file,"triangles: %d\n", IVE_Objects->Surface[0].size);
-  //fprintf(file,"normals: %d\n",IVE_Objects->NormalList[0].size);
-  //fprintf(file,"min:{%f, %f, %f}\n",
-  //mins[0],mins[2],mins[1]);
-  //	  mins[slab_3.xaxis-1],mins[slab_3.yaxis-1],mins[slab_3.zaxis-1]);
-  //fprintf(file,"max:{%f, %f, %f}\n",
-  //maxs[0],maxs[2],maxs[1]);
-  //maxs[slab_3.xaxis-1],maxs[slab_3.yaxis-1],maxs[slab_3.zaxis-1]);
-  //for (i=0;i<IVE_Objects->Surface[0].size;i++)
-  //{   
-      //fprintf(file,"{%f, %f, %f}[%d] {%f, %f, %f}[%d] {%f, %f, %f}[%d]\n",
-      //      IVE_Objects->Surface[0].items[i].pt[0].xCoord,IVE_Objects->Surface[0].items[i].pt[0].yCoord,IVE_Objects->Surface[0].items[i].pt[0].zCoord,IVE_Objects->Surface[0].items[i].pt[0].normalRef,
-      //      IVE_Objects->Surface[0].items[i].pt[1].xCoord,IVE_Objects->Surface[0].items[i].pt[1].yCoord,IVE_Objects->Surface[0].items[i].pt[1].zCoord,IVE_Objects->Surface[0].items[i].pt[1].normalRef,
-      //      IVE_Objects->Surface[0].items[i].pt[2].xCoord,IVE_Objects->Surface[0].items[i].pt[2].yCoord,IVE_Objects->Surface[0].items[i].pt[2].zCoord,IVE_Objects->Surface[0].items[i].pt[2].normalRef);
-  //}
-  //for(i=0; i<IVE_Objects->NormalList[0].size; i++){
-  //fprintf(file,"{%f, %f, %f}\n",IVE_Objects->NormalList[0].normal[i].xCoord,IVE_Objects->NormalList[0].normal[i].yCoord,IVE_Objects->NormalList[0].normal[i].zCoord);
-  //}
-  //fclose(file);
-
-  // make sure we are not an overlay//
-  if(!IVE_Objects->objectDone[0]){
-    int dx,dy,dz;
-    if(glIsList(terrlist))
-      glDeleteLists(terrlist,1);
-    glNewList(terrlist, GL_COMPILE);//sets a List for each file passed      
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, lightgrey);
-    dx=(maxs[0]-mins[0])/20;
-    dy=(maxs[2]-mins[2])/20; //here z means font back not up down
-    dz=(maxs[1]-mins[1])/20;
-    glBegin(GL_LINES);
-    for (i=mins[0]; i<maxs[0]; i+=dx){
-      glVertex3f(i-mids[0],mins[2]-mids[1],mins[1]-mids[2]);
-      glVertex3f(i-mids[0],mins[2]-mids[1],maxs[1]-mids[2]);
-    }
-    for (i=mins[1]; i<maxs[1]; i+=dz){
-      glVertex3f(mins[0]-mids[0],mins[2]-mids[1],i-mids[2]);
-      glVertex3f(maxs[0]-mids[0],mins[2]-mids[1],i-mids[2]);
-    }
-    glEnd();
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, purple);
-    for (i=mins[0];i<maxs[0]; i += (maxs[0]-mins[0])/3){
-      char s[10];
-      sprintf(s,"%d",i);
-      glRasterPos3f(i-mids[0],mins[2]-mids[1],mins[1]-mids[2]);
-      glPushAttrib(GL_LIST_BIT);
-      glListBase(ive_font_base);
-      glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *)s);
-      glPopAttrib();
-    }
-    for (i=mins[1]; i<maxs[1]; i+=(dz*5)){
-      char s[10];
-      sprintf(s,"%d",i);
-      glRasterPos3f(mins[0]-mids[0],mins[2]-mids[1],i-mids[2]);
-      glPushAttrib(GL_LIST_BIT);
-      glListBase(ive_font_base);
-      glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *)s);
-      glPopAttrib();
-    }
-    glEndList();
-  }
-  //  
   for(i=0;i<IVE_Objects->objects;i++)
     {
       if(!IVE_Objects->objectDone[i])
@@ -569,8 +561,53 @@ void plot3d(mins, maxs, IVE_Objects)
     glLightfv(GL_LIGHT5,GL_SPECULAR,light1col);
   }
 
-  glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE);// This line (repeated in redraw) sets window size and location
-  glPushMatrix();
+  //glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE);// This line (repeated in redraw) sets window size and location
+  // make sure we are not an overlay//
+  
+  if(!glIsList(terrlist)){
+    int dx,dy,dz;
+    glNewList(terrlist, GL_COMPILE);//sets a List for each file passed      
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, lightgrey);
+    dx=(maxs[0]-mins[0])/20;
+    dy=(maxs[2]-mins[2])/20; //here z means font back not up down
+    dz=(maxs[1]-mins[1])/20;
+    glBegin(GL_LINES);
+    for (i=mins[0]; i<=maxs[0]; i+=dx){
+      glVertex3f(i-mids[0],mins[2]-mids[1],mins[1]-mids[2]);
+      glVertex3f(i-mids[0],mins[2]-mids[1],maxs[1]-mids[2]);
+    }
+    for (i=mins[1]; i<=maxs[1]; i+=dz){
+      glVertex3f(mins[0]-mids[0],mins[2]-mids[1],i-mids[2]);
+      glVertex3f(maxs[0]-mids[0],mins[2]-mids[1],i-mids[2]);
+    }
+    glEnd();
+
+    /*
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, purple);
+    for (i=mins[0];i<maxs[0]; i += (maxs[0]-mins[0])/3){
+      char s[10];
+      sprintf(s,"%d",i);
+      glRasterPos3f(i-mids[0],mins[2]-mids[1],mins[1]-mids[2]);
+      glPushAttrib(GL_LIST_BIT);
+      glListBase(ive_font_base);
+      glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *)s);
+      glPopAttrib();
+    }
+    for (i=mins[1]; i<maxs[1]; i+=((maxs[1]-mins[1])/3)){
+      char s[10];
+      sprintf(s,"%d",i);
+      glRasterPos3f(mins[0]-mids[0],mins[2]-mids[1],i-mids[2]);
+      glPushAttrib(GL_LIST_BIT);
+      glListBase(ive_font_base);
+      glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *)s);
+      glPopAttrib();
+    }
+    */
+    glEndList();
+  }
+    // glPopMatrix();
+
+  //glPushMatrix();
 
   //      (void) glPointSize(5.0);
 
@@ -629,13 +666,35 @@ void plot3d(mins, maxs, IVE_Objects)
 			 glEnd();*/
 
 	    }
-	      glEnd();
-	  glEndList();
+      glEnd();
+      glEndList();
     }
+  /*
+  if(!glIsList(labellist)){
+    init_font("fixed", (int)((maxs[0]-mins[0])>(maxs[1]-mins[1])?(maxs[0]-mins[0]):(maxs[1]-mins[1]))/80);
+    glNewList(labellist, GL_COMPILE);//sets a List for each file passed      
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, black);//set color of object
+    glTranslatef((float)((mins[0]-mids[0])-(maxs[0]-mins[0])/5.),
+		 (float)(mins[2]-mids[1]),(float)(mins[1]-mids[2]));
+    for (i=mins[0];i<=maxs[0]; i += (maxs[0]-mins[0])/5){
+      char s[10];
+      sprintf(s,"%d",i);
+      glTranslatef((maxs[0]-mins[0])/5.,0.,0.);
+      ftglRenderFont(ftglfont, s, FTGL_RENDER_ALL);
+    }
+    glTranslatef((float)-i+(maxs[0]-mins[0])/5.,0.,-(maxs[1]-mins[1])/5.);
+    for (i=mins[1];i<=maxs[1]; i += (maxs[1]-mins[1])/5){
+      char s[10];
+      sprintf(s,"%d",i);
+      glTranslatef(0.,0.,(maxs[1]-mins[1])/5.);
+      ftglRenderFont(ftglfont, s, FTGL_RENDER_ALL);
+    }
+    glEndList();
+    ftglDestroyFont(ftglfont);
+  }
 
-
-
-  glPopMatrix();
+  */
+  /*
   if(glIsList(terrlist)){
     printf("trun on terrain\n");
     glCallList(terrlist);
@@ -646,9 +705,11 @@ void plot3d(mins, maxs, IVE_Objects)
 	printf("turn on object %d\n",k);
 	glCallList(IVE_Objects->listName[k]);
     }
+  glFlush();
    if ( IveDblBufferFlag )
      glXSwapBuffers( dpy, IveGlxWindow );
-  glFlush();
+  */
   controlPad3D(IVE_Objects);
+  reDraw(IVE_Objects);
 }
 
