@@ -223,16 +223,15 @@ extern struct {
 
 extern struct
 {
-  
   Widget ThreeD;
-  Widget TransLab,transsep;
+  Widget TransLab;
   Widget TransLRt, TransUDt;
   Widget toggle[4];
   Widget moveU, moveD, moveL, moveR;
-  Widget RotLab,rotsep;
+  Widget RotLab;
   Widget RotUD, RotLR;
   Widget ZoomLab, StrSlide;
-  Widget reset;
+  Widget reset,print;
   Widget scroll, Objs, UDCol, RLCol, RUDCol, RRLCol;
 }controls_3D;
  

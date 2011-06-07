@@ -111,17 +111,3 @@ extern struct {
     char current[256];
 }printer_setup;
 
-extern struct
-{
-  
-  Widget ThreeD;
-  Widget TransLab;
-  Widget TransLRt, TransUDt;
-  Widget toggle[4];
-  Widget moveU, moveD, moveL, moveR;
-  Widget RotLab;
-  Widget RotUD, RotLR;
-  Widget ZoomLab, StrSlide;
-  Widget reset,print;
-  Widget scroll, Objs, UDCol, RLCol, RUDCol, RRLCol;
-}controls_3D;
