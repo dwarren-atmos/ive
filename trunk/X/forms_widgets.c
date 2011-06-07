@@ -259,7 +259,7 @@ struct {
   Widget dep_form_v,ind_form_v;
   Widget dep_form_s,ind_form_s;
   Widget dep_form_t,ind_form_t;
-  Widget dep_form_3d,ind_form_3d;
+  Widget dep_form_3d,ind_form_3d,control_form_3d;
   Widget cont_int, cont_val, clab1, clab2, cont_row;       /*contour*/
   Widget cont_values;                                      /*contour*/
   Widget zero, zerolab;                                    /*contour*/
@@ -274,7 +274,8 @@ struct {
   Widget traj_ind_lab, traj_ind;                             /*trajectory*/
   Widget traj_expl_lab, traj_help;                           /*trajectory*/
   Widget traj_2d;                                             /*trajectory*/
-  Widget threed_value, threedlab, threed_row;                 /*3d*/
+  Widget threed_value, threedlab, threed_row, lin3d, log3d;    /*3d*/
+  Widget threedzlab, threed_zrow;                              /*3d*/
   Widget threed_radio, iso, scatter, wire, mark, translucence; /*3d*/
 /* per plot */
   Widget vect_max, vect_lock, vect_maxlab, vect_locklab;     /*vector*/
@@ -2743,6 +2744,409 @@ void  do_traj(parent)
 }
        
   
+void  do_3d(parent)
+     Widget parent;
+{
+  int lock[4],four = 4,error;    
+  
+  
+  /*make form but don't manage*/
+  
+  /*DEP FORM*/
+  Properties.dep_form_3d = XtVaCreateWidget("Properties",
+					    xmFormWidgetClass,
+					    parent,
+					    XmNtopAttachment,
+					    XmATTACH_FORM,
+					    XmNleftAttachment,
+					    XmATTACH_FORM,
+					    XmNrightAttachment,
+					    XmATTACH_FORM,
+					    XmNresizable,TRUE,
+					    XmNresizePolicy,
+					    XmRESIZE_ANY,
+					    XmNmarginWidth,5,
+					    XmNborderWidth,0,
+					    NULL);
+  
+  /*row 1*/
+  XtAddCallback(Properties.dep_form_3d,XmNhelpCallback,
+		check_help_call,NULL);
+  
+  str = NewString("Surface");
+  Properties.threedlab = 
+    XtVaCreateManagedWidget("Surface Value",xmLabelWidgetClass,
+			    Properties.dep_form_3d,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_FORM,
+			    XmNleftAttachment,XmATTACH_FORM,
+			    XmNtopOffset,5,
+			    NULL);
+  XmStringFree(str);
+  
+  Properties.threed_value = 
+    XtVaCreateManagedWidget("Value",
+			    xmTextFieldWidgetClass,
+			    Properties.dep_form_3d,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.threedlab,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    XmNrightAttachment, 
+			    XmATTACH_FORM,
+			    XmNleftOffset, 10,
+			    XmNrightOffset, 10,
+			    NULL);
+  
+  
+  
+  
+  XtAddCallback(Properties.threed_value,XmNactivateCallback,
+		form_3val_call,NULL);
+  XtAddCallback(Properties.threed_value,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)ThreeVALS);
+  XtAddCallback(Properties.threed_value,XmNmodifyVerifyCallback,
+		check_num,(XtPointer)ThreeVALS);
+  XtAddCallback(Properties.threed_value,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)ThreeVALS);
+  XtAddEventHandler(Properties.threed_value, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  
+  
+  
+  /********************END OF DEPENDANT VAR FORM********************/
+  /*****************AND END OF NONDEPENDANT VAR FORM****************/
+  
+  Properties.ind_form_3d = XtVaCreateWidget("Properties",
+					    xmFormWidgetClass,
+					    parent,
+					    XmNtopAttachment,
+					    XmATTACH_WIDGET,
+					    XmNtopWidget,
+					    Properties.dep_form_3d,
+					    XmNleftAttachment,
+					    XmATTACH_FORM,
+					    XmNrightAttachment,
+					    XmATTACH_FORM,
+					    XmNresizable, TRUE,
+					    XmNresizePolicy,
+					    XmRESIZE_ANY,
+					    XmNborderWidth,0,
+					    XmNmarginWidth,5,
+					    NULL);
+  
+  XtAddCallback(Properties.ind_form_3d, XmNhelpCallback,
+		check_help_call,NULL);
+  /*row 1*/
+  
+  str = NewString("Vertical (Z) Axis");
+  Properties. threedzlab= 
+    XtVaCreateManagedWidget("Abscissa lab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNlabelString,str,
+			    XmNtopAttachment,
+			    XmATTACH_FORM,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    NULL);
+  XmStringFree(str);
+  
+  Properties.threed_zrow = 
+    XtVaCreateManagedWidget("LINLOG", xmRowColumnWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNtopAttachment,XmATTACH_FORM,
+			    XmNleftAttachment,XmATTACH_WIDGET,
+			    XmNleftWidget, Properties.threedzlab,
+			    XmNradioBehavior, True,
+			    XmNpacking,XmPACK_TIGHT,
+			    XmNorientation, XmHORIZONTAL,
+			    XmNisHomogeneous, True,
+			    XmNentryClass,xmToggleButtonWidgetClass,
+			    NULL);
+  
+  str = NewString("Linear");
+  Properties.lin3d =  
+    XtVaCreateManagedWidget("linlog ",
+			    xmToggleButtonWidgetClass,
+			    Properties.threed_zrow, 
+			    XmNlabelString, str,
+			    NULL);
+  XmStringFree(str);
+  
+  XtAddCallback(Properties.lin3d,XmNarmCallback,form_linlog,(XtPointer)"z");
+  
+  str = NewString("Logarithmic");
+  Properties.log3d =  
+    XtVaCreateManagedWidget("LinLog ",
+			    xmToggleButtonWidgetClass,
+			    Properties.threed_zrow,
+			    XmNlabelString, str,
+			    NULL);
+  XmStringFree(str);
+  XtAddCallback(Properties.log3d,XmNarmCallback,form_linlog,(XtPointer)"z");
+  
+  
+  Properties.control_form_3d = XtVaCreateWidget("Properties",
+						xmFormWidgetClass,
+						parent,
+						XmNtopAttachment,
+						XmATTACH_WIDGET,
+						XmNtopWidget,
+						Properties.ind_form_3d,
+						XmNleftAttachment,
+						XmATTACH_FORM,
+						XmNrightAttachment,
+						XmATTACH_FORM,
+						XmNresizable, TRUE,
+						XmNresizePolicy,
+						XmRESIZE_ANY,
+						XmNborderWidth,1,
+						XmNmarginWidth,5,
+						NULL);
+  
+  /*row 2*/   
+  /*
+  str = NewString("Major tic\ninterval");
+  Properties.xmajorlab = 
+    XtVaCreateManagedWidget("Majlab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ihaxesrow,
+			    XmNtopOffset, 10,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    NULL);
+  XmStringFree(str);
+  
+  
+  Properties.xmajor =     
+    XtVaCreateManagedWidget("ABSCISSA",
+			    xmTextFieldWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ihaxesrow,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.xmajorlab,
+			    XmNcolumns, 8,
+			    NULL);
+  
+  XtAddCallback(Properties.xmajor,XmNactivateCallback,form_tick_call,(XtPointer)"X");
+  XtAddCallback(Properties.xmajor,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)XMAJOR);
+  XtAddCallback(Properties.xmajor,XmNmodifyVerifyCallback,check_num,(XtPointer)XMAJOR);
+  XtAddCallback(Properties.xmajor,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)XMAJOR);
+  XtAddEventHandler(Properties.xmajor, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  Properties.xminor =     
+    XtVaCreateManagedWidget("abscissa",
+			    xmTextFieldWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ihaxesrow,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.xmajor,
+			    XmNcolumns, 8,
+			    NULL);
+  
+  XtAddCallback(Properties.xminor,XmNactivateCallback,form_tick_call,(XtPointer)"x");
+  XtAddCallback(Properties.xminor,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)XMINOR);
+  XtAddCallback(Properties.xminor,XmNmodifyVerifyCallback,check_num,(XtPointer)XMINOR);
+  XtAddCallback(Properties.xminor,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)XMINOR);
+  XtAddEventHandler(Properties.xminor, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  
+  str = NewString("Minor tic\ninterval");
+  Properties.xminorlab = 
+    XtVaCreateManagedWidget("Minlab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ihaxesrow,
+			    XmNtopOffset, 10,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.xminor,
+			    NULL);
+  XmStringFree(str);
+  
+  */  
+  
+  /*row 3*/
+  /*
+  str = NewString("Vertical Axis ");
+  Properties.ivaxeslab = 
+    XtVaCreateManagedWidget("Vhaxes",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNlabelString,str,
+			    XmNtopAttachment,
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.xmajor,
+			    XmNtopOffset, 10,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    NULL);
+  XmStringFree(str);
+  
+  Properties.ivaxesrow = 
+    XtVaCreateManagedWidget("LINLOG", xmRowColumnWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget, Properties.xmajor,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment,XmATTACH_WIDGET,
+			    XmNleftWidget, Properties.ivaxeslab,
+			    XmNradioBehavior, True,
+			    XmNorientation, XmHORIZONTAL,
+			    XmNisHomogeneous, True,
+			    XmNentryClass,xmToggleButtonWidgetClass,
+			    XmNpacking,XmPACK_TIGHT,
+			    NULL);
+  
+  str = NewString("Linear");
+  Properties.ivaxeslin =  
+    XtVaCreateManagedWidget("linlog ",
+			    xmToggleButtonWidgetClass,
+			    Properties.ivaxesrow, 
+			    XmNlabelString, str,
+			    NULL);
+  XmStringFree(str);
+  
+  XtAddCallback(Properties.ivaxeslin,XmNarmCallback,form_linlog,(XtPointer)"v");
+  
+  str = NewString("Logarithmic");
+  Properties.ivaxeslog =  
+    XtVaCreateManagedWidget("LinLog",
+			    xmToggleButtonWidgetClass,
+			    Properties.ivaxesrow, 
+			    XmNlabelString, str,
+			    NULL);
+  XmStringFree(str);
+  
+  XtAddCallback(Properties.ivaxeslog,XmNarmCallback,form_linlog,(XtPointer)"v");
+  
+  
+  
+  
+  str = NewString("Major tic\ninterval");
+  Properties.ymajorlab = 
+    XtVaCreateManagedWidget("Majlab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ivaxesrow ,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_FORM,
+			    XmNbottomOffset, 10,
+			    NULL);
+  XmStringFree(str);
+  
+  Properties.ymajor =     
+    XtVaCreateManagedWidget("ORDINATE",
+			    xmTextFieldWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ivaxesrow  ,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.ymajorlab,
+			    XmNcolumns, 8,
+			    XmNbottomOffset, 10,
+			    NULL);
+  
+  XtAddCallback(Properties.ymajor,XmNactivateCallback,form_tick_call,(XtPointer)"Y");
+  XtAddCallback(Properties.ymajor,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)YMAJOR);
+  XtAddCallback(Properties.ymajor,XmNmodifyVerifyCallback,check_num,(XtPointer)YMAJOR);
+  XtAddCallback(Properties.ymajor,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)YMAJOR);
+  XtAddEventHandler(Properties.ymajor, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  
+  Properties.yminor =     
+    XtVaCreateManagedWidget("ordinate",
+			    xmTextFieldWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNtopAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ivaxesrow,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.ymajor,
+			    XmNcolumns, 8,
+			    XmNbottomOffset, 10,
+			    NULL);
+  
+  XtAddCallback(Properties.yminor,XmNactivateCallback,form_tick_call,(XtPointer)"y");
+  XtAddCallback(Properties.yminor,XmNactivateCallback,
+		cleanup_box_call,(XtPointer)YMINOR);
+  XtAddCallback(Properties.yminor,XmNmodifyVerifyCallback,check_num,(XtPointer)YMINOR);
+  XtAddCallback(Properties.yminor,XmNmotionVerifyCallback,
+		text_box_motion,(XtPointer)YMINOR);
+  XtAddEventHandler(Properties.yminor, ButtonPressMask, FALSE,
+		    check_default_handler, 0);
+  
+  
+  str = NewString("Minor tic\ninterval");
+  Properties.yminorlab = 
+    XtVaCreateManagedWidget("Minlab",
+			    xmLabelWidgetClass,
+			    Properties.ind_form_3d,
+			    XmNlabelString,str,
+			    XmNtopAttachment,XmATTACH_WIDGET,
+			    XmNtopWidget,
+			    Properties.ivaxesrow  ,
+			    XmNtopOffset, 5,
+			    XmNleftAttachment, 
+			    XmATTACH_WIDGET,
+			    XmNleftWidget,
+			    Properties.yminor,
+			    XmNbottomOffset, 10,
+			    NULL);
+  XmStringFree(str);
+  */
+  
+  
+}
+
 void do_props(force)
      int force;
 {
@@ -2798,6 +3202,8 @@ void do_props(force)
 	    if (*plot_type1 == 'S') sprintf(plot_type, "SketT");
 	    else sprintf(plot_type,"Line");
 	}
+	else if(ivar == 1)
+	    sprintf(plot_type,"IsoSurface");
 	else 
 	    sprintf(plot_type,"None");
     }
@@ -2812,6 +3218,9 @@ void do_props(force)
 	    if (*plot_type2 == 'S') sprintf(plot_type,"Contour");
 	    else if (*plot_type2 == 'V') sprintf(plot_type, "Vector");
 	    else if (*plot_type2 == 'T') sprintf(plot_type, "Trajectory");
+	    break;
+	case 3:
+	    sprintf(plot_type,"IsoSurface");
 	    break;
 	default:
 	    sprintf(plot_type,"None");
@@ -2867,6 +3276,7 @@ void do_props(force)
       (void)do_vector(Properties.form);
       (void)do_skewt(Properties.form);
       (void)do_traj(Properties.form);
+      (void)do_3d(Properties.form);
     }
     if(*plot_type == 'C' && *(plot_type+1) == 'o'){
       XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
@@ -2893,6 +3303,13 @@ void do_props(force)
       
       if(XtIsManaged(Properties.dep_form_t))
 	XtUnmanageChild(Properties.dep_form_t);
+
+      if(XtIsManaged(Properties.dep_form_3d))
+	XtUnmanageChild(Properties.dep_form_3d);
+      if(XtIsManaged(Properties.ind_form_3d))
+	XtUnmanageChild(Properties.ind_form_3d);
+      if(XtIsManaged(Properties.control_form_3d))
+	XtUnmanageChild(Properties.control_form_3d);
     }
     else if(*plot_type == 'L'){
       XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
@@ -2913,6 +3330,45 @@ void do_props(force)
       if(XtIsManaged(Properties.dep_form_c)){
 	XtUnmanageChild(Properties.dep_form_c);
 	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_v)){
+	XtUnmanageChild(Properties.dep_form_v);
+	XtUnmanageChild(Properties.ind_form_v);
+      }
+      if(XtIsManaged(Properties.dep_form_s))
+	XtUnmanageChild(Properties.dep_form_s);
+      
+      if(XtIsManaged(Properties.dep_form_t))
+	XtUnmanageChild(Properties.dep_form_t);
+      if(XtIsManaged(Properties.ind_form_3d))
+	XtUnmanageChild(Properties.ind_form_3d);
+      if(XtIsManaged(Properties.control_form_3d))
+	XtUnmanageChild(Properties.control_form_3d);
+    }
+    else if(*plot_type == 'I'){
+      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
+		    NULL);
+      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
+		    main_widget.Line, NULL);
+      if(!XtIsManaged(XtParent(Properties.form))){
+	XtManageChild(XtParent(Properties.form));
+      }
+      if(!XtIsManaged(Properties.dep_form_3d) || force){
+	if(buttons)
+	  setup_3d_form(fix,buttons);
+	else
+	  setup_3d_form(pfix,buttons);
+	XtManageChild(Properties.dep_form_3d);
+	XtManageChild(Properties.ind_form_3d);
+	XtManageChild(Properties.control_form_3d);
+      }
+      if(XtIsManaged(Properties.dep_form_c)){
+	XtUnmanageChild(Properties.dep_form_c);
+	XtUnmanageChild(Properties.ind_form_c);
+      }
+      if(XtIsManaged(Properties.dep_form_l)){
+	XtUnmanageChild(Properties.dep_form_l);
+	XtUnmanageChild(Properties.ind_form_l);
       }
       if(XtIsManaged(Properties.dep_form_v)){
 	XtUnmanageChild(Properties.dep_form_v);
@@ -2951,6 +3407,12 @@ void do_props(force)
       if(XtIsManaged(Properties.dep_form_t))
 	XtUnmanageChild(Properties.dep_form_t);
       
+      if(XtIsManaged(Properties.dep_form_3d))
+	XtUnmanageChild(Properties.dep_form_3d);
+      if(XtIsManaged(Properties.ind_form_3d))
+	XtUnmanageChild(Properties.ind_form_3d);
+      if(XtIsManaged(Properties.control_form_3d))
+	XtUnmanageChild(Properties.control_form_3d);
     }
     else if(*plot_type == 'T') {
       XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
@@ -2979,6 +3441,13 @@ void do_props(force)
       }
       if(XtIsManaged(Properties.dep_form_s))
 	XtUnmanageChild(Properties.dep_form_s);
+
+      if(XtIsManaged(Properties.dep_form_3d))
+	XtUnmanageChild(Properties.dep_form_3d);
+      if(XtIsManaged(Properties.ind_form_3d))
+	XtUnmanageChild(Properties.ind_form_3d);
+      if(XtIsManaged(Properties.control_form_3d))
+	XtUnmanageChild(Properties.control_form_3d);
       
     }
     else if(*plot_type == 'V'){
@@ -3003,33 +3472,8 @@ void do_props(force)
       }
       if(XtIsManaged(Properties.dep_form_s))
 	XtUnmanageChild(Properties.dep_form_s);
-    }
-    else if(*plot_type == 'S' && *(plot_type+1) == 'U'){
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type3,
-		    NULL);
-      XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
-		    main_widget.Surface, NULL);
-      if(!XtIsManaged(XtParent(Properties.form)))
-	XtManageChild(XtParent(Properties.form));
-      if(!XtIsManaged(Properties.dep_form_3d) || force){
-	setup_3d_form();
-	XtManageChild(Properties.dep_form_3d);
-	XtManageChild(Properties.ind_form_3d);
-      }
-      if(XtIsManaged(Properties.dep_form_v)){
-	XtUnmanageChild(Properties.dep_form_v);
-	XtUnmanageChild(Properties.ind_form_v);
-      }
-      if(XtIsManaged(Properties.dep_form_c)){
-	XtUnmanageChild(Properties.dep_form_c);
-	XtUnmanageChild(Properties.ind_form_c);
-      }
-      if(XtIsManaged(Properties.dep_form_l)){
-	XtUnmanageChild(Properties.dep_form_l);
-	XtUnmanageChild(Properties.ind_form_l);
-      }
-      if(XtIsManaged(Properties.dep_form_s))
-	XtUnmanageChild(Properties.dep_form_s);
+      if(XtIsManaged(Properties.dep_form_3d))
+	XtUnmanageChild(Properties.dep_form_3d);
     }
     else if(*plot_type == 'P'){
       XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type3,
@@ -3057,6 +3501,10 @@ void do_props(force)
       }
       if(XtIsManaged(Properties.dep_form_s))
 	XtUnmanageChild(Properties.dep_form_s);
+      if(XtIsManaged(Properties.ind_form_3d))
+	XtUnmanageChild(Properties.ind_form_3d);
+      if(XtIsManaged(Properties.control_form_3d))
+	XtUnmanageChild(Properties.control_form_3d);
     }
     else if(*plot_type == 'W'){
       XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type3,
@@ -3084,6 +3532,10 @@ void do_props(force)
       }
       if(XtIsManaged(Properties.dep_form_s))
 	XtUnmanageChild(Properties.dep_form_s);
+      if(XtIsManaged(Properties.ind_form_3d))
+	XtUnmanageChild(Properties.ind_form_3d);
+      if(XtIsManaged(Properties.control_form_3d))
+	XtUnmanageChild(Properties.control_form_3d);
     }
     else {
       if(XtIsManaged(Properties.dep_form_c)){
@@ -3101,6 +3553,10 @@ void do_props(force)
       if(XtIsManaged(Properties.dep_form_s))
 	XtUnmanageChild(Properties.dep_form_s);
       XtUnmanageChild(XtParent(Properties.form));
+      if(XtIsManaged(Properties.ind_form_3d))
+	XtUnmanageChild(Properties.ind_form_3d);
+      if(XtIsManaged(Properties.control_form_3d))
+	XtUnmanageChild(Properties.control_form_3d);
     }
     if (XtIsManaged(Properties.form) && XtIsManaged(XtParent(Properties.form)))
       XRaiseWindow(XtDisplay(Properties.form),
@@ -3599,388 +4055,4 @@ void init_printsetup(w,data,call)
   XtManageChild(popup);
 }
 
-void  do_3d(parent)
-     Widget parent;
-{
-  int lock[4],four = 4,error;    
-  
-  
-  /*make form but don't manage*/
-  
-  /*DEP FORM*/
-  Properties.dep_form_3d = XtVaCreateWidget("Properties",
-					    xmFormWidgetClass,
-					    parent,
-					    XmNtopAttachment,
-					    XmATTACH_FORM,
-					    XmNleftAttachment,
-					    XmATTACH_FORM,
-					    XmNrightAttachment,
-					    XmATTACH_FORM,
-					    XmNresizable,TRUE,
-					    XmNresizePolicy,
-					    XmRESIZE_ANY,
-					    XmNmarginWidth,5,
-					    XmNborderWidth,1,
-					    NULL);
-  
-  /*row 1*/
-  XtAddCallback(Properties.dep_form_3d,XmNhelpCallback,
-		check_help_call,NULL);
-  
-  str = NewString("Surface");
-  Properties.threedlab = 
-    XtVaCreateManagedWidget("Surface Values",xmLabelWidgetClass,
-			    Properties.dep_form_3d,
-			    XmNlabelString,str,
-			    XmNtopAttachment,XmATTACH_FORM,
-			    XmNleftAttachment,XmATTACH_FORM,
-			    XmNtopOffset,5,
-			    NULL);
-  XmStringFree(str);
-  
-  Properties.threed_value = 
-    XtVaCreateManagedWidget("Values",
-			    xmTextFieldWidgetClass,
-			    Properties.dep_form_c,
-			    XmNtopAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.threedlab,
-			    XmNleftAttachment, 
-			    XmATTACH_FORM,
-			    XmNrightAttachment, 
-			    XmATTACH_FORM,
-			    XmNleftOffset, 10,
-			    XmNrightOffset, 10,
-			    NULL);
-  
-  
-  
-  
-  XtAddCallback(Properties.threed_value,XmNactivateCallback,
-		form_3val_call,NULL);
-  XtAddCallback(Properties.threed_value,XmNactivateCallback,
-		cleanup_box_call,(XtPointer)ThreeVALS);
-  XtAddCallback(Properties.threed_value,XmNmodifyVerifyCallback,
-		check_num,(XtPointer)ThreeVALS);
-  XtAddCallback(Properties.threed_value,XmNmotionVerifyCallback,
-		text_box_motion,(XtPointer)ThreeVALS);
-  XtAddEventHandler(Properties.threed_value, ButtonPressMask, FALSE,
-		    check_default_handler, 0);
-  
-  
-  
-  
-  /********************END OF DEPENDANT VAR FORM********************/
-  /*****************AND END OF NONDEPENDANT VAR FORM****************/
-  
-  Properties.ind_form_3d = XtVaCreateWidget("Properties",
-					    xmFormWidgetClass,
-					    parent,
-					    XmNtopAttachment,
-					    XmATTACH_WIDGET,
-					    XmNtopWidget,
-					    Properties.dep_form_3d,
-					    XmNleftAttachment,
-					    XmATTACH_FORM,
-					    XmNrightAttachment,
-					    XmATTACH_FORM,
-					    XmNresizable, TRUE,
-					    XmNresizePolicy,
-					    XmRESIZE_ANY,
-					    XmNborderWidth,1,
-					    XmNmarginWidth,5,
-					    NULL);
-  
-  XtAddCallback(Properties.ind_form_3d, XmNhelpCallback,
-		check_help_call,NULL);
-  /*row 1*/
-  
-  str = NewString("Horizontal Axis");
-  Properties.ihaxeslab = 
-    XtVaCreateManagedWidget("Abscissa lab",
-			    xmLabelWidgetClass,
-			    Properties.ind_form_c,
-			    XmNlabelString,str,
-			    XmNtopAttachment,
-			    XmATTACH_FORM,
-			    XmNtopOffset, 5,
-			    XmNleftAttachment, 
-			    XmATTACH_FORM,
-			    NULL);
-  XmStringFree(str);
-  
-  Properties.ihaxesrow = 
-    XtVaCreateManagedWidget("LINLOG", xmRowColumnWidgetClass,
-			    Properties.ind_form_c,
-			    XmNtopAttachment,XmATTACH_FORM,
-			    XmNleftAttachment,XmATTACH_WIDGET,
-			    XmNleftWidget, Properties.ihaxeslab,
-			    XmNradioBehavior, True,
-			    XmNpacking,XmPACK_TIGHT,
-			    XmNorientation, XmHORIZONTAL,
-			    XmNisHomogeneous, True,
-			    XmNentryClass,xmToggleButtonWidgetClass,
-			    NULL);
-  
-  str = NewString("Linear");
-  Properties.ihaxeslin =  
-    XtVaCreateManagedWidget("linlog ",
-			    xmToggleButtonWidgetClass,
-			    Properties.ihaxesrow, 
-			    XmNlabelString, str,
-			    NULL);
-  XmStringFree(str);
-  
-  XtAddCallback(Properties.ihaxeslin,XmNarmCallback,form_linlog,(XtPointer)"h");
-  
-  str = NewString("Logarithmic");
-  Properties.ihaxeslog =  
-    XtVaCreateManagedWidget("LinLog ",
-			    xmToggleButtonWidgetClass,
-			    Properties.ihaxesrow, 
-			    XmNlabelString, str,
-			    NULL);
-  XmStringFree(str);
-  XtAddCallback(Properties.ihaxeslog,XmNarmCallback,form_linlog,(XtPointer)"h");
-  
-  
-  /*row 2*/   
-  
-  str = NewString("Major tic\ninterval");
-  Properties.xmajorlab = 
-    XtVaCreateManagedWidget("Majlab",
-			    xmLabelWidgetClass,
-			    Properties.ind_form_c,
-			    XmNlabelString,str,
-			    XmNtopAttachment,XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.ihaxesrow,
-			    XmNtopOffset, 10,
-			    XmNleftAttachment, 
-			    XmATTACH_FORM,
-			    NULL);
-  XmStringFree(str);
-  
-  
-  Properties.xmajor =     
-    XtVaCreateManagedWidget("ABSCISSA",
-			    xmTextFieldWidgetClass,
-			    Properties.ind_form_c,
-			    XmNtopAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.ihaxesrow,
-			    XmNtopOffset, 5,
-			    XmNleftAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNleftWidget,
-			    Properties.xmajorlab,
-			    XmNcolumns, 8,
-			    NULL);
-  
-  XtAddCallback(Properties.xmajor,XmNactivateCallback,form_tick_call,(XtPointer)"X");
-  XtAddCallback(Properties.xmajor,XmNactivateCallback,
-		cleanup_box_call,(XtPointer)XMAJOR);
-  XtAddCallback(Properties.xmajor,XmNmodifyVerifyCallback,check_num,(XtPointer)XMAJOR);
-  XtAddCallback(Properties.xmajor,XmNmotionVerifyCallback,
-		text_box_motion,(XtPointer)XMAJOR);
-  XtAddEventHandler(Properties.xmajor, ButtonPressMask, FALSE,
-		    check_default_handler, 0);
-  
-  Properties.xminor =     
-    XtVaCreateManagedWidget("abscissa",
-			    xmTextFieldWidgetClass,
-			    Properties.ind_form_c,
-			    XmNtopAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.ihaxesrow,
-			    XmNtopOffset, 5,
-			    XmNleftAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNleftWidget,
-			    Properties.xmajor,
-			    XmNcolumns, 8,
-			    NULL);
-  
-  XtAddCallback(Properties.xminor,XmNactivateCallback,form_tick_call,(XtPointer)"x");
-  XtAddCallback(Properties.xminor,XmNactivateCallback,
-		cleanup_box_call,(XtPointer)XMINOR);
-  XtAddCallback(Properties.xminor,XmNmodifyVerifyCallback,check_num,(XtPointer)XMINOR);
-  XtAddCallback(Properties.xminor,XmNmotionVerifyCallback,
-		text_box_motion,(XtPointer)XMINOR);
-  XtAddEventHandler(Properties.xminor, ButtonPressMask, FALSE,
-		    check_default_handler, 0);
-  
-  
-  str = NewString("Minor tic\ninterval");
-  Properties.xminorlab = 
-    XtVaCreateManagedWidget("Minlab",
-			    xmLabelWidgetClass,
-			    Properties.ind_form_c,
-			    XmNlabelString,str,
-			    XmNtopAttachment,XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.ihaxesrow,
-			    XmNtopOffset, 10,
-			    XmNleftAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNleftWidget,
-			    Properties.xminor,
-			    NULL);
-  XmStringFree(str);
-  
-  
-  
-  /*row 3*/
-  
-  str = NewString("Vertical Axis ");
-  Properties.ivaxeslab = 
-    XtVaCreateManagedWidget("Vhaxes",
-			    xmLabelWidgetClass,
-			    Properties.ind_form_c,
-			    XmNlabelString,str,
-			    XmNtopAttachment,
-			    XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.xmajor,
-			    XmNtopOffset, 10,
-			    XmNleftAttachment, 
-			    XmATTACH_FORM,
-			    NULL);
-  XmStringFree(str);
-  
-  Properties.ivaxesrow = 
-    XtVaCreateManagedWidget("LINLOG", xmRowColumnWidgetClass,
-			    Properties.ind_form_c,
-			    XmNtopAttachment,XmATTACH_WIDGET,
-			    XmNtopWidget, Properties.xmajor,
-			    XmNtopOffset, 5,
-			    XmNleftAttachment,XmATTACH_WIDGET,
-			    XmNleftWidget, Properties.ivaxeslab,
-			    XmNradioBehavior, True,
-			    XmNorientation, XmHORIZONTAL,
-			    XmNisHomogeneous, True,
-			    XmNentryClass,xmToggleButtonWidgetClass,
-			    XmNpacking,XmPACK_TIGHT,
-			    NULL);
-  
-  str = NewString("Linear");
-  Properties.ivaxeslin =  
-    XtVaCreateManagedWidget("linlog ",
-			    xmToggleButtonWidgetClass,
-			    Properties.ivaxesrow, 
-			    XmNlabelString, str,
-			    NULL);
-  XmStringFree(str);
-  
-  XtAddCallback(Properties.ivaxeslin,XmNarmCallback,form_linlog,(XtPointer)"v");
-  
-  str = NewString("Logarithmic");
-  Properties.ivaxeslog =  
-    XtVaCreateManagedWidget("LinLog",
-			    xmToggleButtonWidgetClass,
-			    Properties.ivaxesrow, 
-			    XmNlabelString, str,
-			    NULL);
-  XmStringFree(str);
-  
-  XtAddCallback(Properties.ivaxeslog,XmNarmCallback,form_linlog,(XtPointer)"v");
-  
-  
-  
-  
-  str = NewString("Major tic\ninterval");
-  Properties.ymajorlab = 
-    XtVaCreateManagedWidget("Majlab",
-			    xmLabelWidgetClass,
-			    Properties.ind_form_c,
-			    XmNlabelString,str,
-			    XmNtopAttachment,XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.ivaxesrow ,
-			    XmNtopOffset, 5,
-			    XmNleftAttachment, 
-			    XmATTACH_FORM,
-			    XmNbottomOffset, 10,
-			    NULL);
-  XmStringFree(str);
-  
-  Properties.ymajor =     
-    XtVaCreateManagedWidget("ORDINATE",
-			    xmTextFieldWidgetClass,
-			    Properties.ind_form_c,
-			    XmNtopAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.ivaxesrow  ,
-			    XmNtopOffset, 5,
-			    XmNleftAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNleftWidget,
-			    Properties.ymajorlab,
-			    XmNcolumns, 8,
-			    XmNbottomOffset, 10,
-			    NULL);
-  
-  XtAddCallback(Properties.ymajor,XmNactivateCallback,form_tick_call,(XtPointer)"Y");
-  XtAddCallback(Properties.ymajor,XmNactivateCallback,
-		cleanup_box_call,(XtPointer)YMAJOR);
-  XtAddCallback(Properties.ymajor,XmNmodifyVerifyCallback,check_num,(XtPointer)YMAJOR);
-  XtAddCallback(Properties.ymajor,XmNmotionVerifyCallback,
-		text_box_motion,(XtPointer)YMAJOR);
-  XtAddEventHandler(Properties.ymajor, ButtonPressMask, FALSE,
-		    check_default_handler, 0);
-  
-  
-  Properties.yminor =     
-    XtVaCreateManagedWidget("ordinate",
-			    xmTextFieldWidgetClass,
-			    Properties.ind_form_c,
-			    XmNtopAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.ivaxesrow,
-			    XmNtopOffset, 5,
-			    XmNleftAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNleftWidget,
-			    Properties.ymajor,
-			    XmNcolumns, 8,
-			    XmNbottomOffset, 10,
-			    NULL);
-  
-  XtAddCallback(Properties.yminor,XmNactivateCallback,form_tick_call,(XtPointer)"y");
-  XtAddCallback(Properties.yminor,XmNactivateCallback,
-		cleanup_box_call,(XtPointer)YMINOR);
-  XtAddCallback(Properties.yminor,XmNmodifyVerifyCallback,check_num,(XtPointer)YMINOR);
-  XtAddCallback(Properties.yminor,XmNmotionVerifyCallback,
-		text_box_motion,(XtPointer)YMINOR);
-  XtAddEventHandler(Properties.yminor, ButtonPressMask, FALSE,
-		    check_default_handler, 0);
-  
-  
-  str = NewString("Minor tic\ninterval");
-  Properties.yminorlab = 
-    XtVaCreateManagedWidget("Minlab",
-			    xmLabelWidgetClass,
-			    Properties.ind_form_c,
-			    XmNlabelString,str,
-			    XmNtopAttachment,XmATTACH_WIDGET,
-			    XmNtopWidget,
-			    Properties.ivaxesrow  ,
-			    XmNtopOffset, 5,
-			    XmNleftAttachment, 
-			    XmATTACH_WIDGET,
-			    XmNleftWidget,
-			    Properties.yminor,
-			    XmNbottomOffset, 10,
-			    NULL);
-  XmStringFree(str);
-  
-  
-  
-}
 

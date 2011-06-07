@@ -775,21 +775,20 @@ setup_3d_form()
   char *chpt, buff[256], cvar[80];
   int i, j, ivar;
   int error, lvar;
-  float rvar, rarr[40];
+  float rvar, rvarr;
   
     /********** 3d vals **********/
-  getrarr_("3d_values", rarr, &ivar, &error, 11);
+  getrvar_("sint", &rvarr, &error, 4);
   buff[0]='\0';
-  if(ivar>0){
-    sprintf(buff,"%g",rarr[0]);
-  }
-  else {
-    ivar = 1;
-    sprintf(buff,"0");
-    driver("3d_values=0");
-  }
-  for (i=1; i<ivar; i++){
-    sprintf(buff,"%s,%g",buff,rarr[i]);
-  }
+  sprintf(buff,"%g",rvarr);
   XtVaSetValues(Properties.threed_value, XmNvalue, buff, NULL);
+  getivar_("linlog3d", &ivar, &error, 8);
+  if(ivar){
+    XtVaSetValues(Properties.log3d,XmNset, XmSET,NULL);
+    XtVaSetValues(Properties.lin3d,XmNset, XmUNSET,NULL);
+  }
+  else{
+    XtVaSetValues(Properties.log3d,XmNset, XmUNSET,NULL);
+    XtVaSetValues(Properties.lin3d,XmNset, XmSET,NULL);
+  }
 }

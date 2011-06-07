@@ -37,6 +37,7 @@ extern int not_window; /*flag passed to driver; means do update windows*/
 
 #include <signal.h>
 #include <setjmp.h>
+#include <strings.h>
 extern void control_c();
 #ifdef IRIX
 #define SIGNAL_FPE
@@ -54,7 +55,7 @@ extern void floating_point_handler();
 #endif
 extern void quit_query();
 extern jmp_buf env;
-void driver_(/*char * string ,int stringlength*/);
+void driver_(char *__string, int *__update, long __l);
 #define driver(s) {\
 		     int savemask,ive_dstatus;\
 		     void (*sig)();\
@@ -63,7 +64,7 @@ void driver_(/*char * string ,int stringlength*/);
 		     if (sig == quit_query) ive_dstatus=setjmp(env);\
 		     else ive_dstatus = 0;\
 		     if(!ive_dstatus)\
-		       driver_(s,&from_window,strlen(s));\
+		       driver_(s,&from_window,strlen(s));		\
 		     if (sig == quit_query) signal(SIGINT,quit_query);\
 		     signal(SIGFPE,SIG_DFL);\
 		     }
@@ -75,7 +76,7 @@ void driver_(/*char * string ,int stringlength*/);
 		     if (sig == quit_query) ive_dstatus=setjmp(env);\
 		     else ive_dstatus = 0;\
 		     if(!ive_dstatus)\
-		       driver_(s,&not_window,strlen(s));\
+		       driver_(s,&not_window,strlen(s));		\
 		     if (sig == quit_query) signal(SIGINT,quit_query);\
 		     signal(SIGFPE,SIG_DFL);\
 		   }

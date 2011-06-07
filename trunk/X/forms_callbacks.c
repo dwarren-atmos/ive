@@ -459,9 +459,10 @@ void form_3val_call(w, data, call)
     float rvar;
     int error;
     int ivar;
-    str = XmTextFieldGetString(terrain_forms.cont_values);
+    str = XmTextFieldGetString(Properties.threed_value);
     if(str[0] == '\0')return;
-    sprintf(buff,"3d_values=%s",str);
+    //    sprintf(buff,"3d_values=%s",str);
+    sprintf(buff,"surface=%s",str);
     driver(buff);
     free(str);
 }
@@ -1544,7 +1545,11 @@ void form_linlog(w, data, call)
     XtVaGetValues(w, XmNlabelString, &str, NULL);
     
     switch (linlog){
-      case 1:
+    case 0:
+      if(*data == 'z')
+	driver("axes=3dlin");
+      break;
+    case 1:
 	if ( *data == 'h'){
 	    if(XmStringCompare(str, linear)){
 		driver("axes=linlin");
@@ -1553,6 +1558,9 @@ void form_linlog(w, data, call)
 		driver("axes=loglin");
 	    }
 	}
+	else if(*data == 'z'){
+	    driver("axes=3dlog");
+	  }
 	else{
 	    if(XmStringCompare(str, linear)){
 		driver("axes=linlin");
