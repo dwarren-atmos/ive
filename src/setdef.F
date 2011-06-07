@@ -805,6 +805,9 @@ c	to load
 c
 	call vvumxy(0.,0.,0.,0.,0.,x,x,x,x,i)
       endif
+c     init 3d stupp
+      sint = 0.0
+      linlog3d=0 !0=lin 1=log for vertical
       return
  100  format (1x,'THERE IS ERROR IN SETDEFs')
       end

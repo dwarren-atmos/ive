@@ -57,11 +57,11 @@ c-----------------------------------------------------------------------
       real major_tic, minor_tic, lmax, lmin
       real cont_int_bck, cont_values_bck
       real cont_int, cont_values, sint
-      integer num_vals, num_vals_bck
+      integer num_vals, num_vals_bck, linlog3d
       logical lin, read_from_nc, no_zero
       dimension cont_values(40), cont_values_bck(40)
       common / var_atts / major_tic, minor_tic, lmax, lmin,
      &                    cont_int_bck, cont_int,
      &                    no_zero, num_vals, num_vals_bck,
      &                    lin, read_from_nc,
-     &                    cont_values_bck, cont_values, sint
+     &                    cont_values_bck, cont_values, sint, linlog3d

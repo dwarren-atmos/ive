@@ -28,6 +28,7 @@ c
       include 'message.icl'
       include 'plotops.icl'
       include 'pltwin.icl'
+      include 'attributes.icl'
 c
 
 c
@@ -87,6 +88,18 @@ c
 c           Set axis scaling to be x logarithmic, y logarithmic.
 c
             linlog = 4
+c
+         elseif (curval(ibeg:ibeg + 4) .eq. '3DLIN') then
+c
+c           Set axis scaling to be x logarithmic, y logarithmic.
+c
+            linlog3d = 0
+c
+         elseif (curval(ibeg:ibeg + 4) .eq. '3DLOG') then
+c
+c           Set axis scaling to be x logarithmic, y logarithmic.
+c
+            linlog3d = 1
 c
          else
 c

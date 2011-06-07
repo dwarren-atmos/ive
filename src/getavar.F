@@ -1055,6 +1055,8 @@ c
          value = num_vals     
       elseif ( string(ibeg:iend) .eq. 'tnum_vals' ) then
          value = tnum_vals
+      elseif ( string(ibeg:iend) .eq. 'linlog3d' ) then
+         value = linlog3d
 c
 c     color variables.
 c

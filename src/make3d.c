@@ -129,7 +129,7 @@ void make3d_(varpt, x, y, z, t)
   unsigned long pixel;  
   extern unsigned long IveGetPixel();
   int fix[4], ni, nj, nk, nteri, nterk, i, j, k, l, m, imap,
-    saveflag, buttons, error, phys, fd, lval, width, height,npts;
+    saveflag, buttons, error, phys, fd, lval, width, height, npts, linlog;
   int count = 0, allocated_norms, allocated_triangles;
   struct{float x,y,z;}bpt[8];
   struct TRIANGLES triangles,smalltri,tertris;
@@ -152,6 +152,11 @@ void make3d_(varpt, x, y, z, t)
   }
   /* get  the type of plot */
   (void)getavar_("plotyp3",pltyp,&error,7,16);
+
+  /*get linlog*/
+  (void)getivar_("linlog3d", &linlog, &error, 8);
+  if(error || !linlog)
+    linlog=0;
 
   /*get the locked dimension*/
   (void)getivar_("use_buttons", &buttons, &error, 11);
@@ -676,7 +681,7 @@ void make3d_(varpt, x, y, z, t)
       triangles.num_normals++;
     }
   }
-  printf("here\n");
+  //printf("here\n");
 
   //for (i=0; i<triangles.num_normals; i++){
   //triangles.normals[i].x= -1.*(triangles.normals[i].x/(float)triangles.norm_counts[i]);
@@ -740,7 +745,11 @@ void make3d_(varpt, x, y, z, t)
   free(triangles.normals);
   free(triangles.norm_counts);
   free(triangles.tri);
-
+  if(linlog){
+    //[x,z,y]
+    mins[1]=log10f(mins[1]);
+    maxs[1]=log10f(maxs[1]);
+  }
   switch(pltyp[0]){
   case 'I':
     printf("call plot3d\n");
