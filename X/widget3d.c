@@ -9,6 +9,7 @@
 #include <volume.h>
 #include <ive.h>
 #include <ive_text_enum.h>
+#include<properties.h>
 extern Widget Box;
 extern float StretchPercent;
 extern void toggleRef();
@@ -34,24 +35,23 @@ struct
 {
   
   Widget ThreeD;
-  Widget TransLab,transsep;
+  Widget TransLab;
   Widget TransLRt, TransUDt;
   Widget toggle[4];
   Widget moveU, moveD, moveL, moveR;
-  Widget RotLab,rotsep;
+  Widget RotLab;
   Widget RotUD, RotLR;
   Widget ZoomLab, StrSlide;
-  Widget reset;
+  Widget reset,print;
   Widget scroll, Objs, UDCol, RLCol, RUDCol, RRLCol;
 }controls_3D = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
-		NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+		NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+		NULL,NULL,NULL};
 
 void controlPad3D(Objects *OBJ)
 {
 
   
-  Widget ThreeD;
-  Widget print;
   XmString str2;
   char* WidgNames[] = {"ObjectOn1", "ObjectOn2","ObjectOn3","ObjectOn4","ObjectOn5"};
   char* WidgLabels[] = {"1","2","3","4","5"};
@@ -59,34 +59,23 @@ void controlPad3D(Objects *OBJ)
   int i;
   
   if(controls_3D.ThreeD == NULL){
-    
-    ThreeD = XtVaCreatePopupShell("3DControls",
-				  transientShellWidgetClass,
-				  XtParent(Box),
-				  XmNheight, 335,
-				  XmNwidth, 270,
-				  XmNautoUnmanage,FALSE,
-				  XmNx, 0,
-				  XmNy,
-				  HeightOfScreen(XtScreen(Box))-(215+370),
-				  XtNallowShellResize,False,NULL);
-	  
-    controls_3D.ThreeD = XtVaCreateWidget("3D Controls",
-					  xmFormWidgetClass,
-					  ThreeD,
-					  XmNtopAttachment,
-					  XmATTACH_FORM,
-					  XmNleftAttachment,
-					  XmATTACH_FORM,
-					  XmNrightAttachment,
-					  XmATTACH_FORM,
-					  XmNresizable,TRUE,
-					  XmNresizePolicy,
-					  XmRESIZE_ANY,
-					  XmNmarginWidth,5,
-					  XmNborderWidth,1,
-					  NULL);
-    XtAddCallback(ThreeD,XmNdestroyCallback,im_gone_callback,
+
+    controls_3D.ThreeD = XtVaCreateManagedWidget("3D Controls",
+						 xmFormWidgetClass,
+						 Properties.control_form_3d,
+						 //ThreeD,
+						 XmNtopAttachment,
+						 XmATTACH_FORM,
+						 XmNleftAttachment,
+						 XmATTACH_FORM,
+						 XmNrightAttachment,
+						 XmATTACH_FORM,
+						 XmNresizable,TRUE,
+						 XmNresizePolicy,
+						 XmRESIZE_ANY,
+						 XmNmarginWidth,0,
+						 NULL);
+    XtAddCallback(Properties.ind_form_3d,XmNdestroyCallback,im_gone_callback,
 		  &controls_3D.ThreeD);
     //************************************
     str2 = NewString("Translate");
@@ -95,8 +84,8 @@ void controlPad3D(Objects *OBJ)
 						   controls_3D.ThreeD,
 						   XmNlabelString,str2,
 						   XmNleftAttachment,XmATTACH_FORM,
-						   XmNrightAttachment,XmATTACH_FORM,
 						   XmNtopAttachment,XmATTACH_FORM,
+						   XmNleftOffset, 60,
 						   NULL);
     
     
@@ -110,7 +99,7 @@ void controlPad3D(Objects *OBJ)
 						XmATTACH_WIDGET,
 						XmNtopWidget,
 						controls_3D.TransLab,
-						XmNtopOffset, 10,
+						//XmNtopOffset, 10,
 						XmNleftOffset, 30,
 						NULL);
     XtAddCallback(controls_3D.moveU ,XmNactivateCallback,movU,OBJ);
@@ -169,7 +158,7 @@ void controlPad3D(Objects *OBJ)
 						XmATTACH_WIDGET,
 						XmNleftWidget,
 						controls_3D.TransUDt,
-						XmNleftOffset, 50,
+						XmNleftOffset, 20,
 						NULL);
     XtAddCallback(controls_3D.moveL ,XmNactivateCallback,movL,OBJ);
     
@@ -215,26 +204,28 @@ void controlPad3D(Objects *OBJ)
 						XmNleftOffset, 5,
 						NULL);
     XtAddCallback(controls_3D.moveR ,XmNactivateCallback,movR,OBJ);
-    controls_3D.transsep = XtVaCreateManagedWidget("_ts",							 
-						   xmSeparatorWidgetClass,
-						   controls_3D.ThreeD,
-						   XmNleftAttachment,XmATTACH_FORM,
-						   XmNleftAttachment,XmATTACH_FORM,
-						   XmNtopAttachment,XmATTACH_WIDGET,
-						   XmNtopWidget, controls_3D.moveD,
-						   XmNorientation,XmHORIZONTAL,
-						   XmNseparatorType,XmSHADOW_ETCHED_OUT,
-						   NULL);
+    /*
+    controls_3D.rotform = XtVaCreateManagedWidget("_rf",
+						  xmFormWidgetClass,
+						  controls_3D.ThreeD,
+						  //XmNleftAttachment,XmATTACH_FORM,
+						  //XmNrightAttachment,XmATTACH_FORM,
+						  XmNtopAttachment,XmATTACH_WIDGET,
+						  XmNtopWidget, controls_3D.moveD,
+						  //XmNorientation,XmHORIZONTAL,
+						  //XmNseparatorType,XmSHADOW_ETCHED_OUT,
+						  NULL);
     //*******************************************************
+    */
     str2 = NewString("Rotate");
     controls_3D.RotLab = XtVaCreateManagedWidget("RotateLab",
 						 xmLabelWidgetClass,
 						 controls_3D.ThreeD,
 						 XmNlabelString,str2,
 						 XmNleftAttachment,XmATTACH_FORM,
-						 XmNrightAttachment,XmATTACH_FORM,
 						 XmNtopAttachment,XmATTACH_WIDGET,
-						 XmNtopWidget, controls_3D.transsep,
+						 XmNtopWidget, controls_3D.moveD,
+						 XmNleftOffset, 60,
 						 NULL);
     
     XmStringFree(str2);
@@ -245,16 +236,17 @@ void controlPad3D(Objects *OBJ)
 						controls_3D.ThreeD,
 						XmNorientation,XmVERTICAL,
 						XmNshowValue,TRUE,
+						XmNheight, 100,
+						XmNwidth, 40,
 						XmNminimum,-180,
 						XmNmaximum,180,
 						XmNvalue,((int)yRotation-360)%180,
 						XmNleftAttachment,XmATTACH_FORM,
+						XmNleftOffset, 10,
 						XmNtopAttachment, 
 						XmATTACH_WIDGET,
 						XmNtopWidget,
 						controls_3D.RotLab,
-						XmNtopOffset, 10,
-						XmNleftOffset, 10,
 						XmNshowArrows,
 						XmEACH_SIDE,
 						NULL);
@@ -263,6 +255,8 @@ void controlPad3D(Objects *OBJ)
 						    xmScaleWidgetClass,
 						    controls_3D.ThreeD,
 						    XmNorientation,XmHORIZONTAL,
+						    XmNheight, 40,
+						    XmNwidth, 100,
 						    XmNshowValue,TRUE,
 						    XmNminimum,-180,
 						    XmNmaximum,180,
@@ -275,60 +269,63 @@ void controlPad3D(Objects *OBJ)
 						    XmNleftAttachment,XmATTACH_WIDGET,
 						    XmNleftWidget,
 						    controls_3D.RotUD,
-						    XmNtopOffset, 25,
-						    XmNleftOffset, 50,
+						    //XmNtopOffset, 10,
+						    XmNleftOffset, 20,
 						    XmNshowArrows,
 						    XmEACH_SIDE,
 						    NULL);
     XtAddCallback(controls_3D.RotUD ,XmNvalueChangedCallback,rotaUD,OBJ);
     XtAddCallback(controls_3D.RotLR ,XmNvalueChangedCallback,rotaLR,OBJ);
-    
-    controls_3D.rotsep = XtVaCreateManagedWidget("_rs",							 
-						 xmSeparatorWidgetClass,
-						 controls_3D.ThreeD,
-						 XmNleftAttachment,XmATTACH_FORM,
-						 XmNleftAttachment,XmATTACH_FORM,
-						 XmNtopAttachment,XmATTACH_WIDGET,
-						 XmNtopWidget, controls_3D.RotUD,
-						 XmNorientation,XmHORIZONTAL,
-						 XmNseparatorType,XmSHADOW_ETCHED_OUT,
-						 NULL);
+    //*************************************
+    /*    controls_3D.zoomform = XtVaCreateManagedWidget("_zs",
+						   xmFormWidgetClass,
+						   controls_3D.ThreeD,
+						   XmNleftAttachment,XmATTACH_FORM,
+						   XmNrightAttachment,XmATTACH_FORM,
+						   XmNtopAttachment,XmATTACH_WIDGET,
+						   XmNtopWidget, controls_3D.RotUD,
+						   //XmNorientation,XmHORIZONTAL,
+						   //XmNseparatorType,XmSHADOW_ETCHED_OUT,
+						   NULL);
     
     //***************************************
-    
-    str2 = NewString("Zoom");
-    controls_3D.ZoomLab = XtVaCreateManagedWidget("RotateLab",
-						  xmLabelWidgetClass,
-						  controls_3D.ThreeD,
-						  XmNlabelString,str2,
-						  XmNleftAttachment,XmATTACH_FORM,
-						  XmNrightAttachment,XmATTACH_FORM,
-						  XmNtopAttachment,XmATTACH_WIDGET,
-						  XmNtopWidget, controls_3D.RotLR,
-						  XmNtopOffset,20,
-						  NULL);
-    
-    XmStringFree(str2);
-    
+    */
+    str2 = NewString("Z\nO\nO\nM");
     controls_3D.StrSlide = XtVaCreateManagedWidget("StretchSlider",
 						   xmScaleWidgetClass,
 						   controls_3D.ThreeD,
-						   XmNorientation,XmHORIZONTAL,
+						   XmNorientation,XmVERTICAL,
 						   XmNshowValue,TRUE,
 						   XmNminimum,1,
-						   XmNmaximum,800,
+						   XmNmaximum,300,
+						   XmNheight, 180,
+						   XmNwidth, 50,
 						   XmNvalue,(int)(StretchPercent*100),
 						   XmNleftAttachment,XmATTACH_WIDGET,
-						   XmNleftWidget, controls_3D.RotUD,
+						   XmNleftWidget,
+						   controls_3D.RotLR,
 						   XmNtopAttachment, 
 						   XmATTACH_WIDGET,
 						   XmNtopWidget,
-						   controls_3D.ZoomLab,
-						   XmNtopOffset, 10,
-						   XmNleftOffset, 50,
+						   controls_3D.moveU,
+						   XmNtopOffset, 2,
 						   XmNshowArrows,
 						   XmEACH_SIDE,
 						   NULL);
+
+    controls_3D.ZoomLab = XtVaCreateManagedWidget("ZoomLab",
+						  xmLabelWidgetClass,
+						  controls_3D.ThreeD,
+						  XmNlabelString,str2,
+						  XmNleftAttachment,XmATTACH_WIDGET,
+						  XmNleftWidget,controls_3D.StrSlide,
+						  XmNtopAttachment,XmATTACH_WIDGET,
+						  XmNtopWidget, controls_3D.moveU,
+						  XmNtopOffset, 60,
+						  XmNlayoutDirection,XmTOP_TO_BOTTOM_MASK,
+						  NULL);
+    
+    XmStringFree(str2);
     XtAddCallback(controls_3D.StrSlide ,XmNvalueChangedCallback,StretchFun,OBJ);
     
     
@@ -336,12 +333,12 @@ void controlPad3D(Objects *OBJ)
     controls_3D.scroll = 	  XtVaCreateManagedWidget("_Scroll",xmScrolledWindowWidgetClass,
 							  controls_3D.ThreeD,
 							  XmNtopAttachment,XmATTACH_WIDGET,
-							  XmNtopWidget, controls_3D.StrSlide,
+							  XmNtopWidget, controls_3D.RotUD,
 							  XmNscrollBarDisplayPolicy, XmAS_NEEDED,
 							  XmNscrollingPolicy,XmAUTOMATIC,
 							  XmNtopOffset,10,
 							  XmNleftAttachment,XmATTACH_FORM,
-							  XmNwidth,200,
+							  XmNrightAttachment,XmATTACH_FORM,
 							  XmNheight,45,
 							  XmNresizeWidth,False,
 							  XmNresizeHeight,False,
@@ -352,9 +349,11 @@ void controlPad3D(Objects *OBJ)
 					       controls_3D.scroll,
 					       XmNorientation,XmHORIZONTAL,
 					       XmNpacking,XmPACK_TIGHT,
-					       XmNresizeWidth,False,
+					       //XmNresizeWidth,False,
 					       XmNresizeHeight,True,
-					       XmNwidth,160,
+					       //XmNwidth,160,
+					       XmNleftAttachment,XmATTACH_FORM,
+					       XmNrightAttachment,XmATTACH_FORM,
 					       NULL);
     
     str2 = NewString("Reset");
@@ -363,30 +362,30 @@ void controlPad3D(Objects *OBJ)
 						controls_3D.ThreeD,
 						XmNlabelString,str2,
 						XmNtopAttachment,XmATTACH_WIDGET,
-						XmNtopWidget, controls_3D.StrSlide,
+						XmNtopWidget, controls_3D.RotLR,
 						XmNleftAttachment,XmATTACH_WIDGET,
-						XmNleftWidget, controls_3D.scroll,
-						XmNleftOffset,10,
-						XmNrightAttachment,XmATTACH_FORM,
-						XmNrightOffset,10,
+						XmNleftWidget, controls_3D.RotUD,
+						XmNleftOffset,20,
+						XmNtopOffset,20,
+						//XmNrightAttachment,XmATTACH_FORM,
+						//XmNrightOffset,10,
 						NULL);
     XtAddCallback(controls_3D.reset ,XmNactivateCallback,reset_button_3d,OBJ);
     XmStringFree(str2);
     
     str2 = NewString("Print");
-    print = XtVaCreateManagedWidget("Print3d",
+    controls_3D.print = XtVaCreateManagedWidget("Print3d",
 						xmPushButtonWidgetClass,
 						controls_3D.ThreeD,
 						XmNlabelString,str2,
 						XmNtopAttachment,XmATTACH_WIDGET,
-						XmNtopWidget, controls_3D.reset,
+						XmNtopWidget, controls_3D.RotLR,
 						XmNleftAttachment,XmATTACH_WIDGET,
-						XmNleftWidget, controls_3D.scroll,
+						XmNleftWidget, controls_3D.reset,
 						XmNleftOffset,10,
-						XmNrightAttachment,XmATTACH_FORM,
-						XmNrightOffset,10,
+						XmNtopOffset,20,
 						NULL);
-    XtAddCallback(print ,XmNactivateCallback,print3d,OBJ);
+    XtAddCallback(controls_3D.print ,XmNactivateCallback,print3d,OBJ);
     XmStringFree(str2);
     
     
@@ -406,9 +405,8 @@ void controlPad3D(Objects *OBJ)
 	XtAddCallback(controls_3D.toggle[i] ,XmNdisarmCallback,toggleRef,&t[i]);
 	XmStringFree(str2);
       }
-    
-    XtManageChild(controls_3D.ThreeD);
-    XtManageChild(ThreeD);
+    //XtManageChild(controls_3D.ThreeD);
+    //XtManageChild(ThreeD);
   }
   else{
     for(i=0; i < 4; i++)
