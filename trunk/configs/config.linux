@@ -76,7 +76,7 @@ CC=icc
 LD=ifort
 RANLIB=ranlib
 ifeq (${MACH}, x86_64)
-ALPHA = -DLinux -DSIXTY_FOUR_bptr -D__alpha
+ALPHA = -DLinux -DSIXTY_FOUR_bptr -mcmodel medium -D__alpha
 EXTRA= -DDOPNG
 else
 ALPHA = -DLinux
@@ -87,22 +87,22 @@ FCPP =
 #FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
 #FDEC =   -w95 -cm -align -auto -u -ip -zero
 ifeq (${MACH}, x86_64)
-FDEC =   -fPIE -cm -align -auto -u -ip -zero -fp-model precise
+FDEC =   -fPIE -cm -align -auto -u -ip -zero  -mcmodel medium -recursive
 else
-FDEC =   -cm -align -auto -u -ip -zero -fp-model precise
+FDEC =   -cm -align -auto -u -ip -zero  -recursive
 endif
 #DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
 #	-DLSB=${LSB} -I/usr/include \
 #	-I/usr/local/include -I/usr/X11R6/include -D_POSIX_SOURCE \
 #	-DLinux
 ifeq (${MACH}, x86_64)
-DEC =	-fPIE -DLSB=${LSB} -I/usr/include \
-	-I/usr/local/include -I/usr/X11R6/include \
-	-DLinux ${EXTRA} -fp-model precise 
+DEC =	-fPIE -DLSB=${LSB}  -I/usr/local/include \
+	-I/usr/include -I/usr/X11R6/include -I/usr/include/freetype2 \
+	-DLinux ${EXTRA} -mcmodel medium 
 else
-DEC =	-DLSB=${LSB} -I/usr/include \
-	-I/usr/local/include -I/usr/X11R6/include \
-	-DLinux ${EXTRA} -fp-model precise
+DEC =	-DLSB=${LSB} -I/usr/include  -I/usr/local/include \
+	 -I/usr/X11R6/include -I/usr/include/freetype2 \
+	-DLinux ${EXTRA} 
 endif
 BROWSER='-DBROWSER=\"firefox\"'
 #DEC = -D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE -I/usr/include \
@@ -110,24 +110,24 @@ BROWSER='-DBROWSER=\"firefox\"'
 #	-fbranch-count-reg -fmove-all-movables \
 #	-funroll-loops -DLinux 	-Wchar-subscripts
 
+UDUNITS := -ludunits -ludport	
+
 #Includes there to premempt float.h in udposix.
 
-
 #LIBS =       -threads -Vaxlib -L${NETCDF}/lib -L/usr/lib
-LIBS =	-threads -L/usr/lib  \
+LIBS =	-threads -L/usr/local/lib -L/usr/lib  \
 	-L${NCARG_ROOT}/lib  \
 	-L/usr/X11R6/lib  \
 	-lncarg -lngmath -lncarg_c -lXm \
-	-lxgks -ludunits -ludport -lm \
-	 -lGLU  -lGL  -lnetcdf -lnetcdff\
-	-lXt -lXp -lXpm -lXext -lX11 \
-	-lSM -lICE  -lpng -lz -lsvml -ldl -lc \
-	-lXm -lc -lz
+	-lxgks  -lGLU  -lGL  -lnetcdf -lnetcdff\
+	-lXt -lXp -lXpm -lXext -lX11 -lftgl \
+	-lSM -lICE  ${UDUNITS} -lpng -lz -lsvml -ldl -lc \
+	-lXm -lc -lz 
 
 
 #COPT = -O -w
-COPT = -O
-FOPT = -O 
+COPT = -g -O1 -fno-alias -axAVX,SSE4.2,SSE4.1,SSSE3,SSE3,SSE2
+FOPT = -g -O -fno-alias -axAVX,SSE4.2,SSE4.1,SSSE3,SSE3,SSE2
 ifeq (${MACH}, x86_64)
 LDOPT =  -fPIE -Wl,--export-dynamic -nofor_main -ip
 else
