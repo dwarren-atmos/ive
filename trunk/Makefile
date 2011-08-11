@@ -410,8 +410,8 @@ COPT = -g -DSTATIC
 TRANSOBJ = trans.o
 else
 ifdef MEMDBG 
-COPT= -g -DMEMDBG -I../mnemosyne
-FOPT= -g 
+COPT= -g -O0 -DMEMDBG
+FOPT= -g -O0
 endif
 endif
 
@@ -432,7 +432,7 @@ LD=insure -Zsl
 COPT=-g
 endif
 
-CFLAGS = ${COPT} -I${PWD}/h ${DEC} ${DOBETA}\
+CFLAGS = ${COPT} -I${PWD}/h -I${PWD}/FTGL/include ${DEC} ${DOBETA}\
 	-I${PWD}/h/haru ${UDPOSIX_INCLUDE} ${BROWSER}
 FFLAGS = ${FOPT} ${FDEC} ${ALPHA} ${FCPP}
 #
@@ -440,7 +440,7 @@ FFLAGS = ${FOPT} ${FDEC} ${ALPHA} ${FCPP}
 
 #
 ifdef MEMDBG 
-LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a mnemosyne/libmnem.a
+LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a -lmcheck
 else
 LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a 
 endif
@@ -479,7 +479,6 @@ clean:
 	cd netcdf; ${MAKE} clean; cd ..
 	cd trans; ${MAKE}  clean; cd ..
 	cd X; ${MAKE}  clean; cd ..
-	cd mnemosyne; ${MAKE} clean; cd ..
 
 #
 #
@@ -493,13 +492,10 @@ IVE:
 	${MAKE} -C ./netcdf CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} -C ./trans CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${ACC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} -C ./X CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${ACC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
-ifdef MEMDBG 
-	${MAKE} -C ./mnemosyne CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ}
-endif
 	@if test -s need_ranlib; then echo need ranlib; ${RANLIB} src/libIVE.a; fi
 	${RM} need_ranlib
 #	${LD} -o ive -u main  ${LDSTUFF} ${TRANSOBJ} ${LOCALLIB} ${LIBS}
-	${LD} -o ive X/ive_main.o  ${LDSTUFF} ${TRANSOBJ} ${LOCALLIB} ${LIBS}
+	${LD} -o ive X/ive_main.o  ${LDSTUFF} ${TRANSOBJ} ${LOCALLIB} ${LIBS} ${PWD}/FTGL/lib/libftgl.a
 #
 LINK_ONLY:
 	@if test -s need_ranlib; then ranlib src/libIVE.a; fi
