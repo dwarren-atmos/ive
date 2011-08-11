@@ -87,9 +87,9 @@ FCPP =
 #FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
 #FDEC =   -w95 -cm -align -auto -u -ip -zero
 ifeq (${MACH}, x86_64)
-FDEC =   -fPIE -cm -align -auto -u -ip -zero  -mcmodel medium -recursive
+FDEC =   -fPIE -warn usage -align -auto -u -ip -zero  -mcmodel medium -recursive
 else
-FDEC =   -cm -align -auto -u -ip -zero  -recursive
+FDEC =   -warn usage -align -auto -u -ip -zero  -recursive
 endif
 #DEC =	-D_XOPEN_SOURCE_EXTENDED -D_ANSI_C_SOURCE  \
 #	-DLSB=${LSB} -I/usr/include \
@@ -120,7 +120,7 @@ LIBS =	-threads -L/usr/local/lib -L/usr/lib  \
 	-L/usr/X11R6/lib  \
 	-lncarg -lngmath -lncarg_c -lXm \
 	-lxgks  -lGLU  -lGL  -lnetcdf -lnetcdff\
-	-lXt -lXp -lXpm -lXext -lX11 -lftgl \
+	-lXt -lXp -lXpm -lXext -lX11 \
 	-lSM -lICE  ${UDUNITS} -lpng -lz -lsvml -ldl -lc \
 	-lXm -lc -lz 
 
