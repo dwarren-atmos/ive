@@ -31,9 +31,6 @@ extern int not_window; /*flag passed to driver; means do update windows*/
   driver definitions for c; driver is the main fortran driving subroutine
   note: changing these macros will effect every callback!!!!!
 */
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 
 #include <signal.h>
 #include <setjmp.h>

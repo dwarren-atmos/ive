@@ -26,9 +26,6 @@
  * Initial revision
  *
  */
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 
 struct fsb {
     XmString directory, pattern, dirSpec;
