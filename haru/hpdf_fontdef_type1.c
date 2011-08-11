@@ -1,7 +1,10 @@
 /*
- * << Haru Free PDF Library 2.0.0 >> -- hpdf_fontdef_type1.c
+ * << Haru Free PDF Library >> -- hpdf_fontdef_type1.c
  *
- * Copyright (c) 1999-2004 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * URL: http://libharu.org
+ *
+ * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * Copyright (c) 2007-2009 Antony Dovgal <tony@daylessday.org>
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -69,15 +72,12 @@ HPDF_Type1FontDef_New  (HPDF_MMgr  mmgr)
     if (!fontdef)
         return NULL;
 
+    HPDF_MemSet (fontdef, 0, sizeof (HPDF_FontDef_Rec));
     fontdef->sig_bytes = HPDF_FONTDEF_SIG_BYTES;
-    fontdef->base_font[0] = 0;
     fontdef->mmgr = mmgr;
     fontdef->error = mmgr->error;
     fontdef->type = HPDF_FONTDEF_TYPE_TYPE1;
-    fontdef->clean_fn = NULL;
     fontdef->free_fn = FreeFunc;
-    fontdef->descriptor = NULL;
-    fontdef->valid = HPDF_FALSE;
 
     fontdef_attr = HPDF_GetMem (mmgr, sizeof(HPDF_Type1FontDefAttr_Rec));
     if (!fontdef_attr) {
@@ -106,7 +106,7 @@ GetKeyword  (const char  *src,
 
     *keyword = 0;
 
-    while (len > 0) {
+    while (len > 1) {
         if (HPDF_IS_WHITE_SPACE(*src)) {
             *keyword = 0;
 
@@ -316,14 +316,14 @@ LoadFontData (HPDF_FontDef  fontdef,
         return HPDF_Error_GetCode (fontdef->error);
 
     len = 11;
-    ret = HPDF_Stream_Read (stream, pbuf, &len);
+    ret = HPDF_Stream_Read (stream, (HPDF_BYTE *)pbuf, &len);
     if (ret != HPDF_OK)
         return ret;
     pbuf += 11;
 
     for (;;) {
         len = HPDF_STREAM_BUF_SIZ - 11;
-        ret = HPDF_Stream_Read (stream, pbuf, &len);
+        ret = HPDF_Stream_Read (stream, (HPDF_BYTE *)pbuf, &len);
         if (ret == HPDF_STREAM_EOF) {
             end_flg = HPDF_TRUE;
         } else if (ret != HPDF_OK)
@@ -354,16 +354,16 @@ LoadFontData (HPDF_FontDef  fontdef,
         }
 
         if (end_flg) {
-            if ((ret = HPDF_Stream_Write (attr->font_data, buf, len + 11)) !=
+            if ((ret = HPDF_Stream_Write (attr->font_data, (HPDF_BYTE *)buf, len + 11)) !=
                         HPDF_OK)
                 return ret;
 
             break;
         } else {
-            if ((ret = HPDF_Stream_Write (attr->font_data, buf, len)) !=
+            if ((ret = HPDF_Stream_Write (attr->font_data, (HPDF_BYTE *)buf, len)) !=
                         HPDF_OK)
                 return ret;
-            HPDF_MemCpy (buf, buf + len, 11);
+            HPDF_MemCpy ((HPDF_BYTE *)buf, (HPDF_BYTE *)buf + len, 11);
             pbuf = buf + 11;
         }
     }
@@ -424,8 +424,8 @@ HPDF_Type1FontDef_Duplicate  (HPDF_MMgr     mmgr,
     fontdef->type = src->type;
     fontdef->valid = src->valid;
 
-    // copy data of attr,widths
-    // attention to charset
+    /* copy data of attr,widths
+     attention to charset */
     return NULL;
 }
 

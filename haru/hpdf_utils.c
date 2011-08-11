@@ -1,7 +1,10 @@
 /*
- * << Haru Free PDF Library 2.0.0 >> -- HPDF_utils.c
+ * << Haru Free PDF Library >> -- hpdf_utils.c
  *
- * Copyright (c) 1999-2004 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * URL: http://libharu.org
+ *
+ * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * Copyright (c) 2007-2009 Antony Dovgal <tony@daylessday.org>
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -23,6 +26,10 @@ HPDF_AToI  (const char  *s)
 {
     HPDF_BOOL flg = HPDF_FALSE;
     HPDF_INT  v = 0;
+
+    if (!s) {
+        return 0;
+    }
 
     /* increment pointer until the charactor of 's' is not
      * white-space-charactor.
@@ -266,7 +273,7 @@ HPDF_StrCpy  (char          *out,
 
     *out = 0;
 
-    return out;
+    return (HPDF_BYTE *)out;
 }
 
 
@@ -370,7 +377,7 @@ HPDF_StrStr  (const char   *s1,
     maxlen++;
 
     while (maxlen > 0) {
-        if (HPDF_MemCmp (s1, s2, len) == 0)
+        if (HPDF_MemCmp ((HPDF_BYTE *)s1, (HPDF_BYTE *)s2, len) == 0)
             return s1;
 
         s1++;

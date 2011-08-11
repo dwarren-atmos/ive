@@ -1,7 +1,10 @@
 /*
- * << Haru Free PDF Library 2.0.0 >> -- hpdf_string.h
+ * << Haru Free PDF Library >> -- hpdf_string.c
+ *
+ * URL: http://libharu.org
  *
  * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * Copyright (c) 2007-2009 Antony Dovgal <tony@daylessday.org>
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -12,6 +15,7 @@
  *
  */
 
+#include <string.h>
 #include "hpdf_conf.h"
 #include "hpdf_utils.h"
 #include "hpdf_objects.h"
@@ -70,11 +74,11 @@ HPDF_String_SetValue  (HPDF_String      obj,
     if (len > HPDF_LIMIT_MAX_STRING_LEN)
         return HPDF_SetError (obj->error, HPDF_STRING_OUT_OF_RANGE, 0);
 
-    obj->value = (char *)HPDF_GetMem (obj->mmgr, len + 1);
+    obj->value = HPDF_GetMem (obj->mmgr, len + 1);
     if (!obj->value)
         return HPDF_Error_GetCode (obj->error);
 
-    HPDF_StrCpy (obj->value, value, obj->value + len);
+    HPDF_StrCpy ((char *)obj->value, value, (char *)obj->value + len);
     obj->len = len;
 
     return ret;
@@ -116,12 +120,12 @@ HPDF_String_Write  (HPDF_String   obj,
                 return ret;
 
             if ((ret = HPDF_Stream_WriteBinary (stream, obj->value,
-                    HPDF_StrLen (obj->value, -1), e)) != HPDF_OK)
+                    HPDF_StrLen ((char *)obj->value, -1), e)) != HPDF_OK)
                 return ret;
 
             return HPDF_Stream_WriteChar (stream, '>');
         } else {
-            return HPDF_Stream_WriteEscapeText (stream, obj->value);
+            return HPDF_Stream_WriteEscapeText (stream, (char *)obj->value);
         }
     } else {
         HPDF_BYTE* src = obj->value;
@@ -187,3 +191,12 @@ HPDF_String_Write  (HPDF_String   obj,
     return HPDF_OK;
 }
 
+
+HPDF_INT32
+HPDF_String_Cmp  (HPDF_String s1,
+                  HPDF_String s2)
+{
+    if (s1->len < s2->len) return -1;
+    if (s1->len > s2->len) return +1;
+    return memcmp(s1->value, s2->value, s1->len);
+}
