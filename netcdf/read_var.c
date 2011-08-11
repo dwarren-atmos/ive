@@ -156,12 +156,8 @@ static char ident[] = "$Id: read_var.c,v 1.31 2006/05/01 22:08:17 davidive Exp $
 #include <strings.h>
 #include <ctype.h>
 #include <stdio.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <stdlib.h>
 #include <malloc.h>
-#endif
 extern void make_help_widget_(),setlvar_();
 extern void getrarr_(),make_help_widget_(),setlvar_();
 #ifdef NC_FILL_BYTE

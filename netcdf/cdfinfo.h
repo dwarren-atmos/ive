@@ -111,9 +111,6 @@ matter how it appears in the netCDF file.
 #include <netcdf.h>
 #include <udunits.h>
 #endif
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 
 
 /*

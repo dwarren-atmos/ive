@@ -140,11 +140,7 @@ static char ident[] = "$Id: add_field.c,v 1.15 2003/12/24 18:50:07 davidive Exp 
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <malloc.h>
-#endif
 
 extern void make_help_widget_();
 cdf_info var_file;
