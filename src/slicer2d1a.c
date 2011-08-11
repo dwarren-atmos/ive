@@ -108,9 +108,6 @@ static char rcsid[] = "$Id: slicer2d1a.c,v 1.23 2005/11/03 19:51:57 warren Exp $
  */
 #include <string.h>
 #include <stdlib.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #if (LSB == 5)
 #include <lsb5/math.h>
 #elif (LSB == 4)

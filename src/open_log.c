@@ -33,9 +33,6 @@ static char ident[] = "$Id: open_log.c,v 1.3 1998/09/04 20:52:00 harry Exp $";
 static int not_window=0; /*flag passed to driver; means do update windows*/ 
 
 #include <strings.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <Xm/XmAll.h>
 #include <unistd.h>
 #include <fcntl.h>

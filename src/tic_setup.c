@@ -1,6 +1,3 @@
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>

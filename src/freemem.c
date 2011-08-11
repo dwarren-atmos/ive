@@ -43,10 +43,6 @@ c-----------------------------------------------------------------------
 */
 #include <stdlib.h>
 
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
-
 
 
 void freemem_ (ptr)

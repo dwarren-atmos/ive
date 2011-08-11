@@ -18,9 +18,6 @@ static char rcsid[] = "$Id: draw_point.c,v 1.5 2007-06-21 20:58:30 reinecke Exp 
 
 */
   
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <string.h>
 #include <stdio.h>
 #include <in_commands.h>

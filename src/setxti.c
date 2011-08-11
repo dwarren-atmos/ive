@@ -12,9 +12,6 @@
  *        moved xtics and ytics to C
  *
  *-----------------------------------------------------------------------*/
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <string.h>
 #include <stdio.h>
 #include <in_commands.h>

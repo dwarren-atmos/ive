@@ -21,12 +21,8 @@ static char rcsid[] = "$Id: hlpcmd.c,v 1.18 2005/09/06 20:22:14 warren Exp $";
 #define vfork fork
 #endif
 
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <malloc.h>
 #include <stdlib.h>
-#endif
 #include <unistd.h>
 #include <signal.h>
 #include <strings.h>

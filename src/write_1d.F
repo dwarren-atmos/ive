@@ -42,6 +42,7 @@ c-----------------------------------------------------------------------
       include 'segments.icl'
       include 'pltwin.icl'
       include 'flags.icl'
+      include 'units.icl'
 #include "slices.icl"
 
 c
@@ -54,7 +55,7 @@ c
 c     Local variable declarations.
 c
       character *1024  file, field
-      ive_ptr          x,y,z,t,f,getmem
+      ive_ptr          x,y,z,t,f,lon,lat,getmem
       real                phmin(4),phmax(4)
       real                xloc,yloc,zloc,tloc
       integer          lock(4)
@@ -81,11 +82,11 @@ c
 c
 c        Set the file name.
 c
-        file(1:len(file)) = ' '
+        file(1:len(file)) = char(0)
         file = comand(FSTVAL)(ibeg:iend)
       endif
       
-      file(iend+1:iend+1) = char(0)
+!      file(iend+1:iend+1) = char(0)
       if((file(iend-2:iend) .eq. ".nc").or.
      &     (file(iend-3:iend) .eq. ".cdf")) netcdf=1
          
@@ -191,11 +192,12 @@ c      end if
                   call freemem(t)
                   return
                endif
-               call fill_array(%val(y),ni_1d,yloc)
+               call fill_array(%val(x),ni_1d,xloc)
                call fill_array(%val(z),ni_1d,zloc)
                call fill_array(%val(t),ni_1d,tloc)           
             case(3)
-               z = slabad_1d
+               z=slabloc_1d
+               f=slabad_1d
                y=getmem(ni_1d)
                x=getmem(ni_1d)
                t=getmem(ni_1d)
@@ -218,12 +220,12 @@ c      end if
                   write (message,*)'Cant get loc in write_1d'
                   call write_message
                   call freemem(y)
-                  call freemem(z)
+                  call freemem(x)
                   call freemem(t)
                   return
                endif
                call fill_array(%val(y),ni_1d,yloc)
-               call fill_array(%val(z),ni_1d,zloc)
+               call fill_array(%val(x),ni_1d,xloc)
                call fill_array(%val(t),ni_1d,tloc)           
             case(4)
                t = slabad_1d
@@ -255,7 +257,7 @@ c      end if
                endif
                call fill_array(%val(y),ni_1d,yloc)
                call fill_array(%val(z),ni_1d,zloc)
-               call fill_array(%val(t),ni_1d,tloc)           
+               call fill_array(%val(x),ni_1d,xloc)           
             end select
          else
 
@@ -489,7 +491,7 @@ C
                        return
                     endif
                     call fill_array(%val(x),ni_1d,xloc)
-                    call fill_array(%val(y),ni_1d,tloc)           
+                    call fill_array(%val(y),ni_1d,yloc)           
                 end select
              case(4)
                 t = slabad_1d
@@ -519,7 +521,7 @@ C
                        return
                     endif
                     call fill_array(%val(z),ni_1d,zloc)
-                    call fill_array(%val(x),ni_1d,tloc)           
+                    call fill_array(%val(x),ni_1d,xloc)           
                  case(3)
                     call ive_fill_line(%val(z),%val(t),slope,
      &                   intercept,ni_1d)
@@ -542,7 +544,7 @@ C
                        return
                     endif
                     call fill_array(%val(y),ni_1d,yloc)
-                    call fill_array(%val(x),ni_1d,tloc)           
+                    call fill_array(%val(x),ni_1d,xloc)           
                  case(1)
                     call ive_fill_line(%val(x),%val(t),slope,
      &                   intercept,ni_1d)
@@ -569,9 +571,27 @@ C
                 end select
              end select
           endif
-          call  ive_1d_make_phys(%val(x),%val(y),%val(z),%val(t),ni_1d)
-          call output_1d(file, %val(x), %val(y),%val(z),%val(t),%val(f),
-     &         ni_1d, field,netcdf)
+       
+       if(mapflg) then
+          lon=getmem(ni_1d)
+          lat=getmem(ni_1d)
+          call phys_2_lonlat_trans (%val(x),%val(y),%val(lon),%val(lat),
+     &         ni_1d)
+          call freemem(x)
+          call freemem(y)
+          x=lon
+          y=lat
+       else
+          call scale(%val(x),ni_1d,domain_slope(1),domain_intercept(1),
+     &         0.0)
+          call scale(%val(y),ni_1d,domain_slope(2),domain_intercept(2),
+     &         0.0)
+       endif
+
+       call scale(%val(z),ni_1d,domain_slope(3),domain_intercept(3),0.0)
+       call scale(%val(t),ni_1d,domain_slope(4),domain_intercept(4),0.0)
+       call output_1d(file(strbeg(file):strend(file))//char(0), %val(x), 
+     &         %val(y),%val(z),%val(t),%val(f),ni_1d, field,netcdf)
           select case (ind)
        case(1) 
           call freemem(y)
@@ -609,27 +629,27 @@ c
       end do
       end
 
-      subroutine ive_1d_make_phys(x,y,z,t,ni)
-
-      include 'units.icl'
-
-       real x,y,z,t,lat,lon
-       integer ni, i
-       logical mapflg,error
-       dimension x(ni), y(ni),z(ni),t(ni),lat(ni),lon(ni)
-       
-       call getlvar('mapflg',mapflg,error)
-       
-       if(mapflg) then
-          call phys_2_lonlat_trans (x,y,lon,lat,ni)
-          x=lon
-          y=lat
-       else
-          call scale(x,ni,domain_slope(1),domain_intercept(1),0.0)
-          call scale(y,ni,domain_slope(2),domain_intercept(2),0.0)
-       endif
-
-       call scale(z,ni,domain_slope(3),domain_intercept(3),0.0)
-       call scale(t,ni,domain_slope(4),domain_intercept(4),0.0)
-
-       end
+!      subroutine ive_1d_make_phys(x,y,z,t,ni)
+!
+!      include 'units.icl'
+!
+!       real x,y,z,t,lat,lon
+!       integer ni, i
+!       logical mapflg,error
+!       dimension x(ni), y(ni),z(ni),t(ni),lat(ni),lon(ni)
+!       
+!       call getlvar('mapflg',mapflg,error)
+!       
+!       if(mapflg) then
+!          call phys_2_lonlat_trans (x,y,lon,lat,ni)
+!          x=lon
+!          y=lat
+!       else
+!          call scale(x,ni,domain_slope(1),domain_intercept(1),0.0)
+!          call scale(y,ni,domain_slope(2),domain_intercept(2),0.0)
+!       endif
+!
+!       call scale(z,ni,domain_slope(3),domain_intercept(3),0.0)
+!       call scale(t,ni,domain_slope(4),domain_intercept(4),0.0)
+!
+!       end

@@ -67,9 +67,6 @@ static char ident[] = "$Id: restore_state.c,v 1.13 2001/01/06 00:00:27 harry Exp
 
 #include <string.h>
 #include <strings.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <stdio.h>
 #include <state.h>
 

@@ -41,9 +41,6 @@ static char ident[] = "$Id: input.c,v 1.5 1998/09/04 20:51:59 harry Exp $";
 
 #include <unistd.h>
 #include <strings.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <Xm/XmAll.h>
 #include <stdio.h>
 #include <ive_macros.h>

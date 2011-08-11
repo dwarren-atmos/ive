@@ -66,9 +66,6 @@ static char rcsid[] = "$Id: slicer1d.c,v 1.13 2001/08/15 22:25:49 davidive Exp $
  */
 #include <string.h>
 #include <stdlib.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <math.h>
 
 #include <ive_macros.h>

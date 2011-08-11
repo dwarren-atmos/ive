@@ -1,6 +1,3 @@
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <X11/Intrinsic.h>
 #include <X11/Shell.h>
 #include <Xm/Xm.h>

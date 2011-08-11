@@ -35,9 +35,6 @@ static char rcsid[] = "$Id: slicer2d2a.c,v 1.3 2000/08/24 19:06:12 harry Exp $";
  */
 #include <string.h>
 #include <stdlib.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <math.h>
 
 #include <ive_macros.h>
