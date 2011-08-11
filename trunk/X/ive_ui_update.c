@@ -250,12 +250,8 @@ static char ident[] = "$Id: ive_ui_update.c,v 1.68 2002/11/27 00:30:52 warren Ex
  * Initial CVS checkin of IVE.
  *
  *****************************************************************************/
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <stdlib.h>
 #include <malloc.h>
-#endif
 #include <X11/Intrinsic.h>
 #include <Xm/XmAll.h>
 #include <string.h>
@@ -1591,8 +1587,8 @@ void ui_update_(window)
       break;
     case THREED_CONTROL_FORM: 
       if(controls_3D.ThreeD){
-	extern ToggleButton t[4];
-	for (i=0; i<4; i++){
+	extern ToggleButton t[10];
+	for (i=0; i<10; i++){
 	  if(t[i].O != NULL){
 	    if(t[i].O->objectOn[i])
 	      XmToggleButtonSetState(controls_3D.toggle[i],TRUE,FALSE);

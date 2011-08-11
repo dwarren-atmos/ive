@@ -57,9 +57,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 
 #define BLOKLEN 255
 #define BUFLEN 1000

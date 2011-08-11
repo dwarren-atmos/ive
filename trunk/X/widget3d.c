@@ -28,16 +28,18 @@ extern void set3dLRMult();
 extern void set3dUDMult();
 extern void StretchFun();
 extern void print3d();
+extern void pdf3d();
 XmString NewString();
 
-ToggleButton t[4]={{NULL,0},{NULL,1},{NULL,2},{NULL,3}};
+ToggleButton t[10]={{NULL,0},{NULL,1},{NULL,2},{NULL,3},{NULL,4},
+		    {NULL,5},{NULL,6},{NULL,7},{NULL,8},{NULL,9},};
 struct
 {
   
   Widget ThreeD;
   Widget TransLab;
   Widget TransLRt, TransUDt;
-  Widget toggle[4];
+  Widget toggle[10];
   Widget moveU, moveD, moveL, moveR;
   Widget RotLab;
   Widget RotUD, RotLR;
@@ -339,9 +341,9 @@ void controlPad3D(Objects *OBJ)
 							  XmNtopOffset,10,
 							  XmNleftAttachment,XmATTACH_FORM,
 							  XmNrightAttachment,XmATTACH_FORM,
-							  XmNheight,45,
-							  XmNresizeWidth,False,
-							  XmNresizeHeight,False,
+							  XmNheight,50,
+							  //XmNresizeWidth,False,
+							  //XmNresizeHeight,False,
 							  NULL);
     
     
@@ -349,9 +351,9 @@ void controlPad3D(Objects *OBJ)
 					       controls_3D.scroll,
 					       XmNorientation,XmHORIZONTAL,
 					       XmNpacking,XmPACK_TIGHT,
-					       //XmNresizeWidth,False,
+					       XmNresizeWidth,False,
 					       XmNresizeHeight,True,
-					       //XmNwidth,160,
+					       XmNwidth,220,
 					       XmNleftAttachment,XmATTACH_FORM,
 					       XmNrightAttachment,XmATTACH_FORM,
 					       NULL);
@@ -373,7 +375,7 @@ void controlPad3D(Objects *OBJ)
     XtAddCallback(controls_3D.reset ,XmNactivateCallback,reset_button_3d,OBJ);
     XmStringFree(str2);
     
-    str2 = NewString("Print");
+    str2 = NewString("PDF");
     controls_3D.print = XtVaCreateManagedWidget("Print3d",
 						xmPushButtonWidgetClass,
 						controls_3D.ThreeD,
@@ -382,14 +384,14 @@ void controlPad3D(Objects *OBJ)
 						XmNtopWidget, controls_3D.RotLR,
 						XmNleftAttachment,XmATTACH_WIDGET,
 						XmNleftWidget, controls_3D.reset,
-						XmNleftOffset,10,
+						XmNleftOffset,20,
 						XmNtopOffset,20,
 						NULL);
-    XtAddCallback(controls_3D.print ,XmNactivateCallback,print3d,OBJ);
+    XtAddCallback(controls_3D.print ,XmNactivateCallback,pdf3d,OBJ);
     XmStringFree(str2);
     
     
-    for(i=0; i < 4 && i< OBJ->objects; i++)
+    for(i=0; i < 10 && i< OBJ->objects; i++)
       {
 	t[i].O=OBJ;
 	str2 = NewString(OBJ->Field[i]);
@@ -409,7 +411,7 @@ void controlPad3D(Objects *OBJ)
     //XtManageChild(ThreeD);
   }
   else{
-    for(i=0; i < 4; i++)
+    for(i=0; i < 10; i++)
       {
 	t[i].O=NULL;
 	if(controls_3D.toggle[i] != NULL){
@@ -417,11 +419,10 @@ void controlPad3D(Objects *OBJ)
 	  controls_3D.toggle[i]=NULL;
 	}
       }
-    for(i=0; i < 4 && i< OBJ->objects; i++)
+    for(i=0; i < 10 && i< OBJ->objects; i++)
       {
 	t[i].O=OBJ;
 	str2 = NewString(OBJ->Field[i]);
-	printf("add filed %s\n",OBJ->Field[i]);
 	controls_3D.toggle[i] = XtVaCreateManagedWidget(WidgNames[i],
 							xmToggleButtonWidgetClass,
 							controls_3D.Objs,

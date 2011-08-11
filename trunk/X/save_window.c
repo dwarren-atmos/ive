@@ -20,11 +20,7 @@
  */
 static char ident[] = "$Id: save_window.c,v 1.4 2006/08/01 19:55:08 warren Exp $";
 
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <malloc.h>
-#endif
 #include <Xm/XmAll.h>
 #include <X11/Xmu/Xmu.h>
 #include <ive.h>

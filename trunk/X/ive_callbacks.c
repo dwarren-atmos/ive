@@ -260,9 +260,6 @@ void quit_ive(w, data, call)
      caddr_t data;
      XmAnyCallbackStruct call;
 {
-#ifdef MEMDBG
-    mnem_writestats();
-#endif
     XtCloseDisplay(XtDisplay(w));
     exit(0);
 }
