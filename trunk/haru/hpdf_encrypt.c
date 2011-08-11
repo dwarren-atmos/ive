@@ -1,7 +1,10 @@
 /*
- * << Haru Free PDF Library 2.0.0 >> -- hpdf_encryor.c
+ * << Haru Free PDF Library >> -- hpdf_encryor.c
+ *
+ * URL: http://libharu.org
  *
  * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * Copyright (c) 2007-2009 Antony Dovgal <tony@daylessday.org>
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -314,13 +317,13 @@ HPDF_PadOrTrancatePasswd  (const char  *pwd,
 
     HPDF_MemSet (new_pwd, 0x00, HPDF_PASSWD_LEN);
 
-    if (len >= HPDF_PASSWD_LEN)
-        HPDF_MemCpy (new_pwd, pwd, HPDF_PASSWD_LEN);
-    else {
-        if (len > 0)
-            HPDF_MemCpy (new_pwd, pwd, len);
-        HPDF_MemCpy (new_pwd + len, HPDF_PADDING_STRING,
-                    HPDF_PASSWD_LEN - len);
+    if (len >= HPDF_PASSWD_LEN) {
+        HPDF_MemCpy (new_pwd, (HPDF_BYTE *)pwd, HPDF_PASSWD_LEN);
+    } else {
+        if (len > 0) {
+            HPDF_MemCpy (new_pwd, (HPDF_BYTE *)pwd, len);
+        }
+        HPDF_MemCpy (new_pwd + len, HPDF_PADDING_STRING, HPDF_PASSWD_LEN - len);
     }
 }
 
@@ -365,7 +368,7 @@ HPDF_Encrypt_CreateOwnerKey  (HPDF_Encrypt  attr)
         for (i = 0; i < 50; i++) {
             HPDF_MD5Init(&md5_ctx);
 
-            //HPDF_MD5Update (&md5_ctx, digest, HPDF_MD5_KEY_LEN);
+            /* HPDF_MD5Update (&md5_ctx, digest, HPDF_MD5_KEY_LEN); */
             HPDF_MD5Update (&md5_ctx, digest, attr->key_len);
             HPDF_MD5Final(digest, &md5_ctx);
 

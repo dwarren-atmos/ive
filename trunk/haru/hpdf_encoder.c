@@ -1,7 +1,10 @@
 /*
- * << Haru Free PDF Library 2.0.0 >> -- hpdf_encoder.c
+ * << Haru Free PDF Library >> -- hpdf_encoder.c
  *
- * Copyright (c) 1999-2004 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * URL: http://libharu.org
+ *
+ * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * Copyright (c) 2007-2009 Antony Dovgal <tony@daylessday.org>
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -2478,11 +2481,11 @@ HPDF_BasicEncoder_Write  (HPDF_Encoder  encoder,
                 const char* char_name =
                     HPDF_UnicodeToGryphName (attr->unicode_map[i]);
 
-                ptmp = HPDF_IToA (ptmp, i, tmp + HPDF_TMP_BUF_SIZ - 1);
+                ptmp = HPDF_IToA (ptmp, i, tmp + HPDF_TEXT_DEFAULT_LEN - 1);
                 *ptmp++ = ' ';
                 *ptmp++ = '/';
-                ptmp = HPDF_StrCpy (ptmp, char_name, tmp +
-                        HPDF_TMP_BUF_SIZ - 1);
+                ptmp = (char *)HPDF_StrCpy (ptmp, char_name, tmp +
+                        HPDF_TEXT_DEFAULT_LEN - 1);
                 *ptmp++ = ' ';
                 *ptmp = 0;
 
@@ -2943,7 +2946,7 @@ HPDF_Encoder_GetByteType  (HPDF_Encoder       encoder,
     if (encoder->type != HPDF_ENCODER_TYPE_DOUBLE_BYTE)
         return HPDF_BYTE_TYPE_SINGLE;
 
-    HPDF_Encoder_SetParseText (encoder, &parse_state, text, index + 1);
+    HPDF_Encoder_SetParseText (encoder, &parse_state, (HPDF_BYTE *)text, index + 1);
 
     for (;;) {
         btype = HPDF_CMapEncoder_ByteType (encoder, &parse_state);

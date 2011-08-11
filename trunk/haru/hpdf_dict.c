@@ -1,7 +1,10 @@
 /*
- * << Haru Free PDF Library 2.0.5 >> -- HPDF_Dict.c
+ * << Haru Free PDF Library >> -- hpdf_dict.c
  *
- * Copyright (c) 1999-2004 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * URL: http://libharu.org
+ *
+ * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * Copyright (c) 2007-2009 Antony Dovgal <tony@daylessday.org>
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -155,10 +158,10 @@ HPDF_Dict_Write  (HPDF_Dict     dict,
 
             HPDF_Array_Clear (array);
 
-#ifndef HPDF_NOZLIB
+#ifndef LIBHPDF_HAVE_NOZLIB
             if (dict->filter & HPDF_STREAM_FILTER_FLATE_DECODE)
                 HPDF_Array_AddName (array, "FlateDecode");
-#endif /* HPDF_NOZLIB */
+#endif /* LIBHPDF_HAVE_NOZLIB */
 
             if (dict->filter & HPDF_STREAM_FILTER_DCT_DECODE)
                 HPDF_Array_AddName (array, "DCTDecode");
@@ -220,7 +223,7 @@ HPDF_Dict_Write  (HPDF_Dict     dict,
                     0);
         }
 
-        if ((ret = HPDF_Stream_WriteStr (stream, "\012stream\015\012"))
+        if ((ret = HPDF_Stream_WriteStr (stream, "\012stream\015\012")) /* Acrobat 8.15 requires both \r and \n here */
                 != HPDF_OK)
             return ret;
 
