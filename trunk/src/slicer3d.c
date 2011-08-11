@@ -19,9 +19,6 @@ static char rcsid[] = "$Id: slicer3d.c,v 1.2 2001/01/23 22:47:17 davidive Exp $"
  */
 #include <string.h>
 #include <stdlib.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <math.h>
 
 #include <ive_macros.h>
@@ -36,10 +33,10 @@ extern int convert();
 
 static int nis, njs, nks;
 
-static struct point {
+struct point {
     float x,y,z;
 };
-static struct point2d {
+struct point2d {
     float x,y;
 };
 
@@ -159,8 +156,10 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 	strcmp(slab_3.datfil, datfil) == 0 &&
 	strcmp(slab_3.field, field) == 0 &&
 	slab_3.locked == locked &&
-	slab_3.vlocked == *pt)
+	slab_3.vlocked == *pt){
 	same_slice = 1;
+	printf("not slicing value= %f\n",*pt);
+    }
     else {
 	if(phpts3.numx>0 && phpts3.numy > 0 && phpts3.numz > 0){
 	    free(phpts3.pt);
@@ -492,52 +491,52 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
     for ( kcounter = 0; kcounter < nks; kcounter++ )
 	for (dcounter = 0; dcounter < njs; dcounter++ )
 	    for ( icounter = 0; icounter < nis; icounter++ ) {
-	      struct point *pt = ( struct point *)phpts3_dep(icounter, dcounter, kcounter);
+	      struct point *mypt = ( struct point *)phpts3_dep(icounter, dcounter, kcounter);
 		if (min[slab_3.xaxis-1] < max[slab_3.xaxis-1]) {
-		    if (pt->x > min[slab_3.xaxis-1]
+		    if (mypt->x > min[slab_3.xaxis-1]
 			&& icounter < wp3.imin)
 			wp3.imin = icounter;
-		    if (pt->x < max[slab_3.xaxis-1]
+		    if (mypt->x < max[slab_3.xaxis-1]
 			&& icounter > wp3.imax)
 			wp3.imax = icounter;
 		}
 		else {
-		    if (pt->x < min[slab_3.xaxis-1]
+		    if (mypt->x < min[slab_3.xaxis-1]
 			&& icounter < wp3.imin)
 			wp3.imin = icounter;
-		    if (pt->x > max[slab_3.xaxis-1]
+		    if (mypt->x > max[slab_3.xaxis-1]
 			&& icounter > wp3.imax)
 			wp3.imax = icounter;
 		}
 		if (min[slab_3.yaxis-1] < max[slab_3.yaxis-1]) {
-		    if (pt->y > min[slab_3.yaxis-1]
+		    if (mypt->y > min[slab_3.yaxis-1]
 			&& dcounter < wp3.jmin)
 			wp3.jmin = dcounter;
-		    if (pt->y < max[slab_3.yaxis-1]
+		    if (mypt->y < max[slab_3.yaxis-1]
 			&& dcounter > wp3.jmax)
 			wp3.jmax = dcounter;
 		}
 		else {
-		    if (pt->y < min[slab_3.yaxis-1]
+		    if (mypt->y < min[slab_3.yaxis-1]
 			&& dcounter < wp3.jmin)
 			wp3.jmin = dcounter;
-		    if (pt->y > max[slab_3.yaxis-1]
+		    if (mypt->y > max[slab_3.yaxis-1]
 			&& dcounter > wp3.jmax)
 			wp3.jmax = dcounter;
 		}
 		if (min[slab_3.zaxis-1] < max[slab_3.zaxis-1]) {
-		    if (pt->z > min[slab_3.zaxis-1]
+		    if (mypt->z > min[slab_3.zaxis-1]
 			&& dcounter < wp3.kmin)
 			wp3.kmin = dcounter;
-		    if (pt->z < max[slab_3.zaxis-1]
+		    if (mypt->z < max[slab_3.zaxis-1]
 			&& dcounter > wp3.kmax)
 			wp3.kmax = dcounter;
 		}
 		else {
-		    if (pt->z < min[slab_3.zaxis-1]
+		    if (mypt->z < min[slab_3.zaxis-1]
 			&& dcounter < wp3.kmin)
 			wp3.kmin = dcounter;
-		    if (pt->z > max[slab_3.zaxis-1]
+		    if (mypt->z > max[slab_3.zaxis-1]
 			&& dcounter > wp3.kmax)
 			wp3.kmax = dcounter;
 		}

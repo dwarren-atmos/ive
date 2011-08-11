@@ -39,9 +39,6 @@
 -----------------------------------------------------------------------
 */
 #include <stdlib.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 
 void 
 *getmem_(size)

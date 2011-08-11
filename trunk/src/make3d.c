@@ -21,23 +21,34 @@ void reset_nobjects()
 {
   int i;
   if(nObjects > 0){
-    if(IVE_Object.NormalList)
+    if(IVE_Object.NormalList){
+      if(IVE_Object.NormalList->normal)
+	free(IVE_Object.NormalList->normal);
       free(IVE_Object.NormalList);
-    if(IVE_Object.Surface)
+      IVE_Object.NormalList=NULL;
+    }
+    if(IVE_Object.Surface){
+      if(IVE_Object.Surface->items)
+	free(IVE_Object.Surface->items);
       free(IVE_Object.Surface);
+      IVE_Object.Surface=NULL;
+    }
   }
-  for(i = 0; i < nObjects; i++)
+  for(i = 0; i < nObjects; i++){
     free(IVE_Object.Field[i]);
-  IVE_Object.objects = 0 ;
-  nObjects=0;
-  for(i=0; i<10; i++){
-    IVE_Object.objectOn[i] = 1;
+    IVE_Object.Field[i]=NULL;
+    IVE_Object.objectOn[i] = 0;
+    IVE_Object.objectDone[i] = 0;
     if(glIsList(IVE_Object.listName[i]))
       glDeleteLists(IVE_Object.listName[i],1);
-    IVE_Object.listName[i] = 0;
-    if(glIsList(terrlist))
-      glDeleteLists(terrlist,1);
   }
+  if(glIsList(terrlist)){
+    glDeleteLists(terrlist,1);
+    IVE_Object.listName[i] = -1;
+  }
+  IVE_Object.objects = 0;
+  nObjects=0;
+
 }
 
 static void compute_normal(v, p1, p2, p3)
@@ -143,6 +154,7 @@ void make3d_(varpt, x, y, z, t)
   /*Start the 3D thing*/
   //  (void)setup_3D();
   if(!first_3d){
+    terrlist=glGenLists(1);
     xRotation=0.;
     yRotation=0.;
     LRMult=1.;
@@ -212,7 +224,7 @@ void make3d_(varpt, x, y, z, t)
     break;
   }
   volume = (float *)slicer3d_(varpt, x, y, z, t,
-			      &dims, &lval, pt, &nk, &nj, &ni, &special, &phys);
+			      &dims, &lval, pt+lval, &nk, &nj, &ni, &special, &phys);
   // get approx dx for limiting search later
   dx = abs(maxs[0]-mins[0])/ni;
   if(mindelta==0)mindelta=1.0e-15;
@@ -369,7 +381,8 @@ void make3d_(varpt, x, y, z, t)
 	    tertris.norm_points[tertris.num_normals].x=tertris.tri[i].p1.x;
 	    tertris.norm_points[tertris.num_normals].y=tertris.tri[i].p1.y;
 	    tertris.norm_points[tertris.num_normals].z=tertris.tri[i].p1.z;
-	    tertris.tri[i].normal1=tertris.num_normals;
+	    //tertris.tri[i].normal1=tertris.num_normals;
+	    tertris.tri[i].normal1=3*i;
 	    tertris.num_normals++;
 	  }
 	  
@@ -381,7 +394,8 @@ void make3d_(varpt, x, y, z, t)
 	    tertris.norm_points[tertris.num_normals].x=tertris.tri[i].p2.x;
 	    tertris.norm_points[tertris.num_normals].y=tertris.tri[i].p2.y;
 	    tertris.norm_points[tertris.num_normals].z=tertris.tri[i].p2.z;
-	    tertris.tri[i].normal2=tertris.num_normals;
+	    //tertris.tri[i].normal2=tertris.num_normals;
+	    tertris.tri[i].normal1=3*i+1;
 	    tertris.num_normals++;
 	  }
 	  
@@ -393,7 +407,8 @@ void make3d_(varpt, x, y, z, t)
 	    tertris.norm_points[tertris.num_normals].x=tertris.tri[i].p3.x;
 	    tertris.norm_points[tertris.num_normals].y=tertris.tri[i].p3.y;
 	    tertris.norm_points[tertris.num_normals].z=tertris.tri[i].p3.z;
-	    tertris.tri[i].normal3=tertris.num_normals;
+	    //tertris.tri[i].normal3=tertris.num_normals;
+	    tertris.tri[i].normal1=3*i+2;
 	    tertris.num_normals++;
 	  }
 	}
@@ -414,7 +429,7 @@ void make3d_(varpt, x, y, z, t)
       OBN.normal = malloc(OBN.size*sizeof(Point));
       IVE_Object.Field[0] = malloc(8*sizeof(char));    
       strcpy(IVE_Object.Field[nObjects-1],"Terrain");
-#pragma omp parallel for default(shared)
+      //#pragma omp parallel for default(shared)
       for(i=0; i<tertris.num_triangles; i++){
 	OBS.items[i].pt[0].xCoord = tertris.tri[i].p1.x;
 	OBS.items[i].pt[0].yCoord = tertris.tri[i].p1.z;
@@ -429,11 +444,12 @@ void make3d_(varpt, x, y, z, t)
 	OBS.items[i].pt[2].zCoord = tertris.tri[i].p3.y;
 	OBS.items[i].pt[2].normalRef = tertris.tri[i].normal3;
       }
-#pragma omp parallel for default(shared)
+      //#pragma omp parallel for default(shared)
       for(i=0; i<tertris.num_normals; i++){
 	OBN.normal[i].xCoord = tertris.normals[i].x;
 	OBN.normal[i].yCoord = tertris.normals[i].z;
 	OBN.normal[i].zCoord = tertris.normals[i].y;
+	OBN.normal[i].normalRef = i;
       }
       free(tertris.tri);
       free(tertris.norm_counts);
@@ -450,9 +466,9 @@ void make3d_(varpt, x, y, z, t)
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
 
+
   triangles.tri = 
     (struct TRIANGLE *)malloc(allocated_triangles*sizeof(struct TRIANGLE)); 
-
   triangles.normals=(struct plainpoint *)malloc(allocated_norms*sizeof(struct plainpoint));
   triangles.norm_points=(struct plainpoint *)malloc(allocated_norms*sizeof(struct plainpoint));
   triangles.norm_counts=(int *)malloc(allocated_norms*sizeof(int));
@@ -467,6 +483,7 @@ void make3d_(varpt, x, y, z, t)
 	int one=1, subtri, myl;
 	float x,y,z,xp1,yp1,zp1,t;
 	struct plainpoint points[8];
+	struct TRIANGLE *dwtri;
 	t=1.;
 	x=i; y=j; z=k;
 	xp1=(x+1.); yp1=(y+1.); zp1=(z+1.);
@@ -499,14 +516,32 @@ void make3d_(varpt, x, y, z, t)
 	if(smalltri.num_triangles==0)continue;
 	//ive_get_points(0,0,0,vert,sint,&smalltri);
 	//sive_get_surface(i,j,k,vert,sint,&smalltri);
-	if(triangles.num_triangles + smalltri.num_triangles > 
+	if(triangles.num_triangles + smalltri.num_triangles >= 
 	   allocated_triangles-1){
 	  struct TRIANGLE *dwtri;
+	  void *ptr;
 	  allocated_triangles *= 2;
+	  printf("realloc triangles %lx %d\n",triangles.tri, allocated_triangles);
 	  dwtri = (struct TRIANGLE *) realloc(triangles.tri, 
-		    (allocated_triangles*sizeof(struct TRIANGLE)));
-	  if(dwtri !=0)triangles.tri=dwtri;
+					      (allocated_triangles*sizeof(struct TRIANGLE)));
+	  if(dwtri !=(struct TRIANGLE *)NULL)triangles.tri=dwtri;
 	  else {printf("out of memory for triangles\n");break;}
+	  ptr=(struct plainpoint *)realloc(triangles.norm_points,
+					   allocated_norms*sizeof(struct plainpoint));
+	  if(ptr!=0)
+	    triangles.norm_points=ptr;
+	  else {printf("out of memory for norm_pts\n");break;}
+	  ptr=(struct plainpoint *)realloc(triangles.normals,
+					   allocated_norms*sizeof(struct plainpoint));
+	  if(ptr != 0)
+	    triangles.normals=ptr;
+	  else{printf("out of memory for normals\n");break;}
+
+	  ptr=(int *)realloc(triangles.norm_counts,allocated_norms*sizeof(int));
+	  if(ptr != 0)
+	    triangles.norm_counts =ptr;
+	  else{printf("out of memory for norm_counts\n");break;}
+	  
 	}
 	imap=2;
 	subtri=0;
@@ -534,7 +569,7 @@ void make3d_(varpt, x, y, z, t)
 	    subtri++;
 	    myl--;
 	    continue;
-	  
+	  	
 	  (void)scale_(&triangles.tri[triangles.num_triangles+myl].p1.x,&npts,
 		       domain_slope,domain_intercept,&special);
 	  (void)scale_(&triangles.tri[triangles.num_triangles+myl].p1.y,&npts,
@@ -546,7 +581,7 @@ void make3d_(varpt, x, y, z, t)
 			 &triangles.tri[triangles.num_triangles+myl].p2.x,
 			 &triangles.tri[triangles.num_triangles+myl].p2.z,
 			 &triangles.tri[triangles.num_triangles+myl].p2.y,&special);
-	  if(triangles.tri[triangles.num_triangles+myl].p1.x==special){
+	  if(triangles.tri[triangles.num_triangles+myl].p2.x==special){
 	    subtri++;
 	    myl--;
 	    continue;
@@ -562,7 +597,7 @@ void make3d_(varpt, x, y, z, t)
 			 &triangles.tri[triangles.num_triangles+myl].p3.x,
 			 &triangles.tri[triangles.num_triangles+myl].p3.z,
 			 &triangles.tri[triangles.num_triangles+myl].p3.y,&special);
-	  if(triangles.tri[triangles.num_triangles+myl].p1.x==special){
+	  if(triangles.tri[triangles.num_triangles+myl].p3.x==special){
 	    subtri++;
 	    myl--;
 	    continue;
@@ -704,7 +739,7 @@ void make3d_(varpt, x, y, z, t)
     IVE_Object.Surface = ptr;
     ptr = realloc(IVE_Object.NormalList,nObjects*sizeof(NormalList));
     IVE_Object.NormalList = ptr;
-    IVE_Object.Field[nObjects-1] = malloc(strlen(field)+1*sizeof(char));
+    IVE_Object.Field[nObjects-1] = malloc(strlen(field)+100*sizeof(char));
     IVE_Object.objectDone[nObjects-1]=0;
   }
   else{ //first object
@@ -712,16 +747,18 @@ void make3d_(varpt, x, y, z, t)
     IVE_Object.objects = nObjects;
     IVE_Object.Surface = malloc(nObjects*sizeof(Surface));
     IVE_Object.NormalList = malloc(nObjects*sizeof(NormalList));
-    IVE_Object.Field[0] = malloc(strlen(field)+1*sizeof(char));
+    IVE_Object.Field[0] = malloc(strlen(field)+100*sizeof(char));
     IVE_Object.objectDone[nObjects-1]=0;
   }
 
-  strcpy(IVE_Object.Field[nObjects-1], field);
+  sprintf(IVE_Object.Field[nObjects-1],"%s@%.0f",field,sint);
+  printf("%s@%.0f",field,sint);
+  //strcpy(IVE_Object.Field[nObjects-1], field);
   OBS.size = triangles.num_triangles;
   OBS.items = malloc(OBS.size*sizeof(Triangle));
   OBN.size = triangles.num_normals;//change this line when we hop over to point normals instead of triangle normals.
   OBN.normal = malloc(OBN.size*sizeof(Point));
-#pragma omp parallel for default(shared)
+  //#pragma omp parallel for default(shared)
   for(i=0; i<triangles.num_triangles; i++){
     OBS.items[i].pt[0].xCoord = triangles.tri[i].p1.x;
     OBS.items[i].pt[0].yCoord = triangles.tri[i].p1.y;
@@ -736,7 +773,7 @@ void make3d_(varpt, x, y, z, t)
     OBS.items[i].pt[2].zCoord = triangles.tri[i].p3.z;
     OBS.items[i].pt[2].normalRef = triangles.tri[i].normal3;
   }
-#pragma omp parallel for default(shared)
+  //#pragma omp parallel for default(shared)
   for(i=0; i<triangles.num_normals; i++){
     OBN.normal[i].xCoord = triangles.normals[i].x;
     OBN.normal[i].yCoord = triangles.normals[i].y;

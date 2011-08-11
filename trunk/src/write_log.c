@@ -26,9 +26,6 @@
 
 static char ident[] = "$Id: write_log.c,v 1.2 2001/08/15 22:25:49 davidive Exp $";
 
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <log.h>
 #include <unistd.h>
 static int comment = 0;

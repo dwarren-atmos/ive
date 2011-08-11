@@ -62,7 +62,7 @@ static char *gouraudtriangleEPS[] =
 static float WIDTHMULT;
 static float HEIGHTMULT;
 
-void threedheader(FILE *file){
+static void threedheader(FILE *file){
   GLfloat clearColor[4], viewport[4];
   GLfloat lineWidth;
   int i;
@@ -114,7 +114,7 @@ void threedheader(FILE *file){
   fprintf(file, "18.75 112.5 translate %f %f scale\n",WIDTHMULT, HEIGHTMULT);
 }
 
-void print3DcolorVertex (GLint size, GLint *count, 
+static void print3DcolorVertex (GLint size, GLint *count, 
                          GLfloat *buffer)
 {
   int i;
@@ -127,7 +127,7 @@ void print3DcolorVertex (GLint size, GLint *count,
   printf ("\n");
 }
 
-void check_error(int s){
+static void check_error(int s){
   switch(s){
   case GL_INVALID_ENUM:
     printf("GL_INVALID_ENUM\n");
@@ -223,6 +223,7 @@ print3d(Widget w, Objects *obj, XmAnyCallbackStruct *call )
     case GL_POINT_TOKEN:
       token++;
        vertex = (Feedback3Dcolor *) token;
+       fprintf(file, "%g setrgbcolor\n", vertex[0].alpha);
        fprintf(file, "%g %g %g setrgbcolor\n", vertex[0].red, vertex[0].green, vertex[0].blue);
        fprintf(file, "%g %g %g 0 360 arc fill\n\n", vertex[0].x, vertex[0].y, pointSize / 2.0);
        token += 7;           /* Each vertex element in the feedback

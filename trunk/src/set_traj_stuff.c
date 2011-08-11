@@ -1,8 +1,5 @@
 #include <string.h>
 #include <strings.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <stdio.h>
 #include <in_commands.h>
 

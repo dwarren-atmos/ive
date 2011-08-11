@@ -21,12 +21,27 @@
 #include <ive_widgets.h>
 #include <FTGL/ftgl.h>
 //#include <ive_gks.h>
+#define IVEFONT "Font/VeraMoBd.ttf"
 extern Widget xgks_widget;
 extern Boolean Ive_Stereo;
 
-float mids[3];
-
 #include <math.h>
+static int font_inited=0;
+static FTGLfont *ftglfont;
+static  GLfloat white[] = {1.f,1.f, 1.f, 1.};
+static  GLfloat black[] = {0.f,0.f,0.f,1.};
+static  GLfloat blue[] = {0.f,0.f,1.f,0.4};
+static  GLfloat green[] ={.0f,.5f,.0f,0.4};
+static  GLfloat red[] ={1.f,.0f,.0f,.8};
+static  GLfloat grey[] ={.2f,.2f,.2f,0.4};
+static  GLfloat yellow[] ={.5f,.5f,.0f,0.4};
+static  GLfloat purple[] ={.5f,.0f,.5f,0.4};
+ static GLfloat *IVEcolors[]={red,blue,green,purple,grey,yellow,purple,white,black};
+ static GLfloat lightgrey[] ={.1f,.1f,.1f,.5};
+ static GLfloat ground[] = {.3,.06,.06,1.};
+
+float mids[3];
+static float time3d;
 
 static Display *dpy;
 
@@ -59,40 +74,143 @@ float clip(float clipD, float changeClip)
 
 void DoreDraw(Objects *obj){
   int blargh;
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-  glLoadIdentity();
-  glRotatef(xRotation,1,0,0);
-  glRotatef(yRotation,0,1,0);
-  glRotatef(zRotation,0,0,1);
+  int dolabel,error;
 
-  glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE); 
-  if(glIsList(terrlist))
+
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_ACCUM_BUFFER_BIT );
+  glAlphaFunc ( GL_GREATER, 0.1 ) ;
+  glEnable ( GL_ALPHA_TEST ) ;
+  glEnable (GL_BLEND);
+  glEnable(GL_DEPTH_TEST);//prevents background from displaying infront of foreground
+  glDepthMask(GL_TRUE);//necessary for depth testing... 
+  glEnable( GL_MULTISAMPLE_ARB );
+  glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE_ARB );
+
+  (void)getlvar_("label", &dolabel, &error, 5);
+  if(dolabel){
+    char s[100],s2[100],s3[100];
+    float mins[4],maxs[4];
+    float bounds[6], bounds2[6], dist;
+    float asp;
+    unsigned int w,h,myb,myd;
+    int myx,myy, i;
+    Window root;
+    i=4;
+    (void)getrarr_("plmin_scaled",mins,&i,&error,12);
+    (void)getrarr_("plmax_scaled",maxs,&i,&error,12);
+    (void)getrvar_("time",&time3d,&error,4);
+    i=0;
+    bzero(s,100);
+    bzero(s2,100);
+    bzero(s3,100);
+
+    XGetGeometry(XtDisplay(xgks_widget),XtWindow(xgks_widget), &root,&myx,&myy,&w,&h,&myb,&myd);
+    asp = (float)w/(float)h;
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(-xStretch,xStretch,-yStretch,yStretch,-5.*mids[2],5.5*mids[2]); 
+    if(!font_inited){
+      ftglfont=(FTGLfont *)ftglCreatePolygonFont(IVEFONT);
+      font_inited=1;
+    }
+    ftglSetFontFaceSize(ftglfont,1,abs(maxs[0]-mins[0])/4);
+    ftglSetFontCharMap(ftglfont, ft_encoding_none);
+    if((int)mins[0]==mins[0] && (int)mins[2]==mins[2] && (int)mins[1]==mins[1])
+      sprintf(s,"(%1.0f %1.0f %1.0f %1.0f) ",mins[0],mins[2],mins[1],time3d);
+    else if((abs(mins[0])<.009 && abs(mins[0])<10000))
+      sprintf(s,"(%1.2f %1.2f %1.2f %1.2f) ",mins[0],mins[2],mins[1],time3d);
+    else
+      sprintf(s,"(%1.2e %1.2e %1.2e %1.2e) ",mins[0],mins[2],mins[1],time3d);      
+    if((int)maxs[0]==maxs[0] && (int)maxs[2]==maxs[2] && (int)maxs[1]==maxs[1])
+      sprintf(s2,"(%1.0f, %1.0f, %1.0f, %1.0f) ",maxs[0],maxs[2],maxs[1],time3d);
+    else if((abs(maxs[0])<.009 && abs(maxs[0])<10000))
+      sprintf(s2,"(%1.2f, %1.2f, %1.2f, %1.2f) ",maxs[0],maxs[2],maxs[1],time3d);
+    else
+      sprintf(s2,"(%1.2e, %1.2e, %1.2e, %1.2e) ",maxs[0],maxs[2],maxs[1],time3d);      
+    ftglGetFontBBox(ftglfont,s,strlen(s),bounds);
+    ftglGetFontBBox(ftglfont,s2,strlen(s2),bounds2);
+    dist=bounds[3]-bounds[0];
+    if(bounds2[3]-bounds2[0]>dist)dist=bounds2[3]-bounds2[0];
+    glTranslatef(maxs[0]-mids[0]-dist,maxs[2]-mids[1]-(bounds[4]-bounds[1]),-mids[2]);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, black);//set color of object
+    ftglRenderFont(ftglfont, s, FTGL_RENDER_ALL);
+    glFlush();
+    glTranslatef(0,-1.1*(bounds[4]-bounds[1]),0);
+    ftglRenderFont(ftglfont, s2, FTGL_RENDER_ALL);
+    glFlush();
+
+    
+    for (i=0;i<obj->objects;i++)
+      {
+	if (obj->objectOn[i])
+	  {
+	    glTranslatef(0,-1.1*(bounds[4]-bounds[1]),0);
+	    sprintf(s3,"%s",obj->Field[i]);
+	    if(obj->Surface[i].color == -1)
+	      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, ground);
+	    else
+	      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, IVEcolors[obj->Surface[i].color]);
+	    ftglRenderFont(ftglfont, s3, FTGL_RENDER_ALL);
+	    glFlush();
+	  }
+      }
+    
+    glPopMatrix();
+    glFlush();
+  }
+
+  if(glIsList(terrlist)){
+    glPushMatrix();    
+    glLoadIdentity();
+
+    glRotatef(xRotation,1,0,0);
+    glRotatef(yRotation,0,1,0);
+    glRotatef(zRotation,0,0,1);
+
+    glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-2.*clipDistanceIVE2,2*clipDistanceIVE); 
     glCallList(terrlist);
+    glPopMatrix();
+    glFlush();
+  }
   for (blargh=0;blargh<obj->objects;blargh++)
     {
+	  glPushMatrix();    
+	  glLoadIdentity();
+
+	  glRotatef(xRotation,1,0,0);
+	  glRotatef(yRotation,0,1,0);
+	  glRotatef(zRotation,0,0,1);
+	  
+	  glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-2.*clipDistanceIVE2,2*clipDistanceIVE); 
       if (obj->objectOn[blargh])
 	{
 	  glCallList(obj->listName[blargh]);
 	}
+	  glPopMatrix();
+	  glFlush();
     }
-  if(glIsList(labellist))
-    glCallList(labellist);
-  glFlush();
+  
+
   if ( IveDblBufferFlag )
     glXSwapBuffers(dpy, XtWindow(xgks_widget) );
 }//clears and redraws object in new location after rotate move or clip or anything
 
 void reDraw(Objects *obj){
   if(Ive_Stereo){
-    int width,height;
+    unsigned int width,height;
     float right = 1.3125;
     float left  = -.6875;
     float eyesep= .5;
     float asp;
+    int myx,myy;
+    unsigned int myb,myd;
+    Window root;
+    XGetGeometry(XtDisplay(xgks_widget),XtWindow(xgks_widget), &root,&myx,&myy,&width,&height,&myb,&myd);
     XtVaGetValues(xgks_widget,XmNheight, &height, XmNwidth, &width, NULL);
     asp = (float)height/(float)width;
     
      /* First left eye.  */
+    glPushMatrix();
     glDrawBuffer(GL_BACK_LEFT);
     glLoadIdentity();                                        //reset modelview matrix
     gluLookAt(-eyesep/2,                                        //set camera position  x=-IOD/2
@@ -109,6 +227,8 @@ void reDraw(Objects *obj){
     glPopMatrix();
 
     /* Then right eye.  */
+    glPushMatrix();
+    glDrawBuffer(GL_BACK_RIGHT);
     glLoadIdentity();                                        //reset modelview matrix
     gluLookAt(eyesep/2,                                        //set camera position  x=-IOD/2
 	      0.0,                                           //                     y=0.0
@@ -167,10 +287,12 @@ void reset_wheel(){
 void reset_all_3d()
 {
   int i,error;
-  float mins[4],maxs[4];
+  float mins[4],maxs[4],time;
   i = 4;
   (void)getrarr_("plmin_scaled",mins,&i,&error,12);
   (void)getrarr_("plmax_scaled",maxs,&i,&error,12);
+  (void)getrvar_("time",&time,&error,4);
+  time3d=time;
   LRMult=abs((int)(maxs[0]-mins[0])/20.);
   UDMult=abs((int)(maxs[1]-mins[1])/20.);
   xRotation=0;
@@ -390,40 +512,6 @@ void ive_3dinput(w, data, event, dispatch)
     return;//above check for key press and take appropriate action before going to redraw
   }
 }
-static int font_inited=0;
-static FTGLfont *ftglfont;
-static void
-init_font(char* f, int size)
-{
-   XFontStruct* font_info;
-   int first;
-   int last;
-   
-   if(font_inited)return;
-   ftglfont=(FTGLfont *)ftglCreateTextureFont("/usr/share/fonts/truetype/msttcorefonts/arial.ttf");
-   ftglSetFontFaceSize(ftglfont, size, 300);
-   //ftglSetFontCharMap(ftglfont, ft_encoding_unicode);
-   font_inited=1;
-   return;
-   ive_font_base = glGenLists(256);
-   if (!glIsList(ive_font_base)) {
-      fprintf(stderr, "my_init(): Out of display lists. - Exiting.\n");
-      exit (-1);
-   }
-   /* Load the font. */
-   font_info = XLoadQueryFont(dpy, f);
-   if (!font_info) {
-     fprintf(stderr, "XLoadQueryFont() failed - Exiting.\n");
-     exit(-1);
-   }
-   else {
-     /* Tell GLX which font & glyphs to use. */
-     first = font_info->min_char_or_byte2;
-     last  = font_info->max_char_or_byte2;
-     glXUseXFont(font_info->fid, first, last-first+1, ive_font_base+first);
-   }
-   font_inited=1;
-}
 
 void plot3d(mins, maxs, IVE_Objects)
      float *mins, *maxs;
@@ -455,17 +543,12 @@ void plot3d(mins, maxs, IVE_Objects)
   GLfloat light1col[]={.8f,1.f,.8f,1.f};
   GLfloat light2col[]={.8f,.8f,1.f,1.f};
   GLfloat light3col[]= {.8f,.8f,.8f,1.f};
-  GLfloat white[] = {1.f,1.f, 1.f, 1.f};
-  GLfloat black[] = {0.f,0.f,0.f,1};
-  GLfloat blue[] = {.0f,.0f,.5f,1};
-  GLfloat green[] ={.0f,.5f,.0f,1};
-  GLfloat red[] ={.5f,.0f,.0f,1};
-  GLfloat grey[] ={.2f,.2f,.2f,1};
-  GLfloat yellow[] ={.5f,.5f,.0f,1};
-  GLfloat purple[] ={.5f,.0f,.5f,1};
-  GLfloat *IVEcolors[]={red,green,blue,grey,yellow,purple,white,black};
-  GLfloat lightgrey[] ={.1f,.1f,.1f,.5};
-  GLfloat ground[] = {.3,.06,.06,.1};
+  GLfloat light4col[]= {.1f,.1f,.1f,1.f};
+  //GLfloat light0col[]={1.f,1.f,1.f,1.f};
+  //GLfloat light1col[]={1.f,1.f,1.f,1.f};
+  //GLfloat light2col[]={1.f,1.f,1.f,1.f};
+  //GLfloat light3col[]= {1.f,1.f,1.f,1.f};
+  //GLfloat light4col[]= {.1f,.1f,.1f,1.f};
   FILE *file;
 
   dpy = XtDisplay(xgks_widget);
@@ -491,7 +574,7 @@ void plot3d(mins, maxs, IVE_Objects)
       if(!strncmp(IVE_Objects->Field[i],"Terrain",7))
 	IVE_Objects->Surface[i].color=-1    ;
       else
-	IVE_Objects->Surface[i].color=i;//This line determines the color, add a line here to check to see if a color is already specified if you don't want it to default colors.
+	IVE_Objects->Surface[i].color=i-1;//This line determines the color, add a line here to check to see if a color is already specified if you don't want it to default colors.
     }
 
   xStretch=mids[0];
@@ -523,11 +606,17 @@ void plot3d(mins, maxs, IVE_Objects)
 
   
   glXMakeCurrent(dpy,IveGlxWindow,IveGlxContext);
-  glBlendFunc(GL_SRC_ALPHA,GL_ONE);
-  glClearColor( 1.0, 1.0, 1.0, 1.0 );//set background to white
+  glAlphaFunc ( GL_GREATER, 0.1 ) ;
+  glEnable ( GL_ALPHA_TEST ) ;
+  glEnable (GL_BLEND);
   glEnable(GL_DEPTH_TEST);//prevents background from displaying infront of foreground
-  glDepthMask(GL_TRUE);//necessary for depth testing... forgot why...
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  glDepthMask(GL_TRUE);//necessary for depth testing... 
+  glEnable( GL_MULTISAMPLE_ARB );
+  glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE_ARB );
+
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  glClearColor( 1.0, 1.0, 1.0, 1.0 );//set background to white
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_ACCUM_BUFFER_BIT);
   glLoadIdentity();
   if(!saveflag){
     glShadeModel(GL_SMOOTH);//allows for a triangle to have different colors at each vertex without this you just get one color per object
@@ -553,9 +642,12 @@ void plot3d(mins, maxs, IVE_Objects)
     glLightfv(GL_LIGHT4, GL_POSITION, lightpos4);//set position of lights (using GL floats from in main function)
     glLightfv(GL_LIGHT5, GL_POSITION, lightpos5);//set position of lights (using GL floats from in main function)
     glLightfv(GL_LIGHT0,GL_DIFFUSE,light0col);
+    glLightfv(GL_LIGHT0,GL_SPECULAR,light0col);
     //glLightfv(GL_LIGHT1,GL_DIFFUSE,light1col);
     glLightfv(GL_LIGHT2,GL_DIFFUSE,light2col);
+    glLightfv(GL_LIGHT2,GL_SPECULAR,light2col);
     glLightfv(GL_LIGHT3,GL_DIFFUSE,light3col);//set colors of lights (using floats above)
+    glLightfv(GL_LIGHT3,GL_SPECULAR,light3col);
     glLightfv(GL_LIGHT1,GL_AMBIENT,light1col);
     glLightfv(GL_LIGHT4,GL_SPECULAR,light1col); 
     glLightfv(GL_LIGHT5,GL_SPECULAR,light1col);
@@ -563,13 +655,12 @@ void plot3d(mins, maxs, IVE_Objects)
 
   //glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-clipDistanceIVE2,clipDistanceIVE);// This line (repeated in redraw) sets window size and location
   // make sure we are not an overlay//
-  
   if(!glIsList(terrlist)){
     int dx,dy,dz;
     glNewList(terrlist, GL_COMPILE);//sets a List for each file passed      
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, lightgrey);
     dx=(maxs[0]-mins[0])/20;
-    dy=(maxs[2]-mins[2])/20; //here z means font back not up down
+    dy=(maxs[2]-mins[2])/20; //here z means front back not up down
     dz=(maxs[1]-mins[1])/20;
     glBegin(GL_LINES);
     for (i=mins[0]; i<=maxs[0]; i+=dx){
@@ -581,30 +672,9 @@ void plot3d(mins, maxs, IVE_Objects)
       glVertex3f(maxs[0]-mids[0],mins[2]-mids[1],i-mids[2]);
     }
     glEnd();
-
-    /*
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, purple);
-    for (i=mins[0];i<maxs[0]; i += (maxs[0]-mins[0])/3){
-      char s[10];
-      sprintf(s,"%d",i);
-      glRasterPos3f(i-mids[0],mins[2]-mids[1],mins[1]-mids[2]);
-      glPushAttrib(GL_LIST_BIT);
-      glListBase(ive_font_base);
-      glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *)s);
-      glPopAttrib();
-    }
-    for (i=mins[1]; i<maxs[1]; i+=((maxs[1]-mins[1])/3)){
-      char s[10];
-      sprintf(s,"%d",i);
-      glRasterPos3f(mins[0]-mids[0],mins[2]-mids[1],i-mids[2]);
-      glPushAttrib(GL_LIST_BIT);
-      glListBase(ive_font_base);
-      glCallLists(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *)s);
-      glPopAttrib();
-    }
-    */
     glEndList();
   }
+
     // glPopMatrix();
 
   //glPushMatrix();
@@ -616,7 +686,7 @@ void plot3d(mins, maxs, IVE_Objects)
   for(k=0; k<nObjects;k++)
     {
       if(glIsList(IVE_Objects->listName[k]))continue;
-      IVE_Objects->listName[k]=k+1;
+      IVE_Objects->listName[k]=glGenLists(1);
       glNewList(IVE_Objects->listName[k], GL_COMPILE);//sets a List for each file passed  object    
       glEnable(GL_NORMALIZE);
       glBegin(GL_TRIANGLES);
@@ -668,35 +738,12 @@ void plot3d(mins, maxs, IVE_Objects)
 	    }
       glEnd();
       glEndList();
-    }
-  /*
-  if(!glIsList(labellist)){
-    init_font("fixed", (int)((maxs[0]-mins[0])>(maxs[1]-mins[1])?(maxs[0]-mins[0]):(maxs[1]-mins[1]))/80);
-    glNewList(labellist, GL_COMPILE);//sets a List for each file passed      
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, black);//set color of object
-    glTranslatef((float)((mins[0]-mids[0])-(maxs[0]-mins[0])/5.),
-		 (float)(mins[2]-mids[1]),(float)(mins[1]-mids[2]));
-    for (i=mins[0];i<=maxs[0]; i += (maxs[0]-mins[0])/5){
-      char s[10];
-      sprintf(s,"%d",i);
-      glTranslatef((maxs[0]-mins[0])/5.,0.,0.);
-      ftglRenderFont(ftglfont, s, FTGL_RENDER_ALL);
-    }
-    glTranslatef((float)-i+(maxs[0]-mins[0])/5.,0.,-(maxs[1]-mins[1])/5.);
-    for (i=mins[1];i<=maxs[1]; i += (maxs[1]-mins[1])/5){
-      char s[10];
-      sprintf(s,"%d",i);
-      glTranslatef(0.,0.,(maxs[1]-mins[1])/5.);
-      ftglRenderFont(ftglfont, s, FTGL_RENDER_ALL);
-    }
-    glEndList();
-    ftglDestroyFont(ftglfont);
-  }
-
-  */
+      IVE_Objects->objectOn[k]=1;
+	}
+  
   /*
   if(glIsList(terrlist)){
-    printf("trun on terrain\n");
+    printf("turn on terrain\n");
     glCallList(terrlist);
   }
  for(k=0;IVE_Objects->listName[k];k++)
@@ -710,6 +757,7 @@ void plot3d(mins, maxs, IVE_Objects)
      glXSwapBuffers( dpy, IveGlxWindow );
   */
   controlPad3D(IVE_Objects);
+  reDraw(IVE_Objects);
   reDraw(IVE_Objects);
 }
 

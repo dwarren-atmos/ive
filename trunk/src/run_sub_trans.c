@@ -1,9 +1,5 @@
 #include <string.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <malloc.h>
-#endif
 #include <stdio.h>
 #include <ive_macros.h>
 static int not_window=0; /*flag passed to driver; means do update windows*/

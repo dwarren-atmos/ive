@@ -77,9 +77,6 @@ static char rcsid[] = "$Id: slicer1d1a.c,v 1.17 2000/12/13 22:17:22 harry Exp $"
  */
 #include <string.h>
 #include <stdlib.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <math.h>
 
 #include <ive_macros.h>

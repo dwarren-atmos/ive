@@ -487,6 +487,8 @@ c
 c     
 c
       EPSLON=epsilon(abs(ive_maxval_per-ive_minval_per))
+      if(ive_maxval_per-ive_minval_per >0 .and. 
+     &     ive_maxval_per-ive_minval_per< 1)EPSLON=EPSLON/3.
 c     If any tic mark interval is zero (or close to zero), return.
 c     
       if ( ticint .le. EPSLON ) then
@@ -625,6 +627,8 @@ c
 c
 c
       EPSLON=epsilon(abs(ive_maxval_per-ive_minval_per))
+      if(ive_maxval_per-ive_minval_per >0 .and. 
+     &     ive_maxval_per-ive_minval_per< 1)EPSLON=EPSLON/3.
 c     If any tic mark interval is zero (or close to zero), return.
 c
       if ( ticint .le. EPSLON ) then
@@ -759,6 +763,8 @@ c
 c
 c
       EPSLON=epsilon(abs( ive_maxval_per - ive_minval_per))
+      if(ive_maxval_per-ive_minval_per >0 .and. 
+     &     ive_maxval_per-ive_minval_per< 1)EPSLON=EPSLON/3.
 c
 c     If any tic mark interval is less than 1, return.
 c
@@ -889,6 +895,8 @@ c
 c
 c
       EPSLON=epsilon(abs(ive_maxval_per-ive_minval_per))
+      if(ive_maxval_per-ive_minval_per >0 .and. 
+     &     ive_maxval_per-ive_minval_per< 1)EPSLON=EPSLON/3.
 c
 c     If any tic mark interval is less than 1, return.
 c
