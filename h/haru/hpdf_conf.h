@@ -1,9 +1,10 @@
 /*
- * << Haru Free PDF Library 2.0.7 >> -- hpdf_conf.h
+ * << Haru Free PDF Library >> -- hpdf_conf.h
  *
- * URL http://libharu.sourceforge.net/
+ * URL: http://libharu.org
  *
- * Copyright (c) 1999-2006 Takeshi Kanno
+ * Copyright (c) 1999-2006 Takeshi Kanno <takeshi_kanno@est.hi-ho.ne.jp>
+ * Copyright (c) 2007-2009 Antony Dovgal <tony@daylessday.org>
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -19,6 +20,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#if defined(_MSC_VER)
+#define _USE_MATH_DEFINES 1
+#endif
+#define __USE_XOPEN /* for M_PI */
 #include <math.h>
 
 /*----------------------------------------------------------------------------*/
