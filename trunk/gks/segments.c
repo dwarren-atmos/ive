@@ -3332,7 +3332,7 @@ char        *file;  /* Output file              */
     is_eps_file_open_.isopen = 1;
 }
 
-static int php_haru_status_to_errmsg(HPDF_STATUS status, char **msg) /* {{{ */
+int ive_haru_status_to_errmsg(HPDF_STATUS status, char **msg) /* {{{ */
 {
 	if (status == HPDF_OK) {
 		*msg = strdup("No error");
@@ -3588,7 +3588,7 @@ void gpdferror_handler  (HPDF_STATUS   error_no,
   char *msg;
   printf ("ERROR: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no,
 	  (HPDF_UINT)detail_no);
-  php_haru_status_to_errmsg(error_no, &msg);
+  ive_haru_status_to_errmsg(error_no, &msg);
   printf("%s\n",msg);
   longjmp(myenv, 1);
 }
@@ -3616,7 +3616,7 @@ char        *file;  /* Output file              */
     return;
   }
 
-  pdf = HPDF_NewEx (gpdferror_handler, NULL,NULL,0,NULL);
+  pdf = HPDF_New (gpdferror_handler, NULL);
       if (!pdf) {
           printf ("error: cannot create PdfDoc object\n");
           return;
