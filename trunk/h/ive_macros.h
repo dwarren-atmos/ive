@@ -14,9 +14,6 @@
  * Initial revision
  *
  */
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 
 #include <sys/param.h>
 

@@ -1,6 +1,8 @@
 #include<GL/gl.h>
 #include<GL/glx.h>
+#ifndef MEMDBG
 #include <stdlib.h>
+#endif
 #include <stdio.h>
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
@@ -9,7 +11,6 @@
 #include <xgks.h>
 #include <ive_gks.h>
 
-#define terrlist 100
 #define labellist 200
 
 #ifndef IVE_CUBE_PLOTS
@@ -28,6 +29,8 @@ extern struct{
 #define min_color user_colors_.min_user_color
 #define max_color user_colors_.max_user_color
 
+GLuint terrlist;
+
 //extern GLXContext IveGlxContext;
 //extern Widget gl_widget;
 
@@ -45,7 +48,7 @@ struct plainpoint {
 
 GLuint ive_font_base;
 
-typedef struct {float xCoord, yCoord, zCoord; int normalRef;} Point;
+typedef struct {float xCoord, yCoord, zCoord; unsigned int normalRef;} Point;
 
 typedef struct {Point pt[3];} Triangle;
 
@@ -70,7 +73,7 @@ typedef struct {
 
 typedef struct {
   int x,y;
-  GLfloat *points
+  GLfloat *points;
 }terrmesh;
 
 typedef struct

@@ -101,10 +101,6 @@
  *
  */
 
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
-
 /*general*/
 extern Widget linepattern, axes;
 extern Widget linlin,linlog,loglin,loglog;
@@ -226,7 +222,7 @@ extern struct
   Widget ThreeD;
   Widget TransLab;
   Widget TransLRt, TransUDt;
-  Widget toggle[4];
+  Widget toggle[10];
   Widget moveU, moveD, moveL, moveR;
   Widget RotLab;
   Widget RotUD, RotLR;

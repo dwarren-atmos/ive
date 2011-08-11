@@ -1,6 +1,3 @@
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #define WS_X 1
 #define WS_WISS 2
 #define WS_MO 3
