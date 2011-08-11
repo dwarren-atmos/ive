@@ -176,12 +176,8 @@ static char ident[] = "$Id: gks_widgets.c,v 1.37 2002/12/26 22:48:11 warren Exp 
 #include <ive_gks.h>
 #include <ive_gl.h>
 #include <X11/Xcms.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <stdlib.h>
 #include <malloc.h>
-#endif
 
 
 extern void ive_3dinput();
@@ -610,6 +606,10 @@ void setup_3D(Widget widg)
       IveDblBufferFlag = 1;
     }
   }
+  if(!fbConfigs){
+    printf("There will be no 3D. Your X server does not support it!\n");
+    return;
+  }
   IveGlxVisInfo = glXGetVisualFromFBConfig(dpy, fbConfigs[0]);
 
   IveGlxContext = glXCreateNewContext(dpy,fbConfigs[0],GLX_RGBA_TYPE,
@@ -621,10 +621,10 @@ void setup_3D(Widget widg)
   //IveGlxWindow = glXCreateWindow(dpy, fbConfigs[0], xwin, NULL);
   //glXMakeContextCurrent(dpy, IveGlxWindow, IveGlxWindow, IveGlxContext);
   IveGlxWindow=xwin;
-  glXMakeCurrent(dpy,xwin,IveGlxContext);
-  glClearColor( 1.0, 1.0, 1.0, 1.0 );
-  glClear( GL_COLOR_BUFFER_BIT );
-  glFlush();
+  //glXMakeCurrent(dpy,xwin,IveGlxContext);
+  //glClearColor( 1.0, 1.0, 1.0, 1.0 );
+  //glClear( GL_COLOR_BUFFER_BIT );
+  //glFlush();
 }
 
 

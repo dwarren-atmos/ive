@@ -67,11 +67,7 @@
  */
 static char ident[] = "$Id: save_pixmap.c,v 1.9 2001/12/28 23:43:25 davidive Exp $";
 
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <malloc.h>
-#endif
 #include <Xm/Xm.h>
 #include <Xm/DrawingA.h>
 #include <X11/Xmu/Xmu.h>

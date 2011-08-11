@@ -51,9 +51,6 @@ static char ident[] = "$Id: loop_calls.c,v 1.4 2002/08/09 19:57:27 warren Exp $"
 
 #include<stdlib.h>
 #include<stdio.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <string.h>
 #include <Xm/XmAll.h>
 #include <file_widgets.h>

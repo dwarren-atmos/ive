@@ -35,9 +35,6 @@
  */
 static char ident[] = "$Id: loop_quit.c,v 1.3 2001/03/23 19:35:29 harryive Exp $";
 
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #include <Xm/Xm.h>
 #include <X11/Intrinsic.h>
 #include <signal.h>

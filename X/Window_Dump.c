@@ -135,11 +135,7 @@ static char ident[] = "$Id: Window_Dump.c,v 1.10 2003/07/02 20:23:02 warren Exp 
 #include <stdio.h>
 #include <signal.h>
 #include <ive_gks.h>
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#else
 #include <malloc.h>
-#endif
 #ifdef DOPNG
 #include "png.h"        /* libpng header; includes zlib.h and setjmp.h */
 #endif

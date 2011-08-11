@@ -227,7 +227,10 @@ static char ident[] = "@(#)$Id: ive_main.c,v 1.34 2002/12/13 23:35:35 harryive E
 #include <sys/resource.h>
 #include <malloc.h>
 #include <stdlib.h>
-
+#include <signal.h>
+#ifdef MEMDBG
+#include <mcheck.h>
+#endif
 #define IVEMAIN
 #include <ive_macros.h>
 #include <ive_for.h>
@@ -284,7 +287,12 @@ static XtResource resources[] = {
     XtOffset(AppDataPtr, transform_file), XtRString, NULL,
 },
 };
-
+#ifdef MEMDBG
+void ive_mem_handler(int s) {
+  muntrace();
+  abort();
+}
+#endif
 /*
    these are used in all callback routines except for those that only effect
    the interface
@@ -334,6 +342,9 @@ char **argv, **envp;
     /*
      * Get application name.
      */
+#ifdef MEMDBG
+    signal(SIGSEGV, ive_mem_handler);
+#endif
 #ifdef sparc
     (void)f_init();
 #endif
