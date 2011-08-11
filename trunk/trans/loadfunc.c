@@ -233,9 +233,6 @@ static char ident[] = "$Id: loadfunc.c,v 1.52 2007-01-09 18:49:57 warren Exp $" 
 #endif /* mips */
 /* sprintf string for linker system call and 
  * alignment required by /bin/ld -A */
-#ifdef MEMDBG
-#include <mnemosyne.h>
-#endif
 #ifdef __alpha
 #include <signal.h>
 #endif
