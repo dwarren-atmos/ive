@@ -769,7 +769,7 @@ C     Call load_atts and new_field_trans
 C
          call load_atts(ndims, dims, stag, datmin, datmax, misdat,
      &        data_units, data_display_units, dim_names)
-         call new_field_trans(dummyv, getvar, dims(1), dims(2),
+         call new_field_trans(dummyv, %val(getvar), dims(1), dims(2),
      &        dims(3), dims(4))
 cc        test-ouptut
 c         if (flag) then
@@ -1542,6 +1542,152 @@ c
 
 
       subroutine newstag(comp0,comp1,phypt,
+     &       ar1,ndim1,nx1,ny1,nz1,nt1,dmi1,dma1,sta1,misdat1,
+     &       ar0,ndim0,nx0,ny0,nz0,nt0,dmi0,dma0,sta0,misdat0,
+     &	     name1,name0,error)
+c--------------------------------------------------------------------
+c     This subroutine takes the field '1' and interpolates it onto a
+c     new grid given by the attributes of field '0'. Output is ar0,
+c     misdat0 and error. All other parameters are input. The variables
+c     comp0,comp1,phypt are work-arrays, they must have at least the
+c     length of ndim0*nx0
+c--------------------------------------------------------------------
+
+      include 'units.icl'
+      include 'message.icl'
+
+      integer       MAXDIM
+      parameter     (MAXDIM=4)
+      integer       ndim1,nx1,ny1,nz1,nt1
+      integer       ndim0,nx0,ny0,nz0,nt0
+      real          ar1(nx1,ny1,nz1,nt1),dmi1(MAXDIM),dma1(MAXDIM),
+     &              sta1(MAXDIM),misdat1
+      real          ar0(nx0,ny0,nz0,nt0),dmi0(MAXDIM),dma0(MAXDIM),
+     &              sta0(MAXDIM),misdat0
+      real          comp0(ndim0,nx0,ny0),comp1(ndim0,nx0,ny0),
+     &		    phypt(ndim0,nx0,ny0)
+      double precision extrap, interp
+      character*(*) name1, name0     
+      character*(UNIT_LEN)       dim_names(MAXDIM)
+      integer       dims(MAXDIM)
+      real	    stag(MAXDIM), datmin(MAXDIM), datmax(MAXDIM), misdat
+      integer       ndims
+      logical       error
+      ive_ptr       getvar
+
+c     local variables
+      integer       iflagc(MAXDIM),iflagp(MAXDIM)
+      integer       dim1(MAXDIM)
+      integer       i,j,k,l
+      logical       missing
+      real          mmin,mmax
+      ive_ptr       junk
+
+c     define dim1
+      dim1(1)=nx1
+      dim1(2)=ny1
+      dim1(3)=nz1
+      dim1(4)=nt1
+
+c     initialize output missing dat vaalue
+      missing=.false.
+      if (misdat1.ne.0.) then
+        misdat0=misdat1
+      else
+        misdat0=-999.99
+      endif
+
+c     fill the arrays iflagc and iflagp
+      do i=1,ndim0
+         iflagp(i)=1
+         if (dim1(i).eq.1) then
+            iflagc(i) = 0
+         else
+            iflagc(i)=1
+         endif
+      enddo
+      do i=ndim0+1,MAXDIM
+        iflagc(i)=0
+        iflagp(i)=0
+      enddo
+      error=.false.
+      ar0=0.
+      do l=1,nt0
+         do k=1,nz0
+            do j=1, ny0
+               do i=1,nx0
+                  comp0(4,i,j)=real(l)
+                  comp0(3,i,j)=real(k)
+                  comp0(2,i,j)=real(j)
+                  comp0(1,i,j)=real(i)
+!     write(6,*)'comp0',i,comp0(:,i)
+               enddo
+            enddo
+c     compute the computational positions in ar1 of the points
+c     ar0(i=1,nx0;j;k;l). In order to save function-calls, the
+c     code is arranged such that every call to the transforms 
+c     returns the transformation for nx0*ny0 points.
+               
+c     call user routine to change fields.
+            junk = getvar(name0, ndims, dims, stag,
+     &           datmin, datmax, misdat, data_units, data_display_units,
+     &           dim_names, error)
+c     
+            dmi0=datmin
+            dma0=datmax
+            if(junk .eq. 0) then
+               error = .true.
+               return
+            endif
+c     get the position of the point (i,j,k,l) of ar0 in 
+c     physical space
+c     
+            phypt=0.
+!     call index_2_phys_trans(phypt,comp0,iflagp,ndim0,nx0*ny0)
+            call setrvar('spval', misdat0, error)
+            call index_2_phys_trans(phypt,comp0,iflagp,ndim0,nx0*ny0)
+            
+c     call user routine to change fields.
+            
+            junk = getvar(name1, ndims, dims, stag,
+     &           datmin, datmax, misdat, data_units, data_display_units,
+     &           dim_names, error)
+            
+            if(junk .eq. 0) then
+               error = .true.
+               return
+            endif
+c     
+c     get the position of the point in computational space of ar1
+c     
+!     call phys_2_index_trans(phypt,comp1,iflagp,ndim1,nx0*ny0)
+            call setrvar('spval', misdat0, error)
+            call phys_2_index_trans(phypt,comp1,iflagp,ndim1,nx0*ny0)
+            
+c     start interpolation/extrapolation
+            
+            do j=1, ny0
+               do i=1,nx0
+                  ar0(i,j,k,l) = extrap(ar1,nx1,ny1,nz1,nt1,
+     &                 comp1(1,i,j),comp1(2,i,j),
+     &                 comp1(3,i,j),
+     &                 comp1(4,i,j),misdat0)
+                  if (ar0(i,j,k,l).eq.misdat0) then
+                     missing = .true.
+!                     print *,i,j,k,'missing',ar1(i,j,k,l),comp1(:,i,j)
+!                  else
+!                     print *,i,j,k,ar0(i,j,k,l)
+                  endif
+               enddo            ! end of i-loop
+            enddo               ! end of j-loop
+         enddo                  ! end of k-loop
+      enddo                     !end of l-loop
+c     redefine missing data flag, if no data is missing
+      if ((.not.missing).and.(misdat1.eq.0.)) misdat0=0.
+c     exit routine newstag
+      end
+
+      subroutine oldstag(comp0,comp1,phypt,
      &       ar1,ndim1,nx1,ny1,nz1,nt1,dmi1,dma1,sta1,misdat1,
      &       ar0,ndim0,nx0,ny0,nz0,nt0,dmi0,dma0,sta0,misdat0,
      &	     name1,name0,error)
