@@ -400,12 +400,13 @@ int len1, len2, len3, len4;
 	  Report a variable with the "no_button" attribute set to 1 or
 	  with the same name as a dimension as a blank.
 	  */
-	if (nc_inq_att(var_file.id, i, "no_button", &datatype, &len) != NC_NOERR
+	if (nc_inq_att(var_file.id, i, "no_button", &datatype, &len) == NC_NOERR
 	    && len == 1 && datatype == NC_LONG) {
 	  size_t value;
 	  nc_get_att(var_file.id, i, "no_button", (void *) &value);
 	  if (value) {
 	    var_file.vars[i].button_name[0] = '\0';
+	    //printf("Dont Show Button %s\n",var_file.vars[i].name);
 	  }
 	}
 	else
