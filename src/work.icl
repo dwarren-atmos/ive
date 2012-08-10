@@ -41,9 +41,9 @@ c-----------------------------------------------------------------------
 c
 c
       integer     MXIAMA, MXRWRK, MXIWRK
-      parameter (MXIAMA = 8000000,
-     &           MXRWRK = 800000, 
-     &           MXIWRK = 800000)
+      parameter (MXIAMA = 16000000,
+     &           MXRWRK = 1600000, 
+     &           MXIWRK = 1600000)
 c
 c     Integer work arrays.
 c

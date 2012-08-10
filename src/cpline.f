@@ -1064,8 +1064,8 @@ c
       real           xcra, ycra
       real           clevel, clv, crec, cval
       parameter      (MXIASF = 13)
-      parameter      (MXIA  = 100, 
-     &                MXCRA = 100000,
+      parameter      (MXIA  = 1000, 
+     &                MXCRA = 25000000,
      &                MXLEVS = 300  )
 c     &                MXLEVS = 150  )
       dimension      crec(4), iasf(MXIASF)
