@@ -363,15 +363,20 @@ int len1, len2, len3, len4;
 	status = nc_get_att(var_file.id, NC_GLOBAL, unitstr, 
 			   domain_units+i*len2);
 	dunitstr[0] = dname[i];
-     	if(nc_get_att(var_file.id, NC_GLOBAL, dunitstr, 
-		     var_file.domain_display_units_orig[i]) ==NC_NOERR )
+	printf("get %s\n",dunitstr);
+     	if(nc_get_att_text(var_file.id, NC_GLOBAL, dunitstr, 
+		      var_file.domain_display_units_orig[i]) !=NC_NOERR ){
 	    strcpy (var_file.domain_display_units_orig[i], 
 		    domain_units+i*len2);
+	}
+	else{
+	  printf("got %s\n",var_file.domain_display_units_orig[i]);
+	}
 	deltastr[0] = dname[i];
      	if (nc_get_att_float(var_file.id, NC_GLOBAL, deltastr, delta+i) != NC_NOERR)
 	    delta[i] = 0.;
 	labstr[0] = dname[i];
-     	if (nc_get_att(var_file.id, NC_GLOBAL, labstr, label+i*len4) != NC_NOERR) {
+     	if (nc_get_att_text(var_file.id, NC_GLOBAL, labstr, label+i*len4) != NC_NOERR) {
 	    *(label+i*len4) = toupper(dname[i]);
 	    *(label+i*len4+1) = '\0';
 	}
