@@ -3151,10 +3151,10 @@ gpdf_print(ws_id, seg_id, as, coltab, overlay)
 	Pdfgetsize(tran, ws_id, xm, ym, &xmin, &xmax, &ymin, &ymax);
 	sizeprimi = sizeprimi->next;
       }
-      printf("before xm ym: %f %f\n",xm,ym);
+      //printf("before xm ym: %f %f\n",xm,ym);
       xm=xm/(xmax-xmin);
       ym=ym/(ymax-ymin);
-      printf("after xm ym: %f %f\n",xm,ym);
+      //printf("after xm ym: %f %f\n",xm,ym);
     }
     else{
       xm = oldxm;
@@ -3671,6 +3671,7 @@ gpdf_init_page(do_landscape, aspect)
     xm = 1.0;
     ym = 1.0 / *aspect;
   }
+  //printf("wxh %f %f %f \n",xm,ym,*aspect);
   HPDF_Page_SetHeight(pdfpage, STANDARD_PAGE_W*POINTS_PER_INCH*ym+2);
   HPDF_Page_SetWidth(pdfpage, STANDARD_PAGE_W*POINTS_PER_INCH*xm+2);
   //  if(do_landscape)
@@ -5082,10 +5083,10 @@ Pdfgetsize(primi, X_id, xm, ym, xminp, xmaxp, yminp, ymaxp)
 	
 	
 	
-	if(xmin > old_pts[cnt].x)xmin=old_pts[cnt].x;
-	if(xmax < old_pts[cnt].x)xmax=old_pts[cnt].x;
-	if(ymin > old_pts[cnt].y)ymin=old_pts[cnt].y;
-	if(ymax < old_pts[cnt].y)ymax=old_pts[cnt].y;
+	if(xmin > old_pts[0].x)xmin=old_pts[0].x;
+	if(xmax < old_pts[0].x)xmax=old_pts[0].x;
+	if(ymin > old_pts[0].y)ymin=old_pts[0].y;
+	if(ymax < old_pts[0].y)ymax=old_pts[0].y;
 	for (cnt = 1; cnt < num_pts; cnt++){
 	  if(xmin > old_pts[cnt].x)xmin=old_pts[cnt].x;
 	  if(xmax < old_pts[cnt].x)xmax=old_pts[cnt].x;
