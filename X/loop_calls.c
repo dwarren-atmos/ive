@@ -83,6 +83,8 @@ void Display_Pixmap(pix)
     if (num_pixmaps) XCopyArea (dpy, pixmap[pix], loop_win, loop_gc, 0, 0, 
 	       loop_width, loop_height, 0, 0);
     XSync(dpy, 0);
+    XSync(dpy, 0);
+    XSync(dpy, 0);
 }	
 
 static void loop_alarm(data)
