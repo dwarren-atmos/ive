@@ -123,6 +123,43 @@ void save_pixmap_(int *batch)
 				(unsigned long) GCGraphicsExposures,
 				&xgcv);
 	}
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+
+	// Need to do this here to get the first one - why ?????????? X magic.
+	// 3 is the magic number
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	update_all_();
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	usleep(100000);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	if (num_pixmaps == max_pixmaps) {
+	  max_pixmaps+=10;
+	  pixmap = (Pixmap *) realloc(pixmap, max_pixmaps*(sizeof (Pixmap*)));
+	}
+	pixmap[num_pixmaps] = XCreatePixmap(dpy, win, loop_width,
+					    loop_height, loop_depth);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	usleep(100000);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	XCopyArea(dpy, win, pixmap[num_pixmaps], loop_gc, 0, 0, loop_width,
+		  loop_height, 0, 0);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	XSync(dpy, 0);
+	num_pixmaps++;
+
 	if (*batch == 0) {
 	    loop_popup = 
 		XtVaCreatePopupShell(
@@ -146,11 +183,11 @@ void save_pixmap_(int *batch)
 	    XtPopup(loop_popup, XtGrabNone);
 	    loop_win = XtWindow(loop_widget);
 	    XtPopdown(loop_popup);
-
 	}
 	else loop_popup = NULL;
+	return;
     }
-
+    
 	// 3 is the magic number
     XSync(dpy, 0);
     XSync(dpy, 0);
@@ -161,6 +198,8 @@ void save_pixmap_(int *batch)
     XSync(dpy, 0);
     usleep(100000);
     XSync(dpy, 0);
+    XSync(dpy, 0);
+    XSync(dpy, 0);
     if (num_pixmaps == max_pixmaps) {
 	max_pixmaps+=10;
 	pixmap = (Pixmap *) realloc(pixmap, max_pixmaps*(sizeof (Pixmap*)));
@@ -168,11 +207,17 @@ void save_pixmap_(int *batch)
     pixmap[num_pixmaps] = XCreatePixmap(dpy, win, loop_width,
 					loop_height, loop_depth);
     XSync(dpy, 0);
+    XSync(dpy, 0);
+    XSync(dpy, 0);
     usleep(100000);
+    XSync(dpy, 0);
+    XSync(dpy, 0);
     XSync(dpy, 0);
     XCopyArea(dpy, win, pixmap[num_pixmaps], loop_gc, 0, 0, loop_width,
 	      loop_height, 0, 0);
-        XSync(dpy, 0);
+    XSync(dpy, 0);
+    XSync(dpy, 0);
+    XSync(dpy, 0);
 	/*    if (*batch == 0) {
       XtPopup(loop_popup, XtGrabNone);
       Display_Pixmap(num_pixmaps);
