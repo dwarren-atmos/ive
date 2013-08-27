@@ -56,7 +56,7 @@ c     local variables
 c     external functions
       double precision  extrap
       integer   strbeg, strend, nblank
-      
+      integer lnx, lny, lnz, lnt
       data iflag / 1,1,1,1/
       halved = .false.
       doubled = .false.
@@ -69,9 +69,10 @@ c     external functions
       
  10   continue
       
+      write(6,*)' start point',phys
       if(nblank(traj_component(1)) .ne. 0) then
          call get_pointer(traj_component(1)(strbeg(traj_component(1)):
-     &        strend(traj_component(1))),tmp_ptr,unx,uny,unz,unt)
+     &        strend(traj_component(1))),tmp_ptr,lnx,lny,lnz,lnt)
          call phys_2_index_trans(phys, uarr, iflag, maxdim, 1)
          uold = extrap(u,unx,uny,unz,unt,
      &        uarr(1),uarr(2),uarr(3),uarr(4),spval) 
@@ -80,7 +81,7 @@ c     external functions
       end if
       if(nblank(traj_component(2)) .ne. 0) then
          call get_pointer(traj_component(2)(strbeg(traj_component(2)):
-     &        strend(traj_component(2))),tmp_ptr,vnx,vny,vnz,vnt)
+     &        strend(traj_component(2))),tmp_ptr,lnx,lny,lnz,lnt)
          call phys_2_index_trans(phys, varr, iflag, maxdim, 1)
          vold = extrap(v,vnx,vny,vnz,vnt,
      &        varr(1),varr(2),varr(3),varr(4),spval)
@@ -89,7 +90,7 @@ c     external functions
       endif 
       if(.not. traj_2d .and. nblank(traj_component(3)) .ne. 0) then
          call get_pointer(traj_component(3)(strbeg(traj_component(3)):
-     &        strend(traj_component(3))),tmp_ptr,wnx,wny,wnz,wnt)
+     &        strend(traj_component(3))),tmp_ptr,lnx,lny,lnz,lnt)
          call phys_2_index_trans(phys, warr, iflag, maxdim, 1)
          wold = extrap(w,wnx,wny,wnz,wnt,
      &        warr(1),warr(2),warr(3),warr(4),spval)     
@@ -104,6 +105,7 @@ c     first part of Huen method
          grounded = 1
          return
       endif
+      write(6,*)'u v w delt',uold,vold,wold,delt
       call move_parcel_trans(phystmp, phys, uold, vold, wold, delt,
      &     repeat, error)
       if (error) then
@@ -143,7 +145,7 @@ c     now find the u and v values at this intermediate time
 
       if(nblank(traj_component(1)) .ne. 0) then
          call get_pointer(traj_component(1)(strbeg(traj_component(1)):
-     &               strend(traj_component(1))),tmp_ptr,unx,uny,unz,unt)
+     &               strend(traj_component(1))),tmp_ptr,lnx,lny,lnz,lnt)
          call phys_2_index_trans(phystmp, uarr, iflag, maxdim, 1)
          utmp = extrap(u,unx,uny,unz,unt,
      &               uarr(1),uarr(2),uarr(3),uarr(4),spval) 
@@ -152,16 +154,16 @@ c     now find the u and v values at this intermediate time
       end if
       if(nblank(traj_component(2)) .ne. 0) then
          call get_pointer(traj_component(2)(strbeg(traj_component(2)):
-     &               strend(traj_component(2))),tmp_ptr,vnx,vny,vnz,vnt)
+     &               strend(traj_component(2))),tmp_ptr,lnx,lny,lnz,lnt)
          call phys_2_index_trans(phystmp, varr, iflag, maxdim, 1)
          vtmp = extrap(v,vnx,vny,vnz,vnt,
      &               varr(1),varr(2),varr(3),varr(4),spval)
       else
          vtmp=0.0
       endif 
-      if(nblank(traj_component(3)) .ne. 0) then
+      if(.not. traj_2d .and. nblank(traj_component(3)) .ne. 0) then
          call get_pointer(traj_component(3)(strbeg(traj_component(3)):
-     &               strend(traj_component(3))),tmp_ptr,wnx,wny,wnz,wnt)
+     &               strend(traj_component(3))),tmp_ptr,lnx,lny,lnz,lnt)
          call phys_2_index_trans(phystmp, warr, iflag, maxdim, 1)
          wtmp = extrap(w,wnx,wny,wnz,wnt,
      &               warr(1),warr(2),warr(3),warr(4),spval)     
@@ -169,6 +171,10 @@ c     now find the u and v values at this intermediate time
          wtmp = 0.0
       endif
       if(utmp .eq. spval .or. vtmp .eq. spval .or. wtmp .eq. spval) then
+         grounded = 1
+         return
+      endif
+      if(delt .eq. 0.) then
          grounded = 1
          return
       endif
@@ -180,7 +186,7 @@ c     second step of huen method
          return
       endif
       repeat = 1
-      
+      write(6,*)' new point',phystmp
       phys(1) = phystmp(1)
       phys(2) = phystmp(2)
       phys(3) = phystmp(3)

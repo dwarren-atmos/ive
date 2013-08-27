@@ -49,7 +49,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   float phys[4], *tmp_cord, *flip, delt, *x_cord, *y_cord, *z_cord, *t_cord;
   float *bgptr;
   char traj_background[80];
-
+  printf("got %d %d %d %d %d %d %d %d %d %d %d %d\n",*unx,*uny,*unz,*unt, *vnx,*vny,*vnz,*vnt,*wnx,*wny,*wnz,*wnt);
   dims=4;
   (void)getrarr_("plwmin",wmin,&dims,&i,6,dims);
   (void)getrarr_("plwmax",wmax,&dims,&i,6,dims);
@@ -113,10 +113,13 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
     num_pts=1;
   
   /*Backwards integration*/
+  printf("pre back %d %d %d %d %d %d %d %d %d %d %d %d\n",*unx,*uny,*unz,*unt, *vnx,*vny,*vnz,*vnt,*wnx,*wny,*wnz,*wnt);
   if(traj_times_.trajbeg < traj_start_.start[3]){
     delt = -1.*abs(((traj_times_.trajbeg-traj_times_.trajend)/(2.*(*unt))));
+    printf("back delt %f beg %f end %f\n",delt,traj_times_.trajbeg,traj_times_.trajend);
     grounded = 0;
     while(phys[3] >= traj_times_.trajbeg && !grounded){
+      printf("Backwards at time: %d\n",phys[3] );
       (void)huen_(phys, u, v, w, &dims, unx, uny, unz, unt,
 		  vnx, wny, vnz, vnt, wnx, wny, wnz, wnt, &grounded, &delt,
 		  &error);
@@ -213,7 +216,9 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   
   /*Forwards integration*/
   if(traj_times_.trajend > traj_start_.start[3]){
-    delt = abs((traj_times_.trajbeg-traj_times_.trajend)/(2.*(*unt)));
+    int time_check=0;
+    delt = (traj_times_.trajbeg-traj_times_.trajend)/(2.*(*unt));
+    if(delt<0.)delt=-delt;
     phys[0]=traj_start_.start[0];
     phys[1]=traj_start_.start[1];
     phys[2]=traj_start_.start[2];
@@ -223,6 +228,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
       (void)huen_(phys, u, v, w, &dims, unx, uny, unz, unt,
 		  vnx, wny, vnz, vnt, wnx, wny, wnz, wnt, &grounded, &delt, 
 		  &error);
+      time_check++;
       if(error){
 	if(x_cord != NULL)free(x_cord);
 	if(y_cord != NULL)free(y_cord);
@@ -275,6 +281,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
 	num_pts++;
       }
       if(checkoutbounds(phys)) break;
+      if(time_check > 8*abs(traj_times_.trajbeg-traj_times_.trajend))break;
     }
   }
   *x = x_cord;
@@ -309,6 +316,7 @@ int traj_(u,v,w, x, y, z, t, bfield, unx,uny,unz,unt,
   }
   else
     *bfield = (float *)NULL;
+  printf("done traj %d points\n",num_pts);
   return(num_pts);
 }
 

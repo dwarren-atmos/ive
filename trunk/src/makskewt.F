@@ -31,7 +31,7 @@ c
       include 'plotops.icl'
 
       integer zmax
-      parameter (zmax = 200)
+      parameter (zmax = 2000)
       integer nz ,k, badval,count, drbgd, ax
       real t(nz), p(nz), td(nz), pres(zmax), dewpt(zmax),tout(zmax)
       real special

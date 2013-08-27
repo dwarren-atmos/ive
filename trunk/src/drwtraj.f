@@ -165,7 +165,7 @@ c
       integer     nf, depth_field
       real        data_x, data_y, data_depth, time
       real        xmajr, xminr, ymajr, yminr
-      logical      error, mapflg, savflg
+      logical     twod, error, mapflg, savflg
       dimension data_x(nf),data_y(nf), data_depth(nf), time(nf)
 c
 c
@@ -307,7 +307,7 @@ c     get the mid color entry
          coval =(max_traj_color - min_traj_color)/2 + 
      &        min_traj_color
       endif
-
+      if(twod)step = 0.
 c     Get the intervals
       if(step .ne. 0. .and. data_max .ne. data_min) then
          j = 1
@@ -339,6 +339,7 @@ c     Go 1 below data_min
       enddo
          
       k=1
+      if(twod)traj_depth = 0
       if(traj_depth .gt. 0) then
 
          ! see if the new levels are less than the old levels
@@ -560,6 +561,7 @@ c     Skip this mess if not needed
 
          call dashdb (65535)       
 c         call curved (data_x(i), data_y(i), 2)
+         write(6,*)'x,y',data_x,data_y
          call gpl(2,data_x(i),data_y(i))
 
          ! Draw Arrows
