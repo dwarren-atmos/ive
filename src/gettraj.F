@@ -118,19 +118,28 @@ c
          error = .true.
          goto 10
       endif
-      if(traj_component(2) .eq. ' ') then
-         write (message, 180)
-         call write_message
-         error = .true.
-         goto 10
+      if(.not. traj_2d) then
+         if(traj_component(2) .eq. ' ') then
+            write (message, 180)
+            call write_message
+            error = .true.
+            goto 10
+         endif
+         if(traj_component(3) .eq. ' ') then
+            write (message, 180)
+            call write_message
+            error = .true.
+            goto 10
+         endif
+      else
+         if(traj_component(2) .eq. ' ' .and. traj_component(3) .eq. ' ') 
+     &        then
+            write (message, 180)
+            call write_message
+            error = .true.
+            goto 10
+         endif
       endif
-      if(traj_component(3) .eq. ' ' .and. .not. traj_2d) then
-         write (message, 180)
-         call write_message
-         error = .true.
-         goto 10
-      endif
-         
 c     
 c     
 c     Get the value of the save flag.
@@ -226,58 +235,60 @@ c     &     strend(traj_component(1))), ptru, nx, ny, nz, nt)
             call fill_array (%val(ptrv),nx*ny*nz*nt, 0.0)
          endif
       else
-      if(nblank(traj_component(2)) .ne. 0) then
-         ptrv = getvar(traj_component(2)(strbeg(traj_component(2)):
-     &        strend(traj_component(2))),nvdims, vdims, 
-     &        vtstag, vdatmin, vdatmax, vmisdat, 
-     &        vunits, vdunits, vdnames, new)
-         if ( ptrv .le. 0 ) then
-            write (message, 150)
-            call write_message
-            error = .true.
-            goto 10
-         else 
-            call garbage_collect_vars()
-            if (new) then
-               call make_button_list (ivars,MAXVAR) 
-               call make_field_buttons (ivars, %val(0))
-            endif
-            do j = 1, MAXDIM
-               dims(j)  = vdims(j)
-               stag(j)  = vtstag(j)
-               datmin(j) = vdatmin(j)
-               datmax(j) = vdatmax(j)
-               dnames(j) = vdnames(j)
-            enddo
-            nx=vdims(1)
-            ny=vdims(2)
-            nz=vdims(3)
-            nt=vdims(4)
-
-            ndims = nvdims
-            misdat = vmisdat
-            units(1:len(units)) = vunits(strbeg(vunits):
-     &           strend(vunits))
-            dunits(1:len(dunits)) = vdunits(strbeg(vdunits):
-     &           strend(vdunits))
-            call load_atts (ndims, dims, stag, datmin, datmax, 
-     &           misdat, units, dunits, dnames)
-            
-            udim(1) = dims(1)
-            udim(2) = dims(2)
-            udim(3) = dims(3)
-            udim(4) = dims(4)
-         end if
-         ptru = getmem (nx*ny*nz*nt)
-         if(ptrv .eq. 0) then
-            write (message, 150)
-            call write_message
-            error = .true.
-            goto 10
-         endif
-         freeit(1)=1
-         call fill_array (%val(ptrv),nx*ny*nz*nt, 0.0)
-      endif
+         write (message, 130) char(10)
+         call write_message
+!         if(nblank(traj_component(2)) .ne. 0) then
+!            ptrv = getvar(traj_component(2)(strbeg(traj_component(2)):
+!     &           strend(traj_component(2))),nvdims, vdims, 
+!     &           vtstag, vdatmin, vdatmax, vmisdat, 
+!     &           vunits, vdunits, vdnames, new)
+!            if ( ptrv .le. 0 ) then
+!               write (message, 150)
+!               call write_message
+!               error = .true.
+!               goto 10
+!            else 
+!               call garbage_collect_vars()
+!               if (new) then
+!                  call make_button_list (ivars,MAXVAR) 
+!                  call make_field_buttons (ivars, %val(0))
+!               endif
+!               do j = 1, MAXDIM
+!                  dims(j)  = vdims(j)
+!                  stag(j)  = vtstag(j)
+!                  datmin(j) = vdatmin(j)
+!                  datmax(j) = vdatmax(j)
+!                  dnames(j) = vdnames(j)
+!               enddo
+!               nx=vdims(1)
+!               ny=vdims(2)
+!               nz=vdims(3)
+!               nt=vdims(4)
+!               
+!               ndims = nvdims
+!               misdat = vmisdat
+!               units(1:len(units)) = vunits(strbeg(vunits):
+!     &              strend(vunits))
+!               dunits(1:len(dunits)) = vdunits(strbeg(vdunits):
+!     &              strend(vdunits))
+!               call load_atts (ndims, dims, stag, datmin, datmax, 
+!     &              misdat, units, dunits, dnames)
+!               
+!               udim(1) = dims(1)
+!               udim(2) = dims(2)
+!               udim(3) = dims(3)
+!               udim(4) = dims(4)
+!            end if
+!            ptru = getmem (nx*ny*nz*nt)
+!            if(ptrv .eq. 0) then
+!               write (message, 150)
+!               call write_message
+!               error = .true.
+!               goto 10
+!            endif
+!            freeit(1)=1
+!            call fill_array (%val(ptru),nx*ny*nz*nt, 0.0)
+!         endif
       
       endif
       call getrvar ('spval', special1, error)
@@ -292,7 +303,7 @@ c     &     strend(traj_component(1))), ptru, nx, ny, nz, nt)
       vdim(3) = nz
       vdim(4) = nt
       
-      if(.not. traj_2d .and. (nblank(traj_component(3)) .ne. 0)) then
+      if((nblank(traj_component(3)) .ne. 0)) then
          call get_pointer(traj_component(3)(strbeg(traj_component(3)):
      &        strend(traj_component(3))), ptrw, nx, ny, nz, nt)
          if ( ptrw .le. 0 ) then
@@ -331,6 +342,7 @@ c
      &        vdim(1),vdim(2), vdim(3), vdim(4),
      &        wdim(1),wdim(2), wdim(3), wdim(4))
       else
+         print *,'udim ',udim
          nf = traj(%val(ptru),%val(ptrv),%val(ptrw), slab1,
      &        slab2, slab3, slab4, subslab,
      &        udim(1),udim(2), udim(3), udim(4),
@@ -345,10 +357,15 @@ c     message already sent
 c     
 c     used to set attributes, use w since that is what is stored in
 c     the attributes in settraj.
-c     
-      call get_pointer (att_var_traj(strbeg(att_var_traj)
-     &     :strend(att_var_traj)),
-     &     ptrw, wdim(1), wdim(2), wdim(3), wdim(4))
+      if(att_var_traj .eq. ' ') then   !2d version
+         call get_pointer(traj_component(2)(strbeg(traj_component(2)):
+     &        strend(traj_component(2))), ptrw, wdim(1), wdim(2), 
+     &        wdim(3), wdim(4))
+      else
+         call get_pointer (att_var_traj(strbeg(att_var_traj)
+     &        :strend(att_var_traj)),
+     &        ptrw, wdim(1), wdim(2), wdim(3), wdim(4))
+      endif
 c     
 c     
 c     Set some factors needed by set2d.
@@ -386,9 +403,9 @@ c
          call get_topo (topoad, topopt, ni, nj, pt1, pt3, MAXDIM, 
      &                  nter, error)
       endif
-      if ( freeit(1) .eq. 1 ) call freemem(ptru)
-      if ( freeit(2) .eq. 1 ) call freemem(ptrv)
-      if ( freeit(3) .eq. 1 ) call freemem(ptrw)
+!      if ( freeit(1) .eq. 1 ) call freemem(ptru)
+!      if ( freeit(2) .eq. 1 ) call freemem(ptrv)
+!      if ( freeit(3) .eq. 1 ) call freemem(ptrw)
 
    10 continue
 c

@@ -159,10 +159,22 @@ c
          endif
 c
 c        Draw the vectors.
-c              
-         if(buttons .ne. 0) then
-            if(fix(1) .eq. 0 .and. fix(2) .eq. 0 .and. (fix(3) .ne. 0 
-     &           .and. fix(4) .ne. 0)) then
+c     
+         if(traj_2d) then
+            dp1 = slab1
+            dp2 = slab2
+            dp3 = slab3
+            dp4 = slab4
+            depthvar=3
+         elseif(buttons .ne. 0) then
+            if(traj_2d) then
+               dp1 = slab1
+               dp2 = slab2
+               dp3 = slab3
+               dp4 = slab4
+               depthvar=3
+            elseif(fix(1) .eq. 0 .and. fix(2) .eq. 0 .and. 
+     &              (fix(3) .ne. 0 .and. fix(4) .ne. 0)) then
                dp1 = slab1
                dp2 = slab2
                dp3 = slab3
@@ -193,7 +205,7 @@ c
                goto 900
             endif
          else
-
+            
          endif
 
          if(traj_background_field(strbeg(traj_background_field):
@@ -203,7 +215,6 @@ c     &           traj_background_field
             dp3 = subslab
             depthvar=5
          endif
-
          call drwtraj (%val(dp1), %val(dp2), %val(dp3), 
      &        %val(dp4), nf, depthvar, mapflg, 
      &        savflg, error)
@@ -224,10 +235,10 @@ c     free fix(4) doesn't make sense.
 c
 c
          if ((.not. savflg) .and. (topoad .ne. 0)) then
-c
+c     
             call getlvar ('surface', surface, error)
 c     
-c           Plot terrain.
+c     Plot terrain.
 c     
             if (fix(3) .ne. 0 .and. fix(4) .ne. 0) then
                call cptopo (%val(topoad), ni, ni, nj, error)
@@ -251,7 +262,7 @@ c
                endif
             endif
          endif
-c    
+c     
 c     
 c     
 c        Add command line to the command list if no errors. 
