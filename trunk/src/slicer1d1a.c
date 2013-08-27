@@ -82,7 +82,7 @@ static char rcsid[] = "$Id: slicer1d1a.c,v 1.17 2000/12/13 22:17:22 harry Exp $"
 #include <ive_macros.h>
 #include <missing.h>
 #include <window.h>
-
+#include <ive_slices.h>
 extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
   setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
   getdvar_(),scale_();
@@ -489,6 +489,10 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 	    slab_l.xaxis = dfree+1;
 	    slab_l.yaxis = 0;
 	    slab_l.dimavg1 = dimavg;
+	    slice_com_.slope=slope;
+	    slice_com_.intercept=intercept;
+	    slice_com_.ind=dfree+1;
+	    slice_com_.dep=0;
 	}
 	/*
 	   Figure out where in the slice is the window.
@@ -929,6 +933,10 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 	    slab_l.stepby = stepby;
 	    slab_l.other = other;
 	    slab_l.dimavg1 = dimavg;
+	    slice_com_.slope=slope;
+	    slice_com_.intercept=intercept;
+	    slice_com_.ind=stepby+1;
+	    slice_com_.dep=other+1;
 	}
 	/*
 	   Figure out where in the slice is the window.
