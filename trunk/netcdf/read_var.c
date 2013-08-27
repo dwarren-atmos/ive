@@ -255,6 +255,7 @@ int len1, len2, len3;
 	}
 	else if (nc_get_att_float(var_file.id, *var_id, minstr,
 			   &VAR_INFO.dims[i].min) != -1) {
+	  VAR_INFO.dims[i].min = dommin[jfor];
 	  if (delta[jfor] == 0.)
 	    VAR_INFO.dims[i].max = dommax[jfor];
 	  else VAR_INFO.dims[i].max = VAR_INFO.dims[i].min 
