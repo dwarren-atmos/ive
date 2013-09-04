@@ -156,15 +156,17 @@ setup_contour_form()
     if(!lvar)XmScaleSetValue(Properties.numlines,0);
     else{
 	getivar_("nulbll", &ivar, &error, 6);
-	XmScaleSetValue(Properties.numlines,ivar + 1);
+	ivar++;
+	if(ivar<0)ivar=3;
+	XmScaleSetValue(Properties.numlines,ivar);
     }
     
     /**********area fill **********/
     getivar_("filtyp", &ivar, &error, 6);
     if(ivar == SOLID)
-	str = NewString("Solid");
+    	str = NewString("Solid");
     else if(ivar == PATTERN)
-	str = NewString("With Stipple");
+    	str = NewString("With Stipple");
 
     XtVaSetValues(Properties.fill, XmNlabelString, str, NULL);
     XmStringFree(str);
@@ -172,14 +174,14 @@ setup_contour_form()
     getivar_("fill_frequency", &ivar, &error, 14);
     switch(ivar){
     case NEVER:
-	str = NewString("Never");
-	break;
+    	str = NewString("Never");
+    	break;
     case ALWAYS:   
-	str = NewString("Always");
-	break;
+    	str = NewString("Always");
+    	break;
     case EXCEPT_OVERLAY:   
-	str = NewString("Except On Overlay");
-	break;
+    	str = NewString("Except On Overlay");
+    	break;
     }
     XtVaSetValues(Properties.freq, XmNlabelString, str, NULL);
     XmStringFree(str);
@@ -199,20 +201,20 @@ setup_contour_form()
     (void)getivar_("linlog", &ivar, &error, 6);
     switch(ivar){
       case 1:
-	XmToggleButtonSetState(Properties.ihaxeslin,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.ivaxeslin,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.ihaxeslin,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.ivaxeslin,  TRUE, FALSE);
 	break;
       case 2:
-	XmToggleButtonSetState(Properties.ihaxeslin,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.ivaxeslog,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.ihaxeslin,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.ivaxeslog,  TRUE, FALSE);
 	break;
       case 3:
-	XmToggleButtonSetState(Properties.ihaxeslog,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.ivaxeslin,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.ihaxeslog,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.ivaxeslin,  TRUE, FALSE);
 	break;
       case 4:
-	XmToggleButtonSetState(Properties.ihaxeslog,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.ivaxeslog,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.ihaxeslog,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.ivaxeslog,  TRUE, FALSE);
 	break;
     }
 
@@ -243,6 +245,8 @@ setup_contour_form()
     else
       sprintf(buff, "%g",rvar);
     XtVaSetValues(Properties.ymajor, XmNvalue, buff, NULL);
+    ivar = PLOTTYPE;
+    (void)ui_update_(&ivar);
 }
 
 setup_vector_form()
@@ -283,20 +287,20 @@ setup_vector_form()
     (void)getivar_("linlog", &ivar, &error, 6);
     switch(ivar){
       case 1:
-	XmToggleButtonSetState(Properties.ihaxeslinv,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.ivaxeslinv,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.ihaxeslinv,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.ivaxeslinv,  TRUE, FALSE);
 	break;
       case 2:
-	XmToggleButtonSetState(Properties.ihaxeslinv,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.ivaxeslogv,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.ihaxeslinv,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.ivaxeslogv,  TRUE, FALSE);
 	break;
       case 3:
-	XmToggleButtonSetState(Properties.ihaxeslogv,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.ivaxeslinv,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.ihaxeslogv,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.ivaxeslinv,  TRUE, FALSE);
 	break;
       case 4:
-	XmToggleButtonSetState(Properties.ihaxeslogv,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.ivaxeslogv,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.ihaxeslogv,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.ivaxeslogv,  TRUE, FALSE);
 	break;
     }
 
@@ -327,6 +331,8 @@ setup_vector_form()
     else
       sprintf(buff, "%g",rvar);
     XtVaSetValues(Properties.ymajorv, XmNvalue, buff, NULL);
+    ivar = PLOTTYPE;
+    (void)ui_update_(&ivar);
 }
 setup_line_form(fix, buttons)
      int *fix, buttons;
@@ -445,32 +451,32 @@ setup_line_form(fix, buttons)
     (void)getivar_("linlog", &ivar, &error, 6);
     switch(ivar){
       case 1:
-	XmToggleButtonSetState(Properties.daxeslin,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.laxeslin,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.daxeslin,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.laxeslin,  TRUE, FALSE);
 	break;
       case 2:
 	if(fix[2]){
-	    XmToggleButtonSetState(Properties.daxeslog,  TRUE, TRUE);
-	    XmToggleButtonSetState(Properties.laxeslin,  TRUE, TRUE);
+	    XmToggleButtonSetState(Properties.daxeslog,  TRUE, FALSE);
+	    XmToggleButtonSetState(Properties.laxeslin,  TRUE, FALSE);
 	}
 	else{
-	    XmToggleButtonSetState(Properties.daxeslin,  TRUE, TRUE);
-	    XmToggleButtonSetState(Properties.laxeslog,  TRUE, TRUE);
+	    XmToggleButtonSetState(Properties.daxeslin,  TRUE, FALSE);
+	    XmToggleButtonSetState(Properties.laxeslog,  TRUE, FALSE);
 	}
 	break;
       case 3:
 	if(fix[2]){
-	    XmToggleButtonSetState(Properties.daxeslin,  TRUE, TRUE);
-	    XmToggleButtonSetState(Properties.laxeslog,  TRUE, TRUE);
+	    XmToggleButtonSetState(Properties.daxeslin,  TRUE, FALSE);
+	    XmToggleButtonSetState(Properties.laxeslog,  TRUE, FALSE);
 	}
 	else{
-	    XmToggleButtonSetState(Properties.daxeslog,  TRUE, TRUE);
-	    XmToggleButtonSetState(Properties.laxeslin,  TRUE, TRUE);
+	    XmToggleButtonSetState(Properties.daxeslog,  TRUE, FALSE);
+	    XmToggleButtonSetState(Properties.laxeslin,  TRUE, FALSE);
 	}
 	break;
       case 4:
-	XmToggleButtonSetState(Properties.daxeslog,  TRUE, TRUE);
-	XmToggleButtonSetState(Properties.laxeslog,  TRUE, TRUE);
+	XmToggleButtonSetState(Properties.daxeslog,  TRUE, FALSE);
+	XmToggleButtonSetState(Properties.laxeslog,  TRUE, FALSE);
 	break;
     }
     /**********min max, tic ints**********/
@@ -685,13 +691,15 @@ setup_line_form(fix, buttons)
 	XtAddCallback(Properties.laxeslog,XmNarmCallback,
 		      form_linlog,"v");
     }
+    ivar = PLOTTYPE;
+    (void)ui_update_(&ivar);
     return(1);
 }
 
 setup_skewt_form()
 {
     char buff[256];
-    int error;
+    int error, ivar;
 
     /**********skewt comp**********/
     buff[0]='\0';
@@ -703,6 +711,8 @@ setup_skewt_form()
     buff[0]='\0';
     (void)getavar_ ("scomp_3", buff, &error, 7, 256);
     XtVaSetValues(Properties.scomp_3, XmNvalue, buff, NULL);
+    ivar = PLOTTYPE;
+    (void)ui_update_(&ivar);
 }
 
 setup_traj_form()
@@ -710,7 +720,7 @@ setup_traj_form()
     char buff[256];
     XmString str, NewString();
     float time1, time2, times1[4], times2[4];
-    int time_ind, error, i=4;
+    int time_ind, error, ivar, i=4;
 
     /**********traj comp**********/
     buff[0]='\0';
@@ -767,6 +777,8 @@ setup_traj_form()
     }
     XtVaSetValues(Properties.traj_ind,XmNlabelString,str,NULL);
     XmStringFree(str);
+    ivar = PLOTTYPE;
+    (void)ui_update_(&ivar);
 }
 
 setup_3d_form()
@@ -791,4 +803,18 @@ setup_3d_form()
     XtVaSetValues(Properties.log3d,XmNset, XmUNSET,NULL);
     XtVaSetValues(Properties.lin3d,XmNset, XmSET,NULL);
   }
+  getavar_("plotyp3", cvar, &error, 7, 80);
+  switch(cvar[0]){
+  case 'I':
+    XtVaSetValues(Properties.iso,XmNset,TRUE,NULL);
+    break;
+  case 'P':
+    XtVaSetValues(Properties.scatter,XmNset,TRUE,NULL);
+    break;
+  case 'W':
+    XtVaSetValues(Properties.wire,XmNset,TRUE,NULL);
+    break;
+  }	  
+  ivar = PLOTTYPE;
+  (void)ui_update_(&ivar);
 }

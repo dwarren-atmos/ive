@@ -46,6 +46,9 @@ struct plainpoint {
     float x,y,z;
 };
 
+struct voxind{float x,y,z;
+  int c;} *rendervol, *tervol;
+
 GLuint ive_font_base;
 
 typedef struct {float xCoord, yCoord, zCoord; unsigned int normalRef;} Point;
@@ -67,6 +70,7 @@ typedef struct {
   NormalList *NormalList;
   int objectOn[10];
   int objectDone[10];
+  int objectPType[10]; /*0=isosurface,1=scatter,2=wireframe*/
   GLuint listName[10];
   char *Field[10];
 }Objects;

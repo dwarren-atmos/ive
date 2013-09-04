@@ -1661,9 +1661,9 @@ c
                elseif ( plotyp(ibeg:iend) .eq. 'ISOSURF' ) then
                   call make3d(%val(varpt1), cpmax1, cpmax2, cpmax3,
      &              cpmax4)
-               elseif ( plotyp(ibeg:iend) .eq. 'BOX' ) then
-                  call make3d(%val(varpt1), cpmax1, cpmax2, cpmax3,
-     &              cpmax4)
+c               elseif ( plotyp(ibeg:iend) .eq. 'BOX' ) then
+c                  call make3d(%val(varpt1), cpmax1, cpmax2, cpmax3,
+c     &              cpmax4)
                elseif ( plotyp(ibeg:iend) .eq. 'SCATTER' ) then
                   call make3d(%val(varpt1), cpmax1, cpmax2, cpmax3,
      &              cpmax4)

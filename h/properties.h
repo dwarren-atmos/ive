@@ -65,7 +65,7 @@ extern struct {
   Widget traj_2d;
   Widget threed_value, threedlab, threed_row, lin3d, log3d;     /*3d*/
   Widget threedzlab, threed_zrow;                              /*3d*/
-  Widget threed_radio, iso, scatter, wire, mark, translucence; /*3d*/  
+  Widget threed_radio, iso, scatter, wire, translucence; /*3d*/  
   /* per plot */
   Widget vect_max, vect_lock, vect_maxlab, vect_locklab;   /*vector*/
   Widget vect_poslab, vect_pos;			     /*vector*/

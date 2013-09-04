@@ -303,6 +303,7 @@ void ui_update_(window)
     Arg args[2];
     XmString str,str2,str3;
     extern XmString NewString();
+    void *chklock_(int *);
     char *float_nozero();
 
     switch(*window){
@@ -426,7 +427,9 @@ void ui_update_(window)
 	    if(!lvar)XmScaleSetValue(Properties.numlines,0);
 	    else{
 		getivar_("nulbll", &ivar, &error, 6);
-		XmScaleSetValue(Properties.numlines,ivar + 1);
+		ivar++;
+		if(ivar<0)ivar=3;
+		XmScaleSetValue(Properties.numlines,ivar);
 	    }
 	}
 	break;
@@ -1304,9 +1307,38 @@ void ui_update_(window)
 	}
 	break;
       case PLOTTYPE:
-	(void)getavar_ ("plotyp2", avar, &error, 7, 256);
-	if(!error){
-	  if(!strcasecmp("scalor",avar)){
+	chklock_(&ivar);
+	switch(ivar){
+	case 1:
+	  (void)getavar_ ("plotyp1", avar, &error, 7, 256);
+	  printf("Plot type: %s\n",avar);
+	  XtSetSensitive(main_widget.Line,TRUE);
+	  XtSetSensitive(main_widget.Skewt,TRUE);
+	  XtSetSensitive(main_widget.Scalar,FALSE);
+	  XtSetSensitive(main_widget.Vector,FALSE);
+	  XtSetSensitive(main_widget.Trajectory,FALSE);
+	  XtSetSensitive(main_widget.Surface,FALSE);
+	  if(!strcasecmp("line",avar)){
+	    XtVaSetValues(main_widget.type_menu,
+			  XmNmenuHistory, main_widget.Line,
+			  NULL);
+	  }
+	  else if(!strcasecmp("skewt",avar)){
+	    XtVaSetValues(main_widget.type_menu,
+			  XmNmenuHistory, main_widget.Skewt,
+			  NULL);
+	  }
+	  break;
+	case 2:
+	  (void)getavar_ ("plotyp2", avar, &error, 7, 256);
+	  printf("Plot type: %s\n",avar);
+	  XtSetSensitive(main_widget.Scalar,TRUE);
+	  XtSetSensitive(main_widget.Vector,TRUE);
+	  XtSetSensitive(main_widget.Trajectory,TRUE);
+	  XtSetSensitive(main_widget.Line,FALSE);
+	  XtSetSensitive(main_widget.Skewt,FALSE);
+	  XtSetSensitive(main_widget.Surface,FALSE);
+	  if(!strcasecmp("scalar",avar)){
 	    XtVaSetValues(main_widget.type_menu,
 			  XmNmenuHistory, main_widget.Scalar,
 			  NULL);
@@ -1316,16 +1348,80 @@ void ui_update_(window)
 			  XmNmenuHistory, main_widget.Vector,
 			  NULL);
 	  }
-	  /*	  else if(!strcasecmp("skewt",avar)){
-		  XtVaSetValues(main_widget.type_menu,
-		  XmNmenuHistory, main_widget.Skewt,
-		  NULL);
-	  }*/
 	  else if(!strcasecmp("trajectory",avar)){
 	    XtVaSetValues(main_widget.type_menu,
 			  XmNmenuHistory, main_widget.Trajectory,
 			  NULL);
 	  }
+	  break;
+	case 3:
+	  (void)getavar_ ("plotyp3", avar, &error, 7, 256);
+	  printf("Plot type: %s\n",avar);
+	  XtSetSensitive(main_widget.Surface,TRUE);
+	  XtSetSensitive(main_widget.Scalar,FALSE);
+	  XtSetSensitive(main_widget.Vector,FALSE);
+	  XtSetSensitive(main_widget.Trajectory,FALSE);
+	  XtSetSensitive(main_widget.Line,FALSE);
+	  XtSetSensitive(main_widget.Skewt,FALSE);
+	  if(!strcasecmp("isosurf",avar)){
+	    XtVaSetValues(main_widget.type_menu,
+			  XmNmenuHistory, main_widget.Surface,
+			  NULL);
+	    if(XtIsManaged(Properties.threed_radio)){
+		XmToggleButtonSetState(Properties.iso,  TRUE, FALSE);
+		XmToggleButtonSetState(Properties.scatter,  FALSE, FALSE);
+		XmToggleButtonSetState(Properties.wire,  FALSE, FALSE);
+	      }
+	    
+	  }
+	  else if(!strcasecmp("scatter",avar)){
+	    XtVaSetValues(main_widget.type_menu,
+			  XmNmenuHistory, main_widget.Surface,
+			  NULL);
+	    if(XtIsManaged(Properties.threed_radio)){
+		XmToggleButtonSetState(Properties.iso,  FALSE, FALSE);
+		XmToggleButtonSetState(Properties.scatter,  TRUE, FALSE);
+		XmToggleButtonSetState(Properties.wire,  FALSE, FALSE);
+	      }
+	  }
+	  else if(!strcasecmp("wireframe",avar)){
+	    XtVaSetValues(main_widget.type_menu,
+			  XmNmenuHistory, main_widget.Surface,
+			  NULL);
+	    if(XtIsManaged(Properties.threed_radio)){
+		XmToggleButtonSetState(Properties.iso,  FALSE, FALSE);
+		XmToggleButtonSetState(Properties.scatter,  FALSE, FALSE);
+		XmToggleButtonSetState(Properties.wire,  TRUE, FALSE);
+	      }
+	  }
+	  break;
+	case 0:
+	  (void)getavar_ ("plotyp2", avar, &error, 7, 256);
+	  printf("Plot type: %s\n",avar);
+	  XtSetSensitive(main_widget.Scalar,TRUE);
+	  XtSetSensitive(main_widget.Vector,TRUE);
+	  XtSetSensitive(main_widget.Trajectory,TRUE);
+	  XtSetSensitive(main_widget.Line,FALSE);
+	  XtSetSensitive(main_widget.Skewt,FALSE);
+	  XtSetSensitive(main_widget.Surface,FALSE);
+	  XtSetSensitive(main_widget.Scatter,FALSE);
+	  XtSetSensitive(main_widget.Wireframe,FALSE);
+	  if(!strcasecmp("scalar",avar)){
+	    XtVaSetValues(main_widget.type_menu,
+			  XmNmenuHistory, main_widget.Scalar,
+			  NULL);
+	  }
+	  else if(!strcasecmp("vector",avar)){
+	    XtVaSetValues(main_widget.type_menu,
+			  XmNmenuHistory, main_widget.Vector,
+			  NULL);
+	  }
+	  else if(!strcasecmp("trajectory",avar)){
+	    XtVaSetValues(main_widget.type_menu,
+			  XmNmenuHistory, main_widget.Trajectory,
+			  NULL);
+	  }
+	  break;
 	}
 	break;
       case MAPROJ_UI:
@@ -1549,14 +1645,14 @@ void ui_update_(window)
       if(Properties.dep_form_t){
 	int traj_2d;
 	(void)getlvar_("traj_2d", &traj_2d, &error,7);
-	if(traj_2d && !error){
-	  XtSetSensitive(Properties.tcomp_3, FALSE);
-	  XtSetSensitive(Properties.tcomp_3, FALSE);
-	}
-	else{
-	  XtSetSensitive(Properties.tcomp_3, TRUE);
-	  XtSetSensitive(Properties.tcomp_3, TRUE);
-	}
+	//	if(traj_2d && !error){
+	// XtSetSensitive(Properties.tcomp_3, FALSE);
+	//XtSetSensitive(Properties.tcomp_3, FALSE);
+	//}
+	//else{
+	// XtSetSensitive(Properties.tcomp_3, TRUE);
+	// XtSetSensitive(Properties.tcomp_3, TRUE);
+	//}
       }
       break;
     case TRAJ_STEP_VAL_UI: 

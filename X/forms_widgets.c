@@ -241,7 +241,7 @@ extern void getrvar_(),getivar_(),getlvar_(),getavar_(),getiarr_(),
   setup_vector_form(), call_driver(),form_flip_call_l(),  form_flip_call_c(),
   numlines_scale_type_in(), vint_scale_type_in(),point_axis_call(),
   form_traj_step_call(), form_traj_val_call(), form_traj_background_call(),
-  form_3val_call();
+  form_3val_call(),threed_type_call();
 extern int get_button_name();
 
 XmString NewString();
@@ -276,7 +276,7 @@ struct {
   Widget traj_2d;                                             /*trajectory*/
   Widget threed_value, threedlab, threed_row, lin3d, log3d;    /*3d*/
   Widget threedzlab, threed_zrow;                              /*3d*/
-  Widget threed_radio, iso, scatter, wire, mark, translucence; /*3d*/
+  Widget threed_radio, iso, scatter, wire, translucence; /*3d*/
 /* per plot */
   Widget vect_max, vect_lock, vect_maxlab, vect_locklab;     /*vector*/
   Widget vect_poslab, vect_pos;			             /*vector*/
@@ -495,6 +495,7 @@ void  do_contour(parent)
 			       XmNshowValue, True,
 			       XmNvalue,3,
 			       NULL);
+    XmStringFree(str);
     
     XtAddCallback(Properties.numlines, XmNvalueChangedCallback, 
 		  form_nunlablines_call,NULL);
@@ -2773,14 +2774,61 @@ void  do_3d(parent)
   XtAddCallback(Properties.dep_form_3d,XmNhelpCallback,
 		check_help_call,NULL);
   
+  Properties.threed_radio = 
+    XtVaCreateManagedWidget("3DTYPE",xmRowColumnWidgetClass,
+			    Properties.dep_form_3d,
+			    XmNtopAttachment,XmATTACH_FORM,
+			    XmNleftAttachment,XmATTACH_FORM,
+			    XmNrightAttachment,XmATTACH_FORM,
+			    XmNradioBehavior,True,
+			    XmNorientation,XmHORIZONTAL,
+			    XmNborderWidth,0,
+			    XmNmarginHeight,0,
+			    XmNpacking,XmPACK_TIGHT,
+			    XmNmarginLeft,0,
+			    XmNtopOffset,5,
+			    NULL);
+
+
+  str = NewString("Isosurface");
+  Properties.iso = 
+    XtVaCreateManagedWidget("SURFACE",xmToggleButtonWidgetClass,
+			    Properties.threed_radio,
+			    XmNshowAsDefault, False,
+			    XmNmarginLeft,0,
+			    XmNlabelString,str,
+			    NULL);
+  
+  XmStringFree(str);
+  str = NewString("Scatter");
+  Properties.scatter = 
+    XtVaCreateManagedWidget("POINTS",xmToggleButtonWidgetClass,
+			    Properties.threed_radio,
+			    XmNshowAsDefault, False,
+			    XmNmarginLeft,0,
+			    XmNlabelString,str,
+			    NULL);
+  
+  XmStringFree(str);
+  str = NewString("Wireframe");
+  Properties.wire = 
+    XtVaCreateManagedWidget("WIREFRAME",xmToggleButtonWidgetClass,
+			    Properties.threed_radio,
+			    XmNshowAsDefault, False,
+			    XmNmarginLeft,0,
+			    XmNlabelString,str,
+			    NULL);
+  
+  XmStringFree(str);
   str = NewString("Surface");
   Properties.threedlab = 
     XtVaCreateManagedWidget("Surface Value",xmLabelWidgetClass,
 			    Properties.dep_form_3d,
 			    XmNlabelString,str,
-			    XmNtopAttachment,XmATTACH_FORM,
+			    XmNtopAttachment,XmATTACH_WIDGET,
 			    XmNleftAttachment,XmATTACH_FORM,
 			    XmNtopOffset,5,
+			    XmNtopWidget,Properties.threed_radio,
 			    NULL);
   XmStringFree(str);
   
@@ -2811,6 +2859,12 @@ void  do_3d(parent)
 		check_num,(XtPointer)ThreeVALS);
   XtAddCallback(Properties.threed_value,XmNmotionVerifyCallback,
 		text_box_motion,(XtPointer)ThreeVALS);
+  XtAddCallback(Properties.iso, XmNarmCallback,
+                  threed_type_call,NULL);
+  XtAddCallback(Properties.scatter, XmNarmCallback,
+                  threed_type_call,NULL);
+  XtAddCallback(Properties.wire, XmNarmCallback,
+                  threed_type_call,NULL);
   XtAddEventHandler(Properties.threed_value, ButtonPressMask, FALSE,
 		    check_default_handler, 0);
   
@@ -3279,8 +3333,6 @@ void do_props(force)
       (void)do_3d(Properties.form);
     }
     if(*plot_type == 'C' && *(plot_type+1) == 'o'){
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
-		    NULL);
       XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
 		    main_widget.Scalar, NULL);
       if(!XtIsManaged(XtParent(Properties.form)))
@@ -3312,8 +3364,6 @@ void do_props(force)
 	XtUnmanageChild(Properties.control_form_3d);
     }
     else if(*plot_type == 'L'){
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
-		    NULL);
       XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
 		    main_widget.Line, NULL);
       if(!XtIsManaged(XtParent(Properties.form))){
@@ -3346,10 +3396,8 @@ void do_props(force)
 	XtUnmanageChild(Properties.control_form_3d);
     }
     else if(*plot_type == 'I'){
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
-		    NULL);
       XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
-		    main_widget.Line, NULL);
+      	    main_widget.Surface, NULL);
       if(!XtIsManaged(XtParent(Properties.form))){
 	XtManageChild(XtParent(Properties.form));
       }
@@ -3381,8 +3429,6 @@ void do_props(force)
 	XtUnmanageChild(Properties.dep_form_t);
     }
     else if(*plot_type == 'S' &&*(plot_type+1) == 'k' ) {
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type1,
-		    NULL);
       XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
 		    main_widget.Skewt, NULL);
       if(!XtIsManaged(XtParent(Properties.form))){
@@ -3415,8 +3461,6 @@ void do_props(force)
 	XtUnmanageChild(Properties.control_form_3d);
     }
     else if(*plot_type == 'T') {
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
-		    NULL);
       XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
 		    main_widget.Trajectory, NULL);
       if(!XtIsManaged(XtParent(Properties.form))){
@@ -3451,8 +3495,6 @@ void do_props(force)
       
     }
     else if(*plot_type == 'V'){
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type2,
-		    NULL);
       XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
 		    main_widget.Vector, NULL);
       if(!XtIsManaged(XtParent(Properties.form)))
@@ -3476,8 +3518,6 @@ void do_props(force)
 	XtUnmanageChild(Properties.dep_form_3d);
     }
     else if(*plot_type == 'P'){
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type3,
-		    NULL);
       XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
 		    main_widget.Scatter, NULL);
       if(!XtIsManaged(XtParent(Properties.form)))
@@ -3507,8 +3547,6 @@ void do_props(force)
 	XtUnmanageChild(Properties.control_form_3d);
     }
     else if(*plot_type == 'W'){
-      XtVaSetValues(main_widget.type_menu, XmNsubMenuId, main_widget.type3,
-		    NULL);
       XtVaSetValues(main_widget.type_menu, XmNmenuHistory,
 		    main_widget.Wireframe, NULL);
       if(!XtIsManaged(XtParent(Properties.form)))
