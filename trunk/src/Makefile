@@ -357,7 +357,7 @@ CPP = /usr/lib/cpp ${ALPHA}
 #
 #
 OBJS = 	add_to_list.o average.o catnull.o catof.o  \
-	catoi.o chk2d.o  chkcmd.o  chkcolor.o  \
+	catoi.o chk2d.o  chkcmd.o  chkcolor.o  chklock.o \
 	chklineplt.o chkplt.o chkvect.o  chkwin.o  \
 	clrscr.o clsgks.o cmdpar.o cmpstr.o  \
 	cntstr.o con2dc.o convert.o convert_units.o \

@@ -590,6 +590,7 @@ void make_field_buttons_(string,parent)
 				  *(string+j));
 		k++;
 	    }
+	    //	    else{printf("bad button %s\n",*(string+j));}
 	}
 	buttons2[k] = (Widget)NULL;
 	if (buttons != NULL){

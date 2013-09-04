@@ -93,7 +93,7 @@ c
          ibeg = strbeg(curval)
          iend = strend(curval)
          call upcase (curval(ibeg:ibeg+1), (iend - ibeg + 2))
-         if ( curval(ibeg:ibeg+1) .eq. 'SC' ) then
+         if ( curval(ibeg:ibeg+3) .eq. 'SCAL' ) then
             plotyp2 = 'SCALAR'
             call stop_traj_mouse
             call getavar('scalar_name', vcomp1, error)
@@ -123,18 +123,26 @@ c
                endif
             endif
             
+         elseif ( curval(ibeg:ibeg+1) .eq. '3D') then
+            call stop_traj_mouse
+         elseif ( curval(ibeg:ibeg+1) .eq. 'IS') then
+            call stop_traj_mouse
+            plotyp3='ISOSURF'
          elseif ( curval(ibeg:ibeg+1) .eq. 'SU') then
             call stop_traj_mouse
             plotyp3='ISOSURF'
          elseif ( curval(ibeg:ibeg+1) .eq. 'PO') then
             call stop_traj_mouse
             plotyp3='SCATTER'
+         elseif ( curval(ibeg:ibeg+3) .eq. 'SCAT') then
+            call stop_traj_mouse
+            plotyp3='SCATTER'
          elseif ( curval(ibeg:ibeg) .eq. 'W') then
             call stop_traj_mouse
             plotyp3='WIREFRAME'
-         elseif ( curval(ibeg:ibeg) .eq. 'B') then
-            call stop_traj_mouse
-            plotyp3='BOX'
+c         elseif ( curval(ibeg:ibeg) .eq. 'B') then
+c            call stop_traj_mouse
+c            plotyp3='BOX'
          elseif ( curval(ibeg:ibeg) .eq. 'L' ) then
             plotyp1 = 'LINE'
             call stop_traj_mouse

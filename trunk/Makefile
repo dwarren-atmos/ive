@@ -432,7 +432,7 @@ LD=insure -Zsl
 COPT=-g
 endif
 
-CFLAGS = ${COPT} -I${PWD}/h -I${PWD}/FTGL/include ${DEC} ${DOBETA}\
+CFLAGS = ${COPT} -I${PWD}/h -I$/usr/include/FTGL ${DEC} ${DOBETA}\
 	-I${PWD}/h/haru ${UDPOSIX_INCLUDE} ${BROWSER}
 FFLAGS = ${FOPT} ${FDEC} ${ALPHA} ${FCPP}
 #
@@ -495,7 +495,7 @@ IVE:
 	@if test -s need_ranlib; then echo need ranlib; ${RANLIB} src/libIVE.a; fi
 	${RM} need_ranlib
 #	${LD} -o ive -u main  ${LDSTUFF} ${TRANSOBJ} ${LOCALLIB} ${LIBS}
-	${LD} -o ive X/ive_main.o  ${LDSTUFF} ${TRANSOBJ} ${LOCALLIB} ${LIBS} ${PWD}/FTGL/lib/libftgl.a
+	${LD} -o ive X/ive_main.o  ${LDSTUFF} ${TRANSOBJ} ${LOCALLIB} ${LIBS} -lftgl
 #
 LINK_ONLY:
 	@if test -s need_ranlib; then ranlib src/libIVE.a; fi

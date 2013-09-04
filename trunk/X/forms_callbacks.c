@@ -668,6 +668,7 @@ void form_nunlablines_call(w, data, call)
       int val;
 
       XmScaleGetValue(w,&val);
+      if(val<0)val=3;
       if(val == 0)
 	snprintf(buff,79,"linelabel=off");
       else
@@ -684,6 +685,7 @@ void form_numterr_call(w, data, call)
       int val;
 
       XmScaleGetValue(w,&val);
+      if(val<0)val=3;
       snprintf(buff,79,"terr_nulbll=%d",val);
       driver(buff);
 }
@@ -1815,16 +1817,14 @@ void form_scomp_call(w, data, call)
      int data;
      XmAnyCallbackStruct *call;
 {
-    char *str, buff[256];
-    str = XmTextFieldGetString(Properties.scomp_1);
-    snprintf(buff,255,"skewt_component=%s",str);
-    free(str);
-    str = XmTextFieldGetString(Properties.scomp_2);
-    snprintf(buff,255,"%s,%s",buff,str);
-    free(str);
-    str = XmTextFieldGetString(Properties.scomp_3);
-    snprintf(buff,255,"%s,%s",buff,str);
-    free(str);
+  char *str1,*str2,*str3, buff[256];
+    str1 = XmTextFieldGetString(Properties.scomp_1);
+    str2 = XmTextFieldGetString(Properties.scomp_2);
+    str3 = XmTextFieldGetString(Properties.scomp_3);
+    snprintf(buff,255,"skewt_component=%s,%s,%s",str1,str2,str3);
+    free(str1);
+    free(str2);
+    free(str3);
     driver(buff);
 }
 
@@ -1952,6 +1952,7 @@ void numlines_type_call(w, data, call)
     str = XmTextGetString(w);
     val = atoi(str);
     XtDestroyWidget(w);
+    if(val<0)val=3;
     XtManageChild(Properties.numlines);
     if(val == 0)
       snprintf(buff,255,"linelabel=off");
@@ -2204,3 +2205,17 @@ void point_axis_call(w, data, call)
   driver(buff);
 }
 
+void threed_type_call(w, data, call)
+     Widget w;
+     caddr_t data;
+     XmAnyCallbackStruct *call;
+{
+  XmString str;
+  char *st,buff[80];
+  buff[79]='\0';
+  XtVaGetValues(w,XmNlabelString,&str,NULL);
+  st = XmCvtXmStringToCT(str);
+  snprintf(buff,79,"type=%s",st);
+  printf("threed_type_call: %s\n",buff);
+  driver(buff);
+}

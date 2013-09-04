@@ -219,9 +219,9 @@ struct{
     Widget print_current, print_setup, print_menu;
     Widget print_twoper, print_fourper, print_sixper;
     Widget set_log, save_win, quit;
-    Widget type_menu, type1, type2, Scalar, Vector, Trajectory, Skewt, Line;
+    Widget type_menu, type, Scalar, Vector, Trajectory, Skewt, Line;
     Widget color_menu, cotable_sel, color, readtab, fore_to_back;
-    Widget type3, Surface, Scatter, Wireframe;
+    Widget Surface;
     Widget mixer, mixerrgb, mixerhsl, mixer_sel,show_color;
     Widget default_table, DL_table, custom_table;
     Widget LD_table, BR_table, GBR_table, MBR_table, RBW_table, WR_table;
@@ -269,9 +269,7 @@ Widget init_ive(parent,file_widget)
     static char trajectory[]="type=trajectory";
     static char skewt[]="type=skewt";
     static char line[]="type=line";
-    static char surface[]="type=surface";
-    static char scatter[]="type=points";
-    static char wireframe[]="type=wireframe";
+    static char surface[]="type=3D";
     char *ivectblib, ctb[1024];
     XFontStruct *font_info;
     XmFontList BigList;
@@ -1439,99 +1437,28 @@ Widget init_ive(parent,file_widget)
 					       NULL);
     
     /*type menu*/
-    main_widget.type2 = XmCreatePulldownMenu(main_widget.row2,
-					    "Type2",NULL,0);
+      
+    main_widget.type = XmCreatePulldownMenu(main_widget.row2,
+					    "Type",NULL,0);
 
     main_widget.type_menu = XmCreateOptionMenu(main_widget.row2,"Type",
 						 NULL,0);
     XtVaSetValues(main_widget.type_menu,
-		  XmNsubMenuId,  main_widget.type2,
+		  XmNsubMenuId,  main_widget.type,
 		  XmNmarginTop,0,
 		  XmNmarginBottom,0,
 		  XmNmarginHeight,0,NULL);
-    XtVaSetValues(main_widget.type2,
+    XtVaSetValues(main_widget.type,
 		  XmNmarginHeight,0,
 		  XmNmarginTop,0,
 		  XmNmarginBottom,0,
 		  NULL);
     XtUnmanageChild(XmOptionLabelGadget(main_widget.type_menu));
 
-    str = NewString("Scalar\nPlot");
-    main_widget.Scalar = XtVaCreateManagedWidget("_ScalarPlot",
-						 xmPushButtonWidgetClass,
-						 main_widget.type2,
-						 XmNlabelString,str,
-						 XmNmarginTop,0,
-						 XmNmarginBottom,0,
-						 NULL);
-    XtAddCallback(main_widget.Scalar ,XmNactivateCallback,call_driver,scalar);
-    XmStringFree(str);
-
-    str = NewString("Vector\nPlot");
-    main_widget.Vector = XtVaCreateManagedWidget("_VectorPlot",
-						 xmPushButtonWidgetClass,
-						 main_widget.type2,
-						 XmNlabelString,str,
-						 XmNmarginTop,0,
-						 XmNmarginBottom,0,
-						 NULL);
-    XtAddCallback(main_widget.Vector ,XmNactivateCallback,call_driver,vector);
-    XmStringFree(str);
-
-    str = NewString("Trajectory\nPlot");
-    main_widget.Trajectory = XtVaCreateManagedWidget("Trajectory\nPlot",
-			 			 xmPushButtonWidgetClass,
-				 		 main_widget.type2,
-					 	 XmNlabelString,str,
-						 XmNmarginTop,0,
-						 XmNmarginBottom,0,
-						     NULL);
-    XtAddCallback(main_widget.Trajectory ,XmNactivateCallback,call_driver,trajectory);
-    XmStringFree(str); 
-    
-
-    main_widget.type3 = XmCreatePulldownMenu(main_widget.row2,
-					    "Type3",NULL,0);  
-    str = NewString("Surface\nPlot");
-    main_widget.Surface = XtVaCreateManagedWidget("_surfacePlot",
-						 xmPushButtonWidgetClass,
-						 main_widget.type3,
-						 XmNlabelString,str,
-						 XmNmarginTop,0,
-						 XmNmarginBottom,0,
-						 NULL);
-    XtAddCallback(main_widget.Surface ,XmNactivateCallback,call_driver,surface);
-    XmStringFree(str);
-
-    str = NewString("3D Scatter\nPlot");
-    main_widget.Scatter = XtVaCreateManagedWidget("_scatterPlot",
-						 xmPushButtonWidgetClass,
-						 main_widget.type3,
-						 XmNlabelString,str,
-						 XmNmarginTop,0,
-						 XmNmarginBottom,0,
-						 NULL);
-    XtAddCallback(main_widget.Scatter ,XmNactivateCallback,call_driver,scatter);
-    XmStringFree(str);
-
-    str = NewString("Wireframe\nPlot");
-    main_widget.Wireframe = XtVaCreateManagedWidget("_wirePlot",
-						 xmPushButtonWidgetClass,
-						 main_widget.type3,
-						 XmNlabelString,str,
-						 XmNmarginTop,0,
-						 XmNmarginBottom,0,
-						 NULL);
-    XtAddCallback(main_widget.Wireframe ,XmNactivateCallback,
-		  call_driver,wireframe);
-    XmStringFree(str);
-
-    main_widget.type1 = XmCreatePulldownMenu(main_widget.row2,
-					     "Type1",NULL,0);
     str = NewString("Line\nPlot");
     main_widget.Line = XtVaCreateManagedWidget("Line\nPlot",
 					       xmPushButtonWidgetClass,
-					       main_widget.type1,
+					       main_widget.type,
 					       XmNlabelString,str,
 						 XmNmarginTop,0,
 						 XmNmarginBottom,0,
@@ -1542,12 +1469,57 @@ Widget init_ive(parent,file_widget)
     str = NewString("Skew T\nPlot");
     main_widget.Skewt = XtVaCreateManagedWidget("Skew T\nPlot",
 						 xmPushButtonWidgetClass,
-						 main_widget.type1,
+						 main_widget.type,
 						 XmNmarginTop,0,
 						 XmNmarginBottom,0,
 						 XmNlabelString,str,
 						 NULL);
     XtAddCallback(main_widget.Skewt ,XmNactivateCallback,call_driver,skewt);
+    XmStringFree(str);
+
+    str = NewString("Scalar\nPlot");
+    main_widget.Scalar = XtVaCreateManagedWidget("_ScalarPlot",
+						 xmPushButtonWidgetClass,
+						 main_widget.type,
+						 XmNlabelString,str,
+						 XmNmarginTop,0,
+						 XmNmarginBottom,0,
+						 NULL);
+    XtAddCallback(main_widget.Scalar ,XmNactivateCallback,call_driver,scalar);
+    XmStringFree(str);
+
+    str = NewString("Vector\nPlot");
+    main_widget.Vector = XtVaCreateManagedWidget("_VectorPlot",
+						 xmPushButtonWidgetClass,
+						 main_widget.type,
+						 XmNlabelString,str,
+						 XmNmarginTop,0,
+						 XmNmarginBottom,0,
+						 NULL);
+    XtAddCallback(main_widget.Vector ,XmNactivateCallback,call_driver,vector);
+    XmStringFree(str);
+
+    str = NewString("Trajectory\nPlot");
+    main_widget.Trajectory = XtVaCreateManagedWidget("Trajectory\nPlot",
+			 			 xmPushButtonWidgetClass,
+				 		 main_widget.type,
+					 	 XmNlabelString,str,
+						 XmNmarginTop,0,
+						 XmNmarginBottom,0,
+						     NULL);
+    XtAddCallback(main_widget.Trajectory ,XmNactivateCallback,call_driver,trajectory);
+    XmStringFree(str); 
+    
+
+    str = NewString("3D\nPlot");
+    main_widget.Surface = XtVaCreateManagedWidget("_surfacePlot",
+						 xmPushButtonWidgetClass,
+						 main_widget.type,
+						 XmNlabelString,str,
+						 XmNmarginTop,0,
+						 XmNmarginBottom,0,
+						 NULL);
+    XtAddCallback(main_widget.Surface ,XmNactivateCallback,call_driver,surface);
     XmStringFree(str);
 
     XtManageChild(main_widget.type_menu);

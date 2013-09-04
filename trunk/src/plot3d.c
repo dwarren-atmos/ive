@@ -113,6 +113,7 @@ void DoreDraw(Objects *obj){
       ftglfont=(FTGLfont *)ftglCreatePolygonFont(IVEFONT);
       font_inited=1;
     }
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     ftglSetFontFaceSize(ftglfont,1,abs(maxs[0]-mins[0])/4);
     ftglSetFontCharMap(ftglfont, ft_encoding_none);
     if((int)mins[0]==mins[0] && (int)mins[2]==mins[2] && (int)mins[1]==mins[1])
@@ -144,6 +145,7 @@ void DoreDraw(Objects *obj){
       {
 	if (obj->objectOn[i])
 	  {
+	    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	    glTranslatef(0,-1.1*(bounds[4]-bounds[1]),0);
 	    sprintf(s3,"%s",obj->Field[i]);
 	    if(obj->Surface[i].color == -1)
@@ -152,6 +154,19 @@ void DoreDraw(Objects *obj){
 	      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, IVEcolors[obj->Surface[i].color]);
 	    ftglRenderFont(ftglfont, s3, FTGL_RENDER_ALL);
 	    glFlush();
+	    switch(obj->objectPType[i]){
+	    case 0:
+	      glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	      break;
+	    case 1:
+	      glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
+	      break;
+	    case 2:
+	      glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	      break;
+	    default:
+	      glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	    }
 	  }
       }
     
@@ -168,6 +183,7 @@ void DoreDraw(Objects *obj){
     glRotatef(zRotation,0,0,1);
 
     glOrtho(xPosition-xStretch/StretchPercent,xPosition+xStretch/StretchPercent,yPosition-yStretch/StretchPercent,yPosition+yStretch/StretchPercent,-2.*clipDistanceIVE2,2*clipDistanceIVE); 
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     glCallList(terrlist);
     glPopMatrix();
     glFlush();
@@ -613,6 +629,8 @@ void plot3d(mins, maxs, IVE_Objects)
   glDepthMask(GL_TRUE);//necessary for depth testing... 
   glEnable( GL_MULTISAMPLE_ARB );
   glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE_ARB );
+  glEnable(GL_POINT_SMOOTH);
+  glPointSize(3);
 
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
   glClearColor( 1.0, 1.0, 1.0, 1.0 );//set background to white
@@ -689,6 +707,23 @@ void plot3d(mins, maxs, IVE_Objects)
       IVE_Objects->listName[k]=glGenLists(1);
       glNewList(IVE_Objects->listName[k], GL_COMPILE);//sets a List for each file passed  object    
       glEnable(GL_NORMALIZE);
+      switch(IVE_Objects->objectPType[k]){
+      case 0:
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	printf("fill them\n");
+	break;
+      case 1:
+	glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
+	printf("point them\n");
+	break;
+      case 2:
+	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	printf("line them\n");
+	break;
+      default:
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	printf("fill them - how did I get here???\n");
+      }
       glBegin(GL_TRIANGLES);
       for (place2BeC=0;place2BeC<IVE_Objects->Surface[k].size;place2BeC++)
 	    {

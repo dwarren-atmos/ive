@@ -508,6 +508,7 @@ c     Set misc. variables
 c
       aratio = 1.0
       drstrmln = .FALSE.
+      plotyp3='ISOSURF'
       plotyp2 = 'SCALAR'
       plotyp1 = 'LINE'
       vect_component(1) = ' '

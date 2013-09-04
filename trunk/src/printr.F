@@ -492,14 +492,14 @@ c
 c     Create a unique postscript file name by appending a random 
 c     number.
 c     
-      if(aratio .eq. 1.0) then
-         call getset ( vleft, vrght, vbot, vtop,wleft,
-     &        wrght, wbot, wtop, axes)
-         myratio = abs((wrght-wleft)/(wtop-wbot))
-      else
+!      if(aratio .eq. 1.0) then
+!         call getset ( vleft, vrght, vbot, vtop,wleft,
+!     &        wrght, wbot, wtop, axes)
+!         myratio = abs((wrght-wleft)/(wtop-wbot))
+!      else
          myratio = aratio
-      endif
-      write(6,*)'myratio',myratio
+!      endif
+!      write(6,*)'myratio',myratio
       metaname = name	
       call catnull(metaname, len(metaname),ierr)
       call expand_path(metaname)
@@ -517,7 +517,7 @@ c
       ctb = get_color_table(ii)
       overlay=0
       do j = 1, curoverlay(ii)
-         call gpdf_nprint(1, segs(j, ii), aratio,
+         call gpdf_nprint(1, segs(j, ii), myratio,
      &        %val(ctb),overlay)
          overlay=1
       enddo
