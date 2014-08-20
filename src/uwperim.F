@@ -1422,6 +1422,8 @@ c
 c
 c     Convert label to character string, and compute its position.
 c
+      if(axis .eq. 'x')tmp = tmp + xoff
+      if(axis .eq. 'y')tmp = tmp + yoff
       if(tic_decimals .lt. 0) then
          call cpnumb(tmp,4,-10000,4,0,'E',' ',' ',1,0,0,0,
      &               1,1,numlab,outnum,outsig,outpow)

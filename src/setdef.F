@@ -523,6 +523,8 @@ c
       xminor = 0.0
       ymajor = 0.0
       yminor = 0.0
+      xoff = 0.0
+      yoff = 0.0
       maxplot= 15
       curlist = 1
 c

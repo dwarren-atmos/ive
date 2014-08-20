@@ -1200,6 +1200,12 @@ c           Command TIC_DECIMALS
             if( (iflag .eq. 0) .and. .not.error )  then 
                call ui_update (TICDECIMALS)
             endif
+         elseif (keynum .eq. P_TIC_OFFSET) then
+c           Command TIC_OFFSET
+            call tic_offset(error)
+            if( (iflag .eq. 0) .and. .not.error )  then 
+               call ui_update (TICOFFSET)
+            endif
          elseif (keynum .eq. P_TIME) then
 c           Command TIME.
             keepit = lock(4)
