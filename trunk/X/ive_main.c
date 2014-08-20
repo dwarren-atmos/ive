@@ -252,6 +252,7 @@ static XrmOptionDescRec options[] = {
     {"-trans",		"*transformFile",	XrmoptionSepArg, NULL},
     {"-transform_file",	"*transformFile",	XrmoptionSepArg, NULL},
     {"-debug",		"*Debug",		XrmoptionNoArg,  "True"},
+    {"-v",		"*verbose",		XrmoptionNoArg,  "True"},
     {"-stereo",		"*Stereo",		XrmoptionNoArg,  "True"},
 };
 
@@ -261,6 +262,7 @@ typedef struct {
   char *log_file;
   char *transform_file;
   Boolean debug;
+  Boolean verbose;
   Boolean stereo;
 } AppData , *AppDataPtr;
 
@@ -279,6 +281,9 @@ static XtResource resources[] = {
 },
 {   "debug", "Debug", XtRBoolean, sizeof(Boolean),
     XtOffset(AppDataPtr, debug), XtRImmediate, (XtPointer) False,
+},
+{   "verbose", "Verbose", XtRBoolean, sizeof(Boolean),
+    XtOffset(AppDataPtr, verbose), XtRImmediate, (XtPointer) False,
 },
 {   "stereo", "Stereo", XtRBoolean, sizeof(Boolean),
     XtOffset(AppDataPtr, stereo), XtRImmediate, (XtPointer) False,
