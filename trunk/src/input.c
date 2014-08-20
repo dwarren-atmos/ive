@@ -125,7 +125,9 @@ input_(iflag)
   if (*iflag == 0)
     set_file_box(input_widget.List, buf2, &input_widget.fsb);
   if (argc == 3 && strcasecmp(argv[2], "debug") == 0) step_(&one);
-  else while(step_(&zero));
+  else 
+    if(argc == 3 && strcasecmp(argv[2], "verbose"))while(step_(&one));
+    else while(step_(&zero));
   return_args(0);
 }
 
