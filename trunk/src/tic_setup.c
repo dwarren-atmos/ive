@@ -6,9 +6,9 @@
 extern void make_help_widget_();
 
 extern struct {
-    float tic_width_maj, tic_width_min;
-    int tic_labels, tic_decimals;
-    float tic_scale;
+  float tic_width_maj, tic_width_min;
+  int tic_labels, tic_decimals;
+  float tic_scale, frmwdth,xoff,yoff;
 }tic_stuff_; 
 /*declared in pltwin.icl - Solaris 2 seems to give FORTRAN preference*/
 
@@ -152,3 +152,32 @@ void tic_decimals_(error)
     tic_stuff_.tic_decimals = (int)num;
 }
     
+void tic_offset_(error)
+     int *error;
+{
+    double num, strtod();
+    char *ptr, **argv, **get_args();
+    int argc;
+    *error = 0;
+    
+    argv = get_args(&argc);
+    if (argc < 2 ){
+	(void)make_help_widget_("Tic_offset requires 1 or 2 real numbers");
+        *error=1;
+        return;
+    }
+    if(argv[1] != NULL){
+      if (!sscanf(argv[1],"%f",&tic_stuff_.xoff)){
+	    (void)make_help_widget_("Could not read x offset as real number");
+	}
+    }
+    
+    if(argv[2] != NULL){
+	if(argc == 3){
+	  if (!sscanf(argv[2],"%f",&tic_stuff_.yoff)){
+	    (void)make_help_widget_("Could not read y offset as real number");
+	  }
+	}
+	
+    }
+}

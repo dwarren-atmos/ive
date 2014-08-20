@@ -113,7 +113,7 @@ c
 c
 c     Argument declarations.
 c
-      character *(MAX_FIELD_LENGTH) varname
+      character *(*) varname
       ive_ptr        varptr
       logical        error
 c
@@ -140,6 +140,11 @@ c
 c
 c
       error  = .false.
+      if(len(varname) .gt. MAX_FIELD_LENGTH) then
+         error = .true.
+         call make_help_widget('Field name asked for is too long')
+         return;
+      endif
 
 c
 c     Get a ive_ptr to the requested variable, plus all of its 
