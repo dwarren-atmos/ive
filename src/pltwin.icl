@@ -39,9 +39,9 @@ c
 c-----------------------------------------------------------------------
       real tic_width_maj, tic_width_min
       integer tic_labels, tic_decimals
-      real    tic_scale, frmwdth
+      real    tic_scale, frmwdth,xoff,yoff
       common / tic_stuff / tic_width_maj, tic_width_min, tic_labels, 
-     &	                   tic_decimals, tic_scale, frmwdth
+     &	                   tic_decimals, tic_scale, frmwdth,xoff,yoff
 
       real x1, x2, y1, y2
       integer  xaxis, yaxis, window_axes, reverse
