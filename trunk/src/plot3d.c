@@ -710,19 +710,19 @@ void plot3d(mins, maxs, IVE_Objects)
       switch(IVE_Objects->objectPType[k]){
       case 0:
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-	printf("fill them\n");
+	//printf("fill them\n");
 	break;
       case 1:
 	glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
-	printf("point them\n");
+	//printf("point them\n");
 	break;
       case 2:
 	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-	printf("line them\n");
+	//printf("line them\n");
 	break;
       default:
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-	printf("fill them - how did I get here???\n");
+	//printf("fill them - how did I get here???\n");
       }
       glBegin(GL_TRIANGLES);
       for (place2BeC=0;place2BeC<IVE_Objects->Surface[k].size;place2BeC++)
