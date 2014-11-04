@@ -652,3 +652,129 @@ void ive_get_points(i, j, k, vert, val, triangles)
     triangles->num_triangles=0;
 }
 */
+
+
+void ive_get_points(vert, val, points, triangles)
+     float vert[8], val;
+     struct plainpoint points[8];
+     struct TRIANGLES *triangles;
+{
+  /* Original from http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/  */
+  
+  /*****      4-----5
+   *****     /|    /|
+   *****    7-----6 |
+   *****    | 0---|-1
+   *****    |/    |/ 
+   *****    3-----2  
+   *****
+   *****/
+  /*****      ---4---
+   *****     7|    5|
+   *****    ---6--- |
+   *****    | ---0|--
+   *****    |3    |1 
+   *****    ---2---  
+   *****
+   *****/
+  int i,l;
+  
+  float dist;
+  struct plainpoint verts;
+  triangles->num_triangles = 0;
+  for(i=0;i<8;i++){
+    if(vert[i] > 0.0){
+      triangles->tri[triangles->num_triangles].p1.x=points[i].x;
+      triangles->tri[triangles->num_triangles].p1.y=points[i].y;
+      triangles->tri[triangles->num_triangles].p1.z=points[i].z;
+      triangles->num_triangles++;
+    }
+  }
+  return;
+  printf("%f: %f %f %f %f %f %f %f %f\n",val,vert[0],vert[1],vert[2],vert[3],vert[4],vert[5],vert[6],vert[7]);
+  if(vert[0] <= val && vert[1] >= val) {
+    vertinterp(val,points[0], points[1], vert[0], vert[1], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[3] <= val && vert[2] >= val) {
+    vertinterp(val,points[3], points[2], vert[3], vert[2], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[0] <= val && vert[3] >= val) {
+    vertinterp(val,points[0], points[3], vert[0], vert[3], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[1] <= val && vert[2] >= val) {
+    vertinterp(val,points[1], points[2], vert[1], vert[2], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[4] <= val && vert[5] >= val) {
+    vertinterp(val,points[4], points[5], vert[4], vert[5], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[7] <= val && vert[6] >= val) {
+    vertinterp(val,points[7], points[6], vert[7], vert[6], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[7] <= val && vert[4] >= val) {
+    vertinterp(val,points[4], points[7], vert[4], vert[7], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[5] <= val && vert[6] >= val) {
+    vertinterp(val,points[5], points[6], vert[5], vert[6], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[0] <= val && vert[4] >= val) {
+    vertinterp(val,points[0], points[4], vert[0], vert[4], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[1] <= val && vert[5] >= val) {
+    vertinterp(val,points[1], points[5], vert[1], vert[5], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[2] <= val && vert[6] >= val) {
+    vertinterp(val,points[2], points[6], vert[2], vert[6], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  if(vert[3] <= val && vert[7] >= val) {
+    vertinterp(val,points[3], points[7], vert[3], vert[7], &verts);
+    triangles->tri[triangles->num_triangles].p1.x=verts.x;
+    triangles->tri[triangles->num_triangles].p1.y=verts.y;
+    triangles->tri[triangles->num_triangles].p1.z=verts.z;
+    triangles->num_triangles++;
+  }
+  
+}

@@ -155,6 +155,7 @@ void make3d_(varpt, x, y, z, t)
   //  extern void ive_draw_surf(),  ive_draw_box(), ive_draw_points(),
   //ive_draw_wire(), 
   extern void ive_get_surface();
+  extern void ive_get_points();
 
   /*Start the 3D thing*/
   //  (void)setup_3D();
@@ -219,17 +220,18 @@ void make3d_(varpt, x, y, z, t)
   pt[0] = pt[1] = pt[2] = pt[3] = 0.0;
   lval++;
   switch(lval){
-  case 1: (void)getrvar_("xloc", pt, &error, 4);
+  case 1: (void)getrvar_("xloc", &pt, &error, 4);
     break;
-  case 2: (void)getrvar_("yloc", pt+1, &error, 4);
+  case 2: (void)getrvar_("yloc", &pt[1], &error, 4);
     break;
-  case 3: (void)getrvar_("xloc", pt+2, &error, 4);
+  case 3: (void)getrvar_("xloc", &pt[2], &error, 4);
     break;
-  case 4: (void)getrvar_("tloc", pt+3, &error, 4);
+  case 4: (void)getrvar_("tloc", &pt[3], &error, 4);
     break;
   }
   volume = (float *)slicer3d_(varpt, x, y, z, t,
-			      &dims, &lval, pt+lval, &nk, &nj, &ni, &special, &phys);
+			      &dims, &lval, pt, &nk, &nj, &ni, &special, &phys);
+  
   // get approx dx for limiting search later
   dx = abs(maxs[0]-mins[0])/ni;
   if(mindelta==0)mindelta=1.0e-15;
@@ -283,7 +285,7 @@ void make3d_(varpt, x, y, z, t)
 	  	       domain_slope+1,domain_intercept+1,&special);
 	  (void)scale_(&tertris.tri[k].p1.z,&npts,
 	  	       domain_slope+2,domain_intercept+2,&special);
-
+	  
 	  (void) cpmpxy_(&imap, &xip1, &yj,
 			 &tertris.tri[k].p2.x, &tertris.tri[k].p2.y, 
 			 &special);
@@ -319,9 +321,9 @@ void make3d_(varpt, x, y, z, t)
 	      tertris.tri[k].p2.z=tertris.tri[k-1].p3.z;
 	    }
 	  else{
-	      tertris.tri[k].p2.x=tertris.tri[k].p3.x;
-	      tertris.tri[k].p2.y=tertris.tri[k].p3.y;
-	      tertris.tri[k].p2.z=tertris.tri[k].p3.z;
+	    tertris.tri[k].p2.x=tertris.tri[k].p3.x;
+	    tertris.tri[k].p2.y=tertris.tri[k].p3.y;
+	    tertris.tri[k].p2.z=tertris.tri[k].p3.z;
 	  }
 	  (void) cpmpxy_(&imap, &xi, &yjp1,
 			 &tertris.tri[k].p3.x, &tertris.tri[k].p3.y, &special);
@@ -460,7 +462,9 @@ void make3d_(varpt, x, y, z, t)
 	IVE_Object.Field[0] = malloc(8*sizeof(char));    
 	strcpy(IVE_Object.Field[nObjects-1],"Terrain");
 	//printf("terrain: %d triangles, %d normals\n",OBS.size,OBN.size);
+#ifdef OMP
 #pragma omp parallel for default(shared)
+#endif
 	for(i=0; i<tertris.num_triangles; i++){
 	  OBS.items[i].pt[0].xCoord = tertris.tri[i].p1.x;
 	  OBS.items[i].pt[0].yCoord = tertris.tri[i].p1.z;
@@ -475,7 +479,9 @@ void make3d_(varpt, x, y, z, t)
 	  OBS.items[i].pt[2].zCoord = tertris.tri[i].p3.y;
 	  OBS.items[i].pt[2].normalRef = tertris.tri[i].normal3;
 	}
+#ifdef OMP
 #pragma omp parallel for default(shared)
+#endif
 	for(i=0; i<tertris.num_normals; i++){
 	  OBN.normal[i].xCoord = tertris.normals[i].x;
 	  OBN.normal[i].yCoord = tertris.normals[i].z;
@@ -497,7 +503,7 @@ void make3d_(varpt, x, y, z, t)
     //cpmpxyz_ does the array space to physical space conversion
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
-
+  if(pltyp[0] != 'S') {
 
   triangles.tri = 
     (struct TRIANGLE *)malloc(allocated_triangles*sizeof(struct TRIANGLE)); 
@@ -515,7 +521,7 @@ void make3d_(varpt, x, y, z, t)
 	struct plainpoint points[8];
 	struct TRIANGLE *dwtri;
 	t=1.;
-	x=i; y=j; z=k;
+	x=i+1; y=j+1; z=k+1; //interp is fortran
 	xp1=(x+1.); yp1=(y+1.); zp1=(z+1.);
 	//if(i==ni)xp1=(i);
 	//if(j==nj)yp1=(j);
@@ -768,7 +774,134 @@ void make3d_(varpt, x, y, z, t)
  
   
   /*now make it look right for Brian's code */
-  
+  }
+  else{
+    // we're going to cheat here and use triangle structures for points 
+    // to not have to muck with the plotting code for now.
+    triangles.tri = 
+      (struct TRIANGLE *)malloc(allocated_triangles*sizeof(struct TRIANGLE)); 
+    smalltri.tri = (struct TRIANGLE *)malloc(12*sizeof(struct TRIANGLE));
+    smalltri.num_triangles=0;
+    triangles.num_triangles=0;
+    triangles.num_normals=0;
+    smalltri.num_normals=0;
+
+    for(i=0; i<ni-1; i++){
+      for(j=0; j<nj-1; j++){
+	for(k=0; k<nk-1; k++){
+	  int one=1;
+	  float x,y,z,xp1,yp1,zp1,t;
+	  struct plainpoint points[8];
+	  struct TRIANGLE *dwtri;
+	  t=1.;
+	  x=i+1.; y=j+1.; z=k+1.; //interp is fortran
+	  xp1=(x+1.); yp1=(y+1.); zp1=(z+1.);
+	  vert[0]=(float)interp_(volume,&ni,&nj,&nk,&one,&x,&yp1,&z,&t,&special);
+	  vert[1]=(float)interp_(volume,&ni,&nj,&nk,&one,&xp1,&yp1,&z,&t,&special);
+	  vert[2]=(float)interp_(volume,&ni,&nj,&nk,&one,&xp1,&y,&z,&t,&special);
+	  vert[3]=(float)interp_(volume,&ni,&nj,&nk,&one,&x,&y,&z,&t,&special);
+	  vert[4]=(float)interp_(volume,&ni,&nj,&nk,&one,&x,&yp1,&zp1,&t,&special);
+	  vert[5]=(float)interp_(volume,&ni,&nj,&nk,&one,&xp1,&yp1,&zp1,&t,&special);
+	  vert[6]=(float)interp_(volume,&ni,&nj,&nk,&one,&xp1,&y,&zp1,&t,&special);
+	  vert[7]=(float)interp_(volume,&ni,&nj,&nk,&one,&x,&y,&zp1,&t,&special);
+	  points[0].x=x; points[0].y=yp1; points[0].z=z;
+	  points[1].x=xp1; points[1].y=yp1;points[1].z=z;
+	  points[2].x=xp1; points[2].y=y;	points[2].z=z;
+	  points[3].x=x;	points[3].y=y;	points[3].z=z;
+	  points[4].x=x;	points[4].y=yp1; points[4].z=zp1;
+	  points[5].x=xp1; points[5].y=yp1; points[5].z=zp1;
+	  points[6].x=xp1; points[6].y=y; points[6].z=zp1;
+	  points[7].x=x;	points[7].y=y; points[7].z=zp1;
+	
+	  smalltri.num_triangles=0;
+	  if(vert[0]==special||vert[1]==special||vert[2]==special||
+	     vert[3]==special||vert[4]==special||vert[5]==special||
+	     vert[7]==special||vert[7]==special)
+	    continue;
+	  ive_get_points(vert,sint,points,&smalltri);
+	  if(smalltri.num_triangles==0)continue;
+	  //ive_get_points(0,0,0,vert,sint,&smalltri);
+	  //ive_get_surface(i,j,k,vert,sint,&smalltri);
+	  if(triangles.num_triangles + smalltri.num_triangles > 
+	     allocated_triangles-1){
+	    struct TRIANGLE *dwtri;
+	    void *ptr;
+	    allocated_triangles += 2*ni*nj;
+	    //printf("realloc triangles %lx %d\n",triangles.tri, allocated_triangles);
+	    dwtri = (struct TRIANGLE *) realloc(triangles.tri, 
+						(allocated_triangles*sizeof(struct TRIANGLE)));
+	    if(dwtri !=(struct TRIANGLE *)NULL)triangles.tri=dwtri;
+	    else {printf("out of memory for triangles\n");break;}
+	    
+	  }
+	  imap=2;
+	  for (l=0; l< smalltri.num_triangles; l++){
+	    npts=1;
+	  if(check_out_range(smalltri.tri[l],ni-1,nj-1,nk-1))
+	    {
+	      continue;
+	    }
+	  (void)cpmpxyz_(&imap,&smalltri.tri[l].p1.x,&smalltri.tri[l].p1.y,&smalltri.tri[l].p1.z,
+			 &triangles.tri[triangles.num_triangles].p1.x,
+			 &triangles.tri[triangles.num_triangles].p1.z,
+			 &triangles.tri[triangles.num_triangles].p1.y,&special);
+	  if(triangles.tri[triangles.num_triangles].p1.x==special){
+	    continue;
+	  }
+	  (void)scale_(&triangles.tri[triangles.num_triangles].p1.x,&npts,
+		       domain_slope,domain_intercept,&special);
+	  (void)scale_(&triangles.tri[triangles.num_triangles].p1.y,&npts,
+		       domain_slope+2,domain_intercept+2,&special);
+	  (void)scale_(&triangles.tri[triangles.num_triangles].p1.z,&npts,
+		       domain_slope+1,domain_intercept+1,&special);
+	  //triangles.num_triangles++;  
+	  triangles.tri[triangles.num_triangles].p2.x = triangles.tri[triangles.num_triangles].p1.x;
+	  triangles.tri[triangles.num_triangles].p2.y = triangles.tri[triangles.num_triangles].p1.y;
+	  triangles.tri[triangles.num_triangles].p2.z = triangles.tri[triangles.num_triangles].p1.z;
+	  triangles.tri[triangles.num_triangles].p3.x = triangles.tri[triangles.num_triangles].p1.x;
+	  triangles.tri[triangles.num_triangles].p3.y = triangles.tri[triangles.num_triangles].p1.y;
+	  triangles.tri[triangles.num_triangles].p3.z = triangles.tri[triangles.num_triangles].p1.z;
+	  
+	  triangles.num_triangles++;
+	  }
+	}
+      }
+    }
+    free(smalltri.tri);
+    if(triangles.num_triangles == 0){
+      printf("No points found at %s@%f\n",field,sint);
+      if(triangles.tri)free(triangles.tri);
+      if(nObjects >0){
+	(void)plot3d(mins, maxs, &IVE_Object);
+      }
+      if(volume != NULL)free(volume);
+      return;
+    }
+    allocated_norms=triangles.num_triangles;
+    triangles.normals=(struct plainpoint *)malloc(allocated_norms*sizeof(struct plainpoint));
+    triangles.norm_points=(struct plainpoint *)malloc(allocated_norms*sizeof(struct plainpoint));
+    triangles.norm_counts=(int *)malloc(allocated_norms*sizeof(int));
+    for(i=0; i<triangles.num_triangles; i++){
+      struct plainpoint mynormal;
+      compute_normal(&mynormal, 
+		     triangles.tri[i].p1, 
+		     triangles.tri[i].p2,
+		     triangles.tri[i].p3);
+      //    if(!(i%10000))printf("check %d\n",i);
+      triangles.norm_counts[triangles.num_normals]=1;
+      triangles.normals[triangles.num_normals].x = mynormal.x;
+      triangles.normals[triangles.num_normals].y = mynormal.y;
+      triangles.normals[triangles.num_normals].z = mynormal.z;
+      triangles.norm_points[triangles.num_normals].x=triangles.tri[i].p3.x;
+      triangles.norm_points[triangles.num_normals].y=triangles.tri[i].p3.y;
+      triangles.norm_points[triangles.num_normals].z=triangles.tri[i].p3.z;
+      triangles.tri[i].normal1=triangles.num_normals;
+      triangles.tri[i].normal2=triangles.num_normals;
+      triangles.tri[i].normal3=triangles.num_normals;
+      triangles.num_normals++;
+ 
+    }
+  }
 
   if(nObjects++){
     void *ptr;
@@ -812,7 +945,9 @@ void make3d_(varpt, x, y, z, t)
   OBN.size = triangles.num_normals;//change this line when we hop over to point normals instead of triangle normals.
   //printf("first total norms %d\n",OBN.size);
   OBN.normal = malloc(OBN.size*sizeof(Point));
+#ifdef OMP
 #pragma omp parallel for default(shared)
+#endif
   //printf("d total norms %d triangles %d\n",triangles.num_normals,triangles.num_triangles);
   for(i=0; i<triangles.num_triangles; i++){
     OBS.items[i].pt[0].xCoord = triangles.tri[i].p1.x;
@@ -833,7 +968,9 @@ void make3d_(varpt, x, y, z, t)
     //	   OBS.items[i].pt[2].xCoord,OBS.items[i].pt[2].yCoord,OBS.items[i].pt[2].zCoord);
   }
   //printf("total norms %d\n",OBN.size);
+#ifdef OMP
 #pragma omp parallel for default(shared)
+#endif
   for(i=0; i<triangles.num_normals; i++){
     OBN.normal[i].xCoord = triangles.normals[i].x;
     OBN.normal[i].yCoord = triangles.normals[i].y;
