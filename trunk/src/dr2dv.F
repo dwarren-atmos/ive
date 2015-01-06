@@ -115,8 +115,8 @@ c     Use special value feature.
 c
       call gstxci(1)
       call gqplci (ierror, line_index)
-      if(incx .gt. 1) call vvseti('XIN',incx)
-      if(incy .gt. 1) call vvseti('YIN',incy)
+      if(incx .ge. 1) call vvseti('XIN',incx)
+      if(incy .ge. 1) call vvseti('YIN',incy)
       call vvseti('SVF', 3)
       call vvsetr('USV', VECT_SPVAL)
       call vvsetr('VSV', VECT_SPVAL)
