@@ -766,6 +766,12 @@ redraw(ws)
     Window		win	= ws->win;
     XWindowAttributes	win_att;
 
+    Window w;
+    Window root;
+    Window parent;
+    Window *children;
+    unsigned int nchildren;
+    
     /*
      * Disable all input devices.
      */
@@ -775,9 +781,20 @@ redraw(ws)
      * Get current window width and height values and update the 
      * transformation.
      */
+    while(1){
+      XQueryTree(dpy, win, &root, &parent, &children, &nchildren);
+      if(nchildren >0)XFree(children);
+      if (win == root || parent == root) {
+	break;
+      }
+      else {
+	win = parent;
+      }
+    }
     XGetWindowAttributes(dpy, win, &win_att);
     ws->wbound.x = win_att.width;
     ws->wbound.y = win_att.height;
+
     xXgksUpdateTrans(ws);
 
     /*
@@ -1164,4 +1181,71 @@ void clear_traj_mouse_()
 		       mouseProcessEvents,
 		       NULL);
 }
+void
+xXgksUpdateTrans(ws)
+    WS_STATE_PTR    ws;
+{
 
+    float           D_WWX, D_WWY, D_WVX, D_WVY, /* size of worstation window
+                                                 * and viewport */
+                    D_DCX, D_DCY, D_XWX, D_XWY; /* size of DC space and X
+                                                 * window space    */
+
+    float           scale_WT,           /* scale factor for WT
+                                         * transformation(NDC->DC) */
+                    scale_DT;           /* scale factor for DT
+                                         * transformation(DC->WIN) */
+
+    float           flt1, flt2;
+
+    D_DCX = ws->size.x;
+    D_DCY = ws->size.y;
+
+    D_WWX = (float) (ws->wsti.current.w.xmax - ws->wsti.current.w.xmin);
+    D_WWY = (float) (ws->wsti.current.w.ymax - ws->wsti.current.w.ymin);
+
+    D_WVX = (float) (ws->wsti.current.v.xmax - ws->wsti.current.v.xmin);
+    D_WVY = (float) (ws->wsti.current.v.ymax - ws->wsti.current.v.ymin);
+
+    if ((flt1 = D_WVX / D_WWX) < (flt2 = D_WVY / D_WWY))
+        scale_WT = flt1;
+    else
+        scale_WT = flt2;
+
+    D_XWX = (float) (ws->wbound.x);
+    D_XWY = (float) (ws->wbound.y);
+
+    /* -1 is a fudge to fill window */
+    if ((flt1 = D_XWX / (D_DCX)) < (flt2 = (D_XWY - 1) / (D_DCY)))
+        scale_DT = flt1;
+    else
+        scale_DT = flt2;
+
+/*
+  dbw 12-31-91
+  changed to fill window instead of making a square plot
+*/
+    /* NDC to DC transformation */
+    ws->ndctodctrans.xScale = D_WVX / D_WWX /*scale_WT*/;
+    ws->ndctodctrans.yScale = D_WVY / D_WWY /*scale_WT*/;
+    ws->ndctodctrans.xTrans = ws->wsti.current.v.xmin -
+                              ws->wsti.current.w.xmin * scale_WT;
+    ws->ndctodctrans.yTrans = ws->wsti.current.v.ymin -
+                              ws->wsti.current.w.ymin * scale_WT;
+
+    /* DC to X transformation */
+    ws->dctoxtrans.xScale = D_XWX / (D_DCX)/*scale_DT*/;
+    ws->dctoxtrans.yScale = .95*(D_XWY) / (D_DCY)/*scale_DT*/;
+    ws->dctoxtrans.xTrans = 0.0;
+
+    /* fudge to fill window */
+    ws->dctoxtrans.yTrans = .05*D_XWY;
+
+    /* NDC to X transformation */
+    ws->ndctoxtrans.xScale = ws->ndctodctrans.xScale * ws->dctoxtrans.xScale;
+    ws->ndctoxtrans.yScale = ws->ndctodctrans.yScale * ws->dctoxtrans.yScale;
+    ws->ndctoxtrans.xTrans = ws->ndctodctrans.xTrans * ws->dctoxtrans.xScale +
+                             ws->dctoxtrans.xTrans;
+    ws->ndctoxtrans.yTrans = ws->ndctodctrans.yTrans * ws->dctoxtrans.yScale +
+                             ws->dctoxtrans.yTrans;
+}
