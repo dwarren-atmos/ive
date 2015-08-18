@@ -37,7 +37,7 @@
  *
  * This header-file depends upon header-file "xgks.h".
  * 
- * $Id: input.h,v 1.1.1.1 1993/04/07 19:40:59 harry Exp $
+ * $Id: input.h,v 2.6 2000/08/01 16:38:01 steve Exp $
  * $__Header$
  */
 
@@ -144,8 +144,8 @@ typedef struct EQEntry {
     Gevent          event;		/* Data returned by Await Event */
     char           *data;		/* Data returned by Get<class>
 					 * functions */
-    int             id;			/* event id (simultaneous */
-    /* events have same id)   */
+    int             id;			/* event id (simultaneous events
+					 * have same id) */
 } EQEntry;
 
 typedef enum {

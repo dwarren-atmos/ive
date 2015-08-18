@@ -115,7 +115,7 @@ xXgksFillArea(ws, fill_ptr)
     fill_colour = bundl_ptr->colour;
     if (!WS_AVAIL_COLOUR(ws, fill_colour))
 	fill_colour = 1;
-    if (ws->wscolour == 2) {			/* monochrome ? */
+    if (ws->colorCount == 2) {			/* monochrome ? */
 	if (fill_colour == 0)
 	    fill_colour = ws->wsbg;
 	else if (fill_colour == 1)

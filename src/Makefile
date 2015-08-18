@@ -342,16 +342,20 @@
 #
 #
 
+.SUFFIXES: .o .c .f .F .f90
 CPP = /usr/lib/cpp ${ALPHA}
 
 .c.o:
 	${CC}  -c ${CFLAGS} $*.c -o $*.o
 
 .f.o:
-	${F77} -c ${FFLAGS}  -o $*.o $*.f
+	${F77} -c ${FFLAGS}  $*.f -o $*.o
 
-.F.o:  
-	${F77} -c  ${FCPP} ${FFLAGS} $*.F -o $*.o
+.F.o: 
+	${F77} -c  ${FCPP} ${FFLAGS}  $*.F -o $*.o
+
+.f90.o:  
+	${F77} -c ${FCPP}  ${FFLAGS}  $*.f90 -o $*.o
 
 
 #
@@ -398,7 +402,7 @@ OBJS = 	add_to_list.o average.o catnull.o catof.o  \
 	strbeg.o strmln1.o transrot3d.o \
 	tic_setup.o upcase.o  uwperim.o vdom.o  \
 	vect2d.o  vlimit.o winstack.o write_frame.o \
-	write_log.o write_message.o write_1d.o ybar.o \
+	write_log.o write_message.o write_1d.o write_3d.o ybar.o \
 	makskewt.o skewt.o setskewt.o getskewt.o labskewt.o\
 	gettraj.o settraj.o maktraj.o drwtraj.o traj.o chktraj.o\
 	huen.o start_traj.o labtraj.o int_traj.o traj_ind.o \
@@ -636,6 +640,7 @@ write_frame.o : incommands.icl message.icl \
 write_message.o : ../h/message.h write_message.c
 write_log.o: ../h/log.h
 write_1d.o:  incommands.icl message.icl segments.icl slices.icl pltwin.icl
+write_3d.o: incommands.icl data.icl message.icl plotops.icl topo.icl 
  ../h/ive_slices.h: slices.icl
 	perl make_slices
 #

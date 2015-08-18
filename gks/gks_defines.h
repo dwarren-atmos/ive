@@ -37,12 +37,14 @@
  *
  * This header-file depends upon header-file "xgks.h".
  *
- * $Id: gks_defines.h,v 1.1.1.1 1993/04/07 19:40:56 harry Exp $
+ * $Id: gks_defines.h,v 2.6 2000/08/01 16:38:00 steve Exp $
  * $__Header$
  */
 
 #ifndef  LOCAL_H
 #define  LOCAL_H
+
+typedef void       *voidp;
 
 /*
  * Macros for insuring the proper compilation of macros which contain
@@ -147,30 +149,19 @@ typedef struct XcToGKSMap {
 }		XcRGB;
 
 /*
- * A bidirectional GKS <-> X color-mapping thingy:
- */
-typedef union {
-    XcRGB	    *rgb;
-    unsigned long   *color;
-}		XcTable;
-
-/*
  * GKS <-> X color-mapping (bidirectional):
  */
 typedef struct {
-    /* The following only have meaning in the separate RGB palettes case */
-    unsigned long   red_mult;		/* red index multiplier */
-    unsigned long   green_mult;		/* green index multiplier */
-    unsigned long   blue_mult;		/* blue index multiplier */
-    unsigned long   red_mask;		/* red index mask pattern */
-    unsigned long   green_mask;		/* green index mask pattern */
-    unsigned long   blue_mask;		/* blue index mask pattern */
-    /* The following always have meaning */
-    int		    SeparateRGB;	/* separate RGB palettes? */
-    int		    NumEntries;		/* size of mapping tables */
-    XcTable	    ToX;		/* GKS-to-X color-mapping */
-    XcTable	    ToGKS;		/* X-to-GKS color-mapping */
+    unsigned	    length;		/* length of pixel/index maps */
+    long           *Xpixels;		/* GKS color index to X pixel value */
+    Gint           *GKSindexes;		/* X pixel value to GKS color index */
 }		XcMap;
+
+/*
+ * Colour indexes mandated by the GKS standard:
+ */
+#define GKS_BACKGROUND_INDEX	0
+#define	GKS_FOREGROUND_INDEX	1
 
 /*
  * PID - Primitive identifier

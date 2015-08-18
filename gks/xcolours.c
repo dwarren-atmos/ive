@@ -43,79 +43,303 @@
 #include "udposix.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "gks_implem.h"
 
-unsigned long *ive_main_color_list;
+
 #ifdef lint
     static void	lint_malloc(n) size_t n; { n++; }
 #   define	malloc(n)	(lint_malloc((n)), 0)
 #else
     static char afsid[]	= "$__Header$";
-    static char rcsid[]	= "$Id: xcolours.c,v 1.7 2002/12/26 22:49:35 warren Exp $";
+    static char rcsid[]	= "$Id: xcolours.c,v 2.6 2000/08/01 16:38:25 steve Exp $";
 #endif
 
 #ifdef DEBUG
 #   undef NDEBUG
 #endif
 
-/*
- * Macros for indexing into the color-conversion tables for visuals with
- * separate RGB palettes:
- */
-#define IRED(map,color)    (((color) & (map)->red_mask)  /(map)->red_mult)
-#define IGRN(map,color)    (((color) & (map)->green_mask)/(map)->green_mult)
-#define IBLU(map,color)    (((color) & (map)->blue_mask) /(map)->blue_mult)
-
-/*
- * Macros for computing the intensity bit-patterns for visuals with separate
- * RGB palettes:
- */
-#define RED(map,ndx)	((ndx) * (map)->red_mult)
-#define GRN(map,ndx)	((ndx) * (map)->green_mult)
-#define BLU(map,ndx)	((ndx) * (map)->blue_mult)
+#define	COLOR_UNSET	-1
 
 /*
  * Macro for computing the color value (either GKS colour-index or X pixel-
  * value) for visuals with separate RGB palettes:
  */
-#define RGB(map,tbl,color)	(\
-	RED(map, (tbl)->rgb[IRED(map,color)].red) + \
-	GRN(map, (tbl)->rgb[IGRN(map,color)].green) + \
-	BLU(map, (tbl)->rgb[IBLU(map,color)].blue))
+#define RGB(map,tbl,color) \
+    ( \
+	(tbl)->rgb[IRED(map,color)].red == COLOR_UNSET \
+	    ? COLOR_UNSET \
+	    : RED(map, (tbl)->rgb[IRED(map,color)].red) + \
+	      GRN(map, (tbl)->rgb[IGRN(map,color)].green) + \
+	      BLU(map, (tbl)->rgb[IBLU(map,color)].blue) \
+    )
 
 /*
  * Macro for computing the color value (either GKS colour-index or X pixel-
  * value) regardless of the visual class.
  */
-#define COLOR(map,tbl,ndx)	\
-	((map)->SeparateRGB ? RGB(map,tbl,ndx) : (tbl)->color[ndx])
+#define COLOR(map,tbl,ndx) \
+    ( \
+	(map)->SeparateRGB \
+	    ? RGB(map,tbl,ndx) \
+	    : (tbl)->color[ndx] == COLOR_UNSET \
+		? COLOR_UNSET \
+		: (tbl)->color[ndx] \
+    )
 
 
 extern int		XgksSIGIO_OFF();
 extern int		XgksSIGIO_ON();
-
-static unsigned long	MaskToMult();
 static int AllocColour=0;
 static int AllocNumColours=0;
-static XcMap realmap = {0,0,0,0,0,0,0,0,NULL,NULL};
+static XcMap realmap = {0,NULL,NULL};
 static Colormap realdclmp = 0; /*note this is global so that an application can
-			  allocate its own colormap for xgks to use*/
+                          allocate its own colormap for xgks to use*/
+
 
 /*
- * AllocColour was added at the University of Washington to provide a way
- * to cause XGKS colours to behave such that gsetcolourrep  will take effect
- * immediately, rather than at the next redraw. AllocNumColors is the size
- * of the colour table to allocate
+ * Initializes the memory for a GKS <-> X mapper.
  */
+    static void
+XcMap_new(map)
+    XcMap	   *map;		/* GKS<->X mapper (out) */
+{
+    assert(map != NULL);
+    map->length = 0;
+    map->Xpixels = NULL;
+    map->GKSindexes = NULL;
+}
+
+
+/*
+ * Allocate memory for the GKS color-index and X pixel-value vectors.
+ *
+ * @return		0 if and only if failure
+ */
+    static int
+XcMap_malloc(map, size)
+    XcMap*	map;
+    int		size;
+{
+    int		status = 0;		/* failure */
+    assert(map != NULL);
+    assert(size > 0);
+    {
+	unsigned	nbytes = sizeof(long) * size;
+	if ((map->Xpixels = (long *) umalloc((size_t)nbytes)) == NULL)
+	{
+	    (void)fprintf(stderr,
+	"XcMap_malloc(): Couldn't allocate %u-bytes for index-to-pixel map.\n",
+		nbytes);
+	}
+	else
+	{
+	    nbytes = sizeof(Gint) * size;
+	    if ((map->GKSindexes = (Gint *) umalloc((size_t)nbytes)) != NULL)
+	    {
+		map->length = size;
+		status = 1;		/* success */
+	    }
+	    else
+	    {
+		(void)fprintf(stderr,
+       "XcMap_malloc(): Couldn't allocate %u-bytes for pixel-to-index map.\n",
+		    nbytes);
+		ufree((voidp)map->Xpixels);
+	    }
+	}
+    }
+    return status;
+}
+
+
+/*
+ * WHAT:   Initialize a GKS colour-index <-> X pixel mapper.
+ *
+ * HOW:    Allocate storage for the mapping tables and initialize the
+ *	   GKS-colour-index/X-pixel-value mapping.  Assumes single index
+ *	   for RGB intensities (e.g. PseudoColor).  Doesn't enter any mapping
+ *	   for ground colors.
+ *
+ * RETURNS:
+ *	0	Error
+ *	1	Success
+ */
+    static int
+XcMap_init(map, size)
+    XcMap*	map;		/* GKS<->X mapper (out) */
+    int		size;		/* number of colors */
+{
+    int             ReturnStatus = 0;	/* failure */
+
+    assert(map != NULL);
+    //assert(map->length <= 0);
+    assert(map->Xpixels == NULL);
+    assert(map->GKSindexes == NULL);
+    assert(size > 0);
+
+    if (XcMap_malloc(map, size))
+    {
+	/* Initialize mapping table. */
+	register int       i;
+	for (i = 0; i < map->length; ++i)
+	    map->Xpixels[i] = map->GKSindexes[i] = i;
+
+	ReturnStatus = 1;	/* success */
+    }
+
+    return ReturnStatus;
+}
+
+
+/*
+ * Copy GKS <-> X mapping.
+ *
+ * @return		0 if and only if failure
+ */
+    static int
+XcMap_copy(toMap, fromMap)
+    XcMap*	toMap;
+    XcMap*	fromMap;
+{
+    int		status = 0;	/* failure */
+    assert(toMap != NULL);
+    assert(fromMap != NULL);
+    {
+	if (XcMap_malloc(toMap, fromMap->length))
+	{
+	    memcpy(
+		toMap->Xpixels,
+		fromMap->Xpixels,
+		fromMap->length * sizeof(fromMap->Xpixels[0]));
+	    memcpy(
+		toMap->GKSindexes,
+		fromMap->GKSindexes,
+		fromMap->length * sizeof(fromMap->GKSindexes[0]));
+	    status = 1;		/* success */
+	}
+    }
+    return status;
+}
+
+
+/*
+ * WHAT:   Set a GKS colour-index <-> X pixel mapping.
+ *
+ * HOW:    Store the values in the mapping tables.
+ */
+    static void
+XcMap_enter(map, index, pixel)
+    XcMap	   *map;		/* GKS<->X index mapper (in/out) */
+    Gint            index;		/* GKS color-index (in) */
+    unsigned long   pixel;		/* X pixel value (in) */
+{
+    assert(map != NULL);
+    assert(pixel < map->length);
+    assert(index >= 0 && index < map->length);
+
+    map->Xpixels[index] = pixel;
+    //map->GKSindexes[pixel] = index;
+}
+
+
+/*
+ * WHAT:   Return the X pixel corresponding to a GKS colour-index.
+ *
+ * HOW:	   Use the GKS-to-X color-mapping to determine the pixel-value
+ *	   -- either by simple lookup (for non true-color visuals) or
+ *	   by computation (for true-color visuals).
+ *
+ * RETURNS:
+ *	COLOR_UNSET	No corresponding X pixel.
+ *	else		Corresponding X pixel.
+ */
+    static long
+XcMap_pixel(map, index)
+    XcMap	   *map;		/* GKS<->X index mapper (in) */
+    Gint            index;		/* GKS color-index (in) */
+{
+    assert(map != NULL);
+    assert(index >= 0 && index < map->length);
+
+    return map->Xpixels[index];
+}
+
+
+/*
+ * WHAT:   Return the GKS colour-index corresponding to an X pixel.
+ *
+ * HOW:	   Use the X-to-GKS color-mapping to determine the pixel-value
+ *	   -- either by simple lookup (for non true-color visuals) or
+ *	   by computation (for true-color visuals).
+ *
+ * RERUTNS:
+ *	COLOR_UNSET	No corresponding GKS colour-index.
+ *	else		Corresponding GKS colour-index.
+ */
+    static Gint
+XcMap_index(map, pixel)
+    XcMap	   *map;		/* GKS<->X index mapper (in */
+    unsigned long   pixel;		/* X pixel value (in) */
+{
+  int i;
+    assert(map != NULL);
+    assert(pixel < map->length);
+    for (i=0; i<map->length; i++){
+      if(map->Xpixels[i]==pixel)
+	return(i);
+    }
+    return(-1);
+
+    //return map->GKSindexes[pixel];
+}
+
+
+/*
+ * Returns the size of the GKS-color-index/X-pixel-value map.
+ */
+    static unsigned
+XcMap_size(map)
+    XcMap	   *map;
+{
+    assert(map != NULL);
+    return map->length;
+}
+
+
+/*
+ * WHAT:   Destroy a GKS colour-index <-> X pixel mapper.
+ *
+ * HOW:	   Free allocated storage, if appropriate, and set the relevant
+ *	   members to NULL pointers.
+ */
+    static void
+XcMap_destroy(map)
+    XcMap	   *map;		/* GKS<->X mapper (in/out) */
+{
+    assert(map != NULL);
+    assert(map->length != 0);
+    assert(map->Xpixels != NULL);
+    assert(map->GKSindexes != NULL);
+
+    ufree((voidp)map->Xpixels);
+    ufree((voidp)map->GKSindexes);
+
+    map->length = 0;
+    map->Xpixels = NULL;
+    map->GKSindexes = NULL;
+}
+
 
     int
 xXgksSetColourRep(ws, idx, rep)
     WS_STATE_PTR    ws;
     int             idx;
     Gcobundl       *rep;
-
 {
     int             ncolours;
+    long            old_pixel_value;
+    long            new_pixel_value;
 
     if (ws->ewstype != X_WIN)
 	return OK;
@@ -124,9 +348,9 @@ xXgksSetColourRep(ws, idx, rep)
 
     (void) XgksSIGIO_OFF(ws->dpy);
 
-    /* initial some values and check the index value */
+    /* initialize some values and check the index value */
 
-    ncolours = ws->wscolour;
+    ncolours = ws->colorCount;
 
     if (ncolours < 3) {
 	(void) XgksSIGIO_ON(ws->dpy);		/* for black&white screen */
@@ -134,10 +358,56 @@ xXgksSetColourRep(ws, idx, rep)
     }
     if ((idx < 0) || (idx >= ncolours)) {
 	(void) XgksSIGIO_ON(ws->dpy);		/* index value out of the
-	 * size of the colour map *//* c1147 d1 */
+						 * size of the colour map */
 	return 1;
     }
-    (void) XcSetColour(ws, idx, rep);		/* set color --SRE */
+
+    /*
+     * Save the current corresponding pixel value to see if a refresh
+     * will be truely necessary.
+     */
+    old_pixel_value = XcPixelValue(ws, idx);
+
+     /* Set the color. */
+    (void) XcSetColour(ws, idx, rep);
+
+    /*
+     * Handle a change to a ground color but only if the color has truely
+     * changed (i.e. the X pixel value is different).  --SRE
+     */
+    new_pixel_value = XcPixelValue(ws, idx);
+    if (new_pixel_value != old_pixel_value)
+    {
+	INPUT_DEV	*id;
+
+	if (idx == GKS_BACKGROUND_INDEX)
+	{
+	    /* The background color was changed. */
+
+	    (void) XSetWindowBackground(ws->dpy, ws->win, new_pixel_value);
+	    (void) XSetBackground(ws->dpy, ws->plinegc, new_pixel_value);
+	    (void) XSetBackground(ws->dpy, ws->pmarkgc, new_pixel_value);
+	    (void) XSetBackground(ws->dpy, ws->fillareagc, new_pixel_value);
+	    (void) XSetBackground(ws->dpy, ws->gc, new_pixel_value);
+
+	    for (id = ws->in_dev_list; id != NULL; id = id->next)
+		XSetBackground(ws->dpy, id->gc, new_pixel_value);
+	}
+	else if (idx == GKS_FOREGROUND_INDEX)
+	{
+	    /* The foreground color was changed. */
+
+	    for (id = ws->in_dev_list; id != NULL; id = id->next)
+		XSetForeground(ws->dpy, id->gc, new_pixel_value);
+	}
+
+	/* Redraw the screen (using the new pixel value) if truely necessary. */
+	if (old_pixel_value != COLOR_UNSET && 
+	    old_pixel_value != new_pixel_value)
+	{
+	    (void) xXgksXReDrawWs(ws);
+	}
+    }
 
     /* Restore the interrupt of I/O signals */
 
@@ -147,18 +417,20 @@ xXgksSetColourRep(ws, idx, rep)
 }
 
 
+/*
+ * Returns:
+ *	 OK	Success
+ *	!OK	Error (invalid GKS colour index: color not set)
+ */
     int
 xXgksInqColourRep(ws, idx, type, rep)
     WS_STATE_PTR    ws;
     int             idx;
-
  /* ARGSUSED */
     Gqtype          type;
     Gcobundl       *rep;
-
 {
-    Display        *dpy;
-    XColor          colour_ret;
+    int		    retcode = !OK;
 
     /*****************************************************************/
     /* NOTE: This routine is now only called for the GREALIZED case! */
@@ -166,245 +438,212 @@ xXgksInqColourRep(ws, idx, type, rep)
     /*       ginqcolourrep() in colors.c  (DWO)                      */
     /*****************************************************************/
 
-    if (ws->ewstype != X_WIN)
-	return OK;
+    if (ws->ewstype == X_WIN)
+    {
+	XColor          colour_ret;
 
-    /* restore the Signal Default Function */
+	/* restore the Signal Default Function */
+	(void) XgksSIGIO_OFF(ws->dpy);
 
-    (void) XgksSIGIO_OFF(ws->dpy);
+	colour_ret.pixel = XcPixelValue(ws, idx);
 
-    /* check the validity of the index value */
+	if (colour_ret.pixel != COLOR_UNSET)
+	{
+	    /* get the RGB values */
+	    XQueryColor(ws->dpy, ws->clmp, &colour_ret);
 
-    dpy = ws->dpy;
+	    /* set the returned RGB values */
+	    rep->red = (Gfloat) colour_ret.red / 65535.0;
+	    rep->green = (Gfloat) colour_ret.green / 65535.0;
+	    rep->blue = (Gfloat) colour_ret.blue / 65535.0;
 
-    /*
-     * Removed check for valid idx here because that check has already been
-     * done before this routine is called
-     */
+	    retcode = OK;
+	}
 
-    /* get the RGB values */
-    if(!AllocColour) /* if allocating cells don't reallocate */{
-      colour_ret.pixel = XcPixelValue(ws, idx);
-      XQueryColor(dpy, realdclmp, &colour_ret);
-      /*      colour_ret.flags=DoRed|DoGreen|DoBlue;
-	      XAllocColor(dpy, realdclmp, &colour_ret);*/
-    }
-    else{
-      colour_ret.pixel = XcPixelValue(ws, idx);
-      XQueryColor(dpy, realdclmp, &colour_ret);
+	(void) XgksSIGIO_ON(ws->dpy);
     }
 
-    /* set the returned RGB values */
-
-    rep->red = (Gfloat) colour_ret.red / 65535.0;
-    rep->green = (Gfloat) colour_ret.green / 65535.0;
-    rep->blue = (Gfloat) colour_ret.blue / 65535.0;
-
-    (void) XgksSIGIO_ON(ws->dpy);
-
-    return 0;
+    return retcode;
 }
 
 
 /*
- * WHAT:   Create a new instance of the color-index mapping abstraction.
- *
- * HOW:    Set the color-mapping tables in the GKS workstation-
- *         structure to NULL.
- *
- * INPUT:  Pointer to a GKS workstation-structure with assumed garbage
- *	   in the mapping-table member.
- *
- * OUTPUT: Success flag.
+ * Initializes memory for a new GKS <-> X color mapping data structure.
  */
+    void
 XcNew(ws)
-    WS_STATE_PTR    ws;			/* the GKS workstation */
+    WS_STATE_PTR    ws;			/* the GKS workstation (in/out) */
 {
     assert(ws != NULL);
-    
-    ws->XcMap.NumEntries	= 0;
-    ws->XcMap.ToX.rgb		= NULL;
-    ws->XcMap.ToGKS.rgb		= NULL;
-    ws->XcMap.ToX.color		= NULL;
-    ws->XcMap.ToGKS.color	= NULL;
-    return 1;
+    XcMap_new(&ws->XcMap);
+    &ws->XcMap;
+    ws->clmp = 0;
+    ws->hasColor = 0;
+    ws->colorCount = 0;
+    ws->predefinedColorCount = 0;
 }
 
 
 /*
- * WHAT:   Initialize the color-mapping for the given display.
+ * Initialize the color-mapping for the given display by setting the components
+ * of the workstation entry.
  *
- * HOW:    Allocate storage for the forward and inverse color-mapping tables
- *	   and set them to the identity transform (except for the GKS
- *	   foreground and background colors wich will have the following
- *	   mapping:
- *		GKS background <-> X WhitePixel()
- *		GKS foreground <-> X BlackPixel().
- *	   The size of the tables are based on the number of colors for the
- *	   workstation and the visual class.
- *
- * INPUT:  Pointer to a GKS workstation-structure with assumed garbage
- *	   in the color-mapping member and a visual information structure.
- *
- * OUTPUT: Success flag and modified GKS workstation-structure (color-mapping
- *	   member is initialized).
+ * @return		0 if and only if failure.
  */
-XcInit(ws, vinfo)
-    WS_STATE_PTR    ws;			/* the GKS workstation */
-    XVisualInfo    *vinfo;		/* visual info for window */
+XcInit(ws)
+    WS_STATE_PTR	ws;		/* the GKS workstation (in/out) */
 {
-    int             ReturnStatus = 0;	/* failure */
-    XcMap          *map;
-    XcTable        *ToX, *ToGKS;
-    unsigned        nbytes;
-    XColor Xrep;
+  int			status = 0;	/* failure */
+  int                   i;
 
     assert(ws != NULL);
     assert(ws->dpy != NULL);
-    assert(vinfo != NULL);
 
-    if(!realdclmp)
-      realdclmp = ws->dclmp;
-
-/*    map = &ws->XcMap;*/
-    map = &realmap;
-    ws->XcMap = realmap;
-    ToX = &map->ToX;
-    ToGKS = &map->ToGKS;
-    
-    if(AllocColour && vinfo->colormap_size >AllocNumColours){
-	map->NumEntries = AllocNumColours;
-    }
-    else{
-	AllocColour = 0;
-	map->NumEntries = vinfo->colormap_size;
-    }
-    ive_main_color_list=
-	(unsigned long *)malloc(map->NumEntries * (sizeof(unsigned long)));
-    
-    if (vinfo->class == TrueColor || vinfo->class == DirectColor) {
-      AllocColour = 0;
-    }
-    map->SeparateRGB = 0;
-    
-    nbytes = sizeof(unsigned long) * vinfo->colormap_size;
-    
-    if ((ToX->color = (unsigned long *) malloc((size_t)nbytes)) == NULL) {
-      (void) fprintf(stderr,
-	        "XcInit: Couldn't allocate %u-bytes for GKS-to-X color-map.\n",
-		     nbytes);
-    } else {
-      if ((ToGKS->color = (unsigned long *) malloc((size_t)nbytes)) 
-	  == NULL) {
-	(void) fprintf(stderr,
-	    "XcInit: Couldn't allocate %u-bytes for X-to-GKS color-map.\n",
-		       nbytes);
-      } else {
-	register int       i,status;
+    {
+	Display*        dpy = ws->dpy;	/* for convenience */
+	int		screenNum = DefaultScreen(dpy);
+	Visual*		defaultVisual = DefaultVisual(dpy, screenNum);
+	XVisualInfo	vinfo;
+	XcMap          *map;
 	unsigned long mask[1];
-	
-	/* Initialize mapping table with trivial mapping */
+	XColor          Xrep;		/* X color-representation */
+	/* Find visual information that matches the default. */
+	{
+	    int		numMatched;
+	    XVisualInfo	visualTemplate;
+	    XVisualInfo	*visualList;
+
+	    visualTemplate.screen = screenNum;
+	    visualTemplate.visualid = defaultVisual->visualid;;
+	    visualList =
+		XGetVisualInfo(
+		    dpy,
+		    VisualScreenMask | VisualIDMask, &visualTemplate,
+		    &numMatched);
+	    vinfo = visualList[0];
+	    XFree(visualList);
+	}
+	map = &realmap;
+        map->length = vinfo.colormap_size;
+
+	if(AllocColour && vinfo.colormap_size >AllocNumColours){
+	  map = &realmap;
+	  map->length = AllocNumColours;
+	}
+	else{
+        AllocColour = 0;
+	}
+	if (vinfo.class == TrueColor || vinfo.class == DirectColor) {
+	  AllocColour = 0;
+	}
 	if(AllocColour){
+
 	  mask[0]=0;
-	  if(!XAllocColorCells(ws->dpy,realdclmp,FALSE,mask,0,
-			       ToX->color,map->NumEntries)){
-	    perror("error allocating color map\n");
-	    AllocColour = 0;
+	  if(XcMap_init(&realmap, map->length)){
+	    ws->XcMap = realmap;
+	    if(!XAllocColorCells(ws->dpy,realdclmp,FALSE,mask,0,
+				 map->Xpixels,map->length)){
+	      perror("error allocating color map\n");
+	      AllocColour = 0;
+	      ws->clmp = 0;
+	      goto oops;
+	    }
+	    for (i = 0; i < map->length; ++i){
+	      map->GKSindexes[i] = i;
+	    }
+	    /* Set background GKS -> WhitePixel() */
+	    Xrep.red = 1;
+	    Xrep.green = 1;
+	    Xrep.blue = 1;
+	    Xrep.flags=DoRed|DoGreen|DoBlue;
+	    Xrep.pixel = map->Xpixels[0];
+	    XStoreColor(ws->dpy,realdclmp,&Xrep);
+	    /* Set foreground GKS -> BlackPixel() */
+	    Xrep.red = 0;
+	    Xrep.green = 0;
+	    Xrep.blue = 0;
+	    Xrep.pixel = map->Xpixels[1];
+	    XStoreColor(ws->dpy,realdclmp,&Xrep);
+	    ws->clmp=realdclmp;
+	    ws->vinfo=vinfo;
+	    status=1;
 	  }
 	}
-	if(AllocColour){
-	  for (i = 0; i < map->NumEntries; ++i){
-	    ToGKS->color[i] = i;
-	    ive_main_color_list[i]=ToX->color[i];
-	  }
-	}
-	else{
-	  for (i = 0; i < vinfo->colormap_size; ++i){
-	    ToX->color[i] = ToGKS->color[i] = i;
-	    ive_main_color_list[i]=ToX->color[i];
-	  }
-	}
-	
-	/* Set background GKS -> WhitePixel() */
-	if(AllocColour){
-	  Xrep.red = 1;
-	  Xrep.green = 1;
-	  Xrep.blue = 1;
-	  Xrep.flags=DoRed|DoGreen|DoBlue;
-	  Xrep.pixel = ToX->color[0];
-	  XStoreColor(ws->dpy,realdclmp,&Xrep);
-	}
-	else{
-	  Xrep.red = 1;
-	  Xrep.green = 1;
-	  Xrep.blue = 1;
-	  Xrep.flags=DoRed|DoGreen|DoBlue;
-	  XAllocColor(ws->dpy, realdclmp, &Xrep);
-	  ToX->color[0] = Xrep.pixel;
-	}
-
-	/* Set foreground GKS -> BlackPixel() */
-	if(AllocColour){
-	  Xrep.red = 0;
-	  Xrep.green = 0;
-	  Xrep.blue = 0;
-	  Xrep.pixel = ToX->color[1];
-	  XStoreColor(ws->dpy,realdclmp,&Xrep);
-	}
-	else{
-	  Xrep.red = 0;
-	  Xrep.green = 0;
-	  Xrep.blue = 0;
-	  Xrep.flags=DoRed|DoGreen|DoBlue;
-	  XAllocColor(ws->dpy, realdclmp, &Xrep);
-	  ToX->color[1] = Xrep.pixel;
-	}
-
-	if(!AllocColour){
-	  /* Set WhitePixel() -> background GKS */
-	  ToGKS->color[1] = 0;
+    oops:
+	if(AllocColour==0){
+	  if(ws->clmp == 0)
+	    ws->clmp = DefaultColormap(dpy, DefaultScreen(dpy));
+	  assert(ws->hasColor == 0);
+	  ws->hasColor = vinfo.class != StaticGray && vinfo.class != GrayScale;
 	  
-	  /* Set BlackPixel() -> foreground GKS */
-	  ToGKS->color[1] = 1;
-	}
-	ReturnStatus = 1;
-      }
-    }
-    
+	  if (XcMap_init(&realmap, map->length))
+	    {
+	      ws->XcMap = realmap;
+	      ws->colorCount = XcMap_size(&ws->XcMap);
+	      ws->predefinedColorCount = ws->colorCount;
+	      ws->vinfo = vinfo;
+	      ws->screenNum = screenNum;
+	      //XcMap_enter(
+	      //	  map, GKS_BACKGROUND_INDEX, BlackPixel(dpy, screenNum));
+	      //map=&ws->XcMap;
+	      //XcMap_enter(
+	      //	  map, GKS_FOREGROUND_INDEX, WhitePixel(dpy, screenNum));
+	      Xrep.red = 1;
+	      Xrep.green = 1;
+	      Xrep.blue = 1;
+	      Xrep.flags=DoRed|DoGreen|DoBlue;
+	      if (XAllocColor(ws->dpy, ws->clmp, &Xrep)) {
+		map->Xpixels[1]=Xrep.pixel;
+		map->GKSindexes[Xrep.pixel]=1;
+	      }
+	      Xrep.red = 0;
+	      Xrep.green = 0;
+	      Xrep.blue = 0;
+	      Xrep.flags=DoRed|DoGreen|DoBlue;
+	      if (XAllocColor(ws->dpy, ws->clmp, &Xrep)) {
+		map->Xpixels[0]=Xrep.pixel;
+		map->GKSindexes[Xrep.pixel]=0;
+	      }
 
-    return ReturnStatus;
+
+	      status = 1;		/* success */
+	    }
+	}
+    }
+
+    return status;
 }
 
 
 /*
- * Compute the color-index multiplier corresponding to a color-mask.
- * See chapter 7 (Color) in the Xlib Programming Manual for a discussion
- * of these concepts.
+ * Copy color information from one structure to another.
  */
-    static unsigned long
-MaskToMult(mask)
-    unsigned long   mask;
+    void
+XcCopy(toWs, fromWs)
+    WS_STATE_PTR	toWs;
+    WS_STATE_PTR	fromWs;
 {
-    unsigned long   mult;
-
-    for (mult = 1; mult != 0; mult <<= 1)
-	if (mask & mult)
-	    break;
-
-    return mult;
+    toWs->clmp = fromWs->clmp;
+    toWs->hasColor = fromWs->hasColor;
+    toWs->colorCount = fromWs->colorCount;
+    toWs->predefinedColorCount = fromWs->predefinedColorCount;
+    XcMap_copy(&toWs->XcMap, &fromWs->XcMap);
 }
 
 
 /*
  * WHAT:   Set the color associated with a GKS color-index.
  *
- * HOW:	   Get the X-server color in the default X colormap that is closest
- *	   to the desired GKS color and store it in the mapping tables.
+ * HOW:    Get the X-server color in the workstation X colormap that is
+ *         closest to the desired GKS color and store it in the mapping
+ *         tables.
  *
  * INPUT:  Pointer to a GKS workstation-structure; a GKS color-index;
  *	   and a GKS representation of the desired color.
  *
- * OUTPUT: Success flag (0 => failure) and modified color-index mapping-table.
+ * OUTPUT: Return value:
+ *		 0	Error
+ *		 1	Success
  */
 XcSetColour(ws, GKSindex, GKSrep)
     WS_STATE_PTR    ws;			/* the GKS workstation */
@@ -413,90 +652,40 @@ XcSetColour(ws, GKSindex, GKSrep)
 {
     int             ReturnStatus = 0;	/* failure */
     XColor          Xrep;		/* X color-representation */
+    XcMap	   *map;		/* for convenience */
 
     assert(ws != NULL);
+    assert(ws->dpy != NULL);
     assert(GKSindex >= 0);
     assert(GKSrep != NULL);
 
-    /* Convert GKS [0.-1.] representation to X (unsigned short) rep. */
+    map = &ws->XcMap;
+
+    /*
+     * Convert a GKS colour representation [0.0-1.0] to an X color
+     * representation (unsigned short).
+     */
     Xrep.red = 65535 * GKSrep->red;
     Xrep.green = 65535 * GKSrep->green;
     Xrep.blue = 65535 * GKSrep->blue;
-    Xrep.flags = DoRed|DoGreen|DoBlue;
 
     /*
-     * Get the X-server color closest to the desired GKS one and save its
-     * color-cell index (i.e. pixel-value) in the table.  Also, set the
-     * inverse (i.e. X-to-GKS) color-transformation
+     * Allocate the X-server color closest to the desired GKS one and save the
+     * GKS <-> X mapping.
      */
-    if(!AllocColour){
-      /*      if (XAllocColor(ws->dpy, ws->dclmp, &Xrep)) {*/
-      if (XAllocColor(ws->dpy, realdclmp, &Xrep)) {
-	/*	  XcMap          *map = &ws->XcMap;	*/
-          XcMap          *map = &realmap;
-	  XcTable        *ToX = &map->ToX;
-	  XcTable        *ToGKS = &map->ToGKS;
-
-	  if (map->SeparateRGB) {
-	    ToX->rgb[IRED(map, GKSindex)].red
-	      = (unsigned) IRED(map, Xrep.pixel);
-	    ToX->rgb[IGRN(map, GKSindex)].green
-	      = (unsigned) IGRN(map, Xrep.pixel);
-	    ToX->rgb[IBLU(map, GKSindex)].blue
-	      = (unsigned) IBLU(map, Xrep.pixel);
-	    
-	    ToGKS->rgb[IRED(map, Xrep.pixel)].red
-	      = (unsigned) IRED(map, GKSindex);
-	    ToGKS->rgb[IGRN(map, Xrep.pixel)].green
-	      = (unsigned) IGRN(map, GKSindex);
-	    ToGKS->rgb[IBLU(map, Xrep.pixel)].blue
-	      = (unsigned) IBLU(map, GKSindex);
-	    ToX->rgb[IRED(map, GKSindex)].red=Xrep.red;
-	    ToX->rgb[IRED(map, GKSindex)].green=Xrep.green;
-	    ToX->rgb[IRED(map, GKSindex)].blue=Xrep.blue;
-
-	    ToGKS->rgb[IRED(map, GKSindex)].red=Xrep.red;
-	    ToGKS->rgb[IRED(map, GKSindex)].green=Xrep.green;
-	    ToGKS->rgb[IRED(map, GKSindex)].blue=Xrep.blue;
-	    ive_main_color_list[GKSindex]=Xrep.pixel;
-	  } else {
-	    ToX->color[GKSindex] = Xrep.pixel;
-	    ToGKS->color[GKSindex] = (unsigned long) GKSindex;
-	  }
-
-	  ReturnStatus = 1;
-
-    } else {
-	  static int	SecondTry	= 0;	/* second attempt? */
-
-	  if (SecondTry) {
-	      (void) fprintf(stderr,
-		    "XcSetColour: Couldn't allocate X color: RGB = %u %u %u.\n",
-			   Xrep.red, Xrep.green, Xrep.blue);
-	  } else {
-	      unsigned long	pixel	= XcPixelValue(ws, GKSindex);
-	      unsigned long	planes	= 0;
-#if defined(IRIX)
-	      XFreeColors(ws->dpy, ws->dclmp, &pixel, 1, planes);
-#else
-	      if (XFreeColors(ws->dpy, ws->dclmp, &pixel, 1, planes) == 0) {
-		  SecondTry	= 1;
-		  ReturnStatus	= XcSetColour(ws, GKSindex, GKSrep);
-		  SecondTry	= 0;
-	      }
-#endif
-	  }
-      }
+    if(AllocColour){
+      Xrep.pixel = map->Xpixels[GKSindex];
+      XStoreColor(ws->dpy,realdclmp,&Xrep);
+      ReturnStatus = 1;
     }
     else{
-/*	XcMap          *map = &ws->XcMap;*/
-	XcMap          *map = &realmap;
-	XcTable        *ToX = &map->ToX;
-	Xrep.pixel = ToX->color[GKSindex];
-	Xrep.flags = DoRed|DoGreen|DoBlue;
-	XStoreColor(ws->dpy,realdclmp,&Xrep);
+      if (XAllocColor(ws->dpy, ws->clmp, &Xrep)) {
+	ws->XcMap.Xpixels[GKSindex]=Xrep.pixel;
+	//ws->XcMap.GKSindexes[Xrep.pixel] =  GKSindex;
+	//XcMap_enter(map, GKSindex, Xrep.pixel);
+	ReturnStatus = 1;		/* success */
+      }
     }
-
     return ReturnStatus;
 }
 
@@ -505,49 +694,30 @@ XcSetColour(ws, GKSindex, GKSrep)
  * WHAT:   Map a GKS color-index to an X pixel-value (i.e. color-cell
  *	   index).
  *
- * HOW:	   Use the GKS-to-X color-mapping to determine the pixel-value
- *	   -- either by simple lookup (for non true-color visuals) or
- *	   by computation (for true-color visuals).
+ * HOW:	   Use the GKS-to-X mapping to determine the pixel-value.
  *
  * INPUT:  Pointer to a GKS workstation-structure WITH A VALID DISPLAY (i.e.
  *	   with valid "dpy").
  *
- * OUTPUT: X pixel-value corresponding to GKS color-index.  Out-of-range
- *	   GKS color-indices are mapped to the nearest X pixel-value.
+ * OUTPUT: Return value:
+ *		-1	Color corresponding to GKS colour index is undefined
+ *		else	X pixel-value corresponding to GKS colour-index.
+ *			Out-of-range GKS color-indices are mapped to the
+ *			nearest limit.
  */
-    unsigned long
+    long
 XcPixelValue(ws, ColourIndex)
     WS_STATE_PTR    ws;			/* the GKS workstation */
     Gint            ColourIndex;	/* GKS color-index */
 {
-    XcMap          *map;		/* color mapping */
-    unsigned long   PixelValue;		/* returned value */
-
-    assert(ws != NULL);
-    assert(ColourIndex >= 0);
-
-/*    map = &ws->XcMap;*/
-    map = &realmap;
-
-    assert(map != NULL);
-
-    if (ColourIndex < 0) {
-	ColourIndex = 0;
-    } else if (ColourIndex >= map->NumEntries) {
-	ColourIndex = map->NumEntries - 1;
-    }
-    PixelValue = (unsigned long) COLOR(map, &map->ToX, ColourIndex);
-
-    return PixelValue;
+    return XcMap_pixel(&ws->XcMap, ColourIndex);;
 }
 
 
 /*
  * WHAT:   Map an X pixel-value (i.e. color-cell index) to an GKS colour-index.
  *
- * HOW:	   Use the X-to-GKS color-mapping to determine the pixel-value
- *	   -- either by simple lookup (for non true-color visuals) or
- *	   by computation (for true-color visuals).
+ * HOW:	   Use the X-to-GKS mapping to determine the GKS colour-index.
  *
  * INPUT:  Pointer to a GKS workstation-structure WITH A VALID DISPLAY (i.e.
  *	   with valid "dpy").
@@ -560,29 +730,15 @@ XcColourIndex(ws, PixelValue)
     WS_STATE_PTR    ws;			/* the GKS workstation */
     unsigned long   PixelValue;		/* X pixel-value */
 {
-    XcMap          *map;		/* color mapping */
-    Gint            ColourIndex;	/* returned value */
-
-    assert(ws != NULL);
-
-/*    map = &ws->XcMap;*/
-    map = &realmap;
-
-    assert(map != NULL);
-
     if(AllocColour){
-	for(ColourIndex = 0; ColourIndex  <  map->NumEntries; ColourIndex++)
- 	  if (PixelValue == map->ToX.color[ColourIndex])break;
-
-	/* note: still returns bad pix val if no match */
+      XcMap          *map=&realmap;                /* color mapping */
+      Gint            ColourIndex;        /* returned value */
+      for(ColourIndex = 0; ColourIndex  <  map->length; ColourIndex++)
+	if (PixelValue == map->Xpixels[ColourIndex])break;
+      return(ColourIndex);
     }
-    else{
-	if (PixelValue >= map->NumEntries)
-	  PixelValue = map->NumEntries - 1;
-
-	ColourIndex = (unsigned long) COLOR(map, &map->ToGKS, PixelValue);
-    }
-    return ColourIndex;
+    else
+      return XcMap_index(&ws->XcMap, PixelValue);
 }
 
 
@@ -590,10 +746,9 @@ XcColourIndex(ws, PixelValue)
  * WHAT:   Terminate use of the mapping-table in the given workstation
  *	   structure.
  *
- * HOW:	   Free-up allocated storage, if necessary, and set the mapping-tables
- *	   to NULL pointers.
+ * HOW:	   Deallocate X colorcells and release allocated storage.
  *
- * INPUT:  Pointer to a GKS workstation-structure WITH A NON-GARBAGE "XcTable"
+ * INPUT:  Pointer to a GKS workstation-structure WITH A NON-GARBAGE "XcMap"
  *	   MEMBER.
  *
  * OUTPUT: Success flag and modified workstation structure with NULL mapping-
@@ -602,38 +757,17 @@ XcColourIndex(ws, PixelValue)
 XcEnd(ws)
     WS_STATE_PTR    ws;			/* the GKS workstation */
 {
-    XcMap          *map;
-    XcTable        *ToX, *ToGKS;
-
     assert(ws != NULL);
+    {
+	XcMap	*map = &ws->XcMap;
+	if(AllocColour){
+	  XFreeColors(ws->dpy,realdclmp,map->Xpixels,map->length,0);
+	}
 
-/*    map = &ws->XcMap;*/
-    map = &realmap;
-    ToX = &map->ToX;
-    ToGKS = &map->ToGKS;
-
-    if (map->SeparateRGB) {
-	if (ToX->rgb != NULL) {
-	    ufree((voidp)ToX->rgb);
-	    ToX->rgb = NULL;
-	}
-	if (ToGKS->rgb != NULL) {
-	    ufree((voidp) ToGKS->rgb);
-	    ToGKS->rgb = NULL;
-	}
-    } else {
-	if (ToX->color != NULL) {
-	    if(AllocColour)
-	      XFreeColors(ws->dpy,realdclmp,ToX->color,map->NumEntries,0);
-	    ufree((voidp) ToX->color);
-	    ToX->color = NULL;
-	}
-	if (ToGKS->color != NULL) {
-	    ufree((voidp)ToGKS->color);
-	    ToGKS->color = NULL;
-	}
+	assert(map != NULL);
+	XcMap_destroy(map);
     }
-
+    XcNew(ws);
     return 1;
 }
 
@@ -676,31 +810,23 @@ Colormap
 unsigned long IveGetPixel(i)
     int i;
 {
-  if(i<realmap.NumEntries){
-    if(AllocColour){
-      return(ive_main_color_list[i]);
-    }
-    else{
-      XcMap          *map;
-      XcTable        *ToX;
+  XcMap          *map;
   
-      map = &realmap;
-      ToX = &map->ToX;
-      return(ToX->colour[i]);
-    }
+  map = &realmap;
+
+  if(i<map->length){
+    //printf("got %d\n",map->Xpixels[i]);
+    return(map->Xpixels[i]);
   }
   return((unsigned long)0);
 }
-
 void IVE_TO_X(i, pixel)
      int i;
      unsigned long pixel;
 {
   XcMap          *map;
-  XcTable        *ToX;
   
   map = &realmap;
-  ToX = &map->ToX;
-  ToX->color[i] = pixel;
+  map->Xpixels[i] = pixel;
+  //map->GKSindexes[pixel] =  i;
 }
-

@@ -35,7 +35,7 @@
  *
  * This header-file depends upon header-file "wslist.h".
  * 
- * $Id: gkslist.h,v 1.1.1.1 1993/04/07 19:40:58 harry Exp $
+ * $Id: gkslist.h,v 2.5.4.1 1993/03/10 19:44:19 steve Exp $
  * $__Header$
  */
 

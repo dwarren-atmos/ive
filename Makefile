@@ -434,15 +434,15 @@ endif
 
 CFLAGS = ${COPT} -I${PWD}/h -I$/usr/include/FTGL ${DEC} ${DOBETA}\
 	-I${PWD}/h/haru ${UDPOSIX_INCLUDE} ${BROWSER}
-FFLAGS = ${FOPT} ${FDEC} ${ALPHA} ${FCPP}
+FFLAGS = ${FOPT} ${FDEC} ${ALPHA} ${FCPP} -I${PWD}/h
 #
 #
 
 #
 ifdef MEMDBG 
-LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a -lmcheck
+LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a Lib_VTK_IO/static/Lib_VTK_IO.a -lmcheck
 else
-LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a 
+LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a Lib_VTK_IO/static/Lib_VTK_IO.a
 endif
 #
 #
@@ -469,6 +469,9 @@ netcdf:
 trans:
 	${MAKE} -C ./trans CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} LDFLAGS="${LDFLAGS}" link
+
+vtkio:
+	${MAKE} -C ./Lib_VTK_IO "FC=${F77}" OPT_INT="${COPT} -ipo -inline all -ipo-jobs4 -vec-report1" DEBUG=yes
 #
 #
 clean:
@@ -479,13 +482,16 @@ clean:
 	cd netcdf; ${MAKE} clean; cd ..
 	cd trans; ${MAKE}  clean; cd ..
 	cd X; ${MAKE}  clean; cd ..
-
+	cd Lib_VTK_IO; ${MAKE}  clean; cd ..
 #
 #
 #
 
 IVE:  
 	${MAKE} -C ./h CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
+	${MAKE} -C ./Lib_VTK_IO "FC=${F77}"
+	/bin/rm -f ./h/ir_precision.mod .h/lib_base64.mod .h/lib_pack_data.mod .h/lib_vtk_io.mod
+	cp Lib_VTK_IO/ir_precision.mod Lib_VTK_IO/lib_base64.mod Lib_VTK_IO/lib_pack_data.mod Lib_VTK_IO/lib_vtk_io.mod ./h/
 	${MAKE} -C ./src CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" KF77="${KF77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" machine="${machine}"
 	${MAKE} -C ./gks CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
 	${MAKE} -C ./haru CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
@@ -511,4 +517,5 @@ PROOF:
 # dependencies
 .PHONY:gks haru X src netcdf trans clean all link
 #
+
 

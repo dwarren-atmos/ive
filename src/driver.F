@@ -727,6 +727,9 @@ c           Command AXES.
          elseif (keynum .eq.  P_BIG_LABELS) then
 c           COMMAND BIG_LABELS
             call setbl(error)
+         elseif (keynum .eq. P_CLOSE_3D) then
+c	    Command CLOSE_3D.
+            call ive_close_3dfile(error)
          elseif (keynum .eq.  P_COLOR_BAR) then
             call set_color_bar (error)
          elseif (keynum .eq.  P_CONTOUR_INTERVAL) then
@@ -1030,6 +1033,10 @@ c           Command NULBLL.
             if((iflag .eq. 0) .and. .not.error) then 
                call ui_update (NUNLAB_UI)
             endif
+         elseif (keynum .eq. P_OPEN_3D) then
+c	    Command OPEN_3D.
+            call save_3d_filename(error)
+            call ive_create_3dfile(error)
          elseif (keynum .eq. P_ORDINATE .or.
      &           keynum .eq. P_VERTICAL_SCALE) then
 c           Command ORDINATE.
@@ -1128,6 +1135,10 @@ c           Command SCALE_VECTOR
             if ((iflag .eq. 0) .and. .not.error) then
                call ui_update(VSCALE_UI)
             endif
+         elseif  (keynum .eq. P_SHIFTCTB) then
+c     Command SHIFTCTB.
+            call setsvl (error)
+            call shiftctb
          elseif  (keynum .eq. P_SINGLEVALUE) then
 c           Command SINGLEVALUE.
             call setsvl (error)
@@ -1459,6 +1470,10 @@ c           Command WRITE_FRAME.
          elseif (keynum .eq. P_WRITE_1D) then
 c	    Command WRITE_1D.
             call write_1d(error)
+         elseif (keynum .eq. P_WRITE_3D) then
+c	    Command WRITE_3D.
+            call write_3d(%val(varpt1), cpmax1, cpmax2, cpmax3,
+     &           cpmax4,error)
          elseif (keynum .eq. P_XLOCATION) then
 c           Command XLOCATION.
             keepit = lock(1)
