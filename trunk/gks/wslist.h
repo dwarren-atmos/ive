@@ -36,12 +36,16 @@
  * This header-file depends upon header-files "gks_defines.h", "primitive.h",
  * and "wdt.h".
  *
- * $Id: wslist.h,v 1.1.1.1 1993/04/07 19:41:01 harry Exp $
+ * $Id: wslist.h,v 2.6 2000/08/01 16:38:05 steve Exp $
  */
 
 
 #ifndef  WSLIST_H
 #define  WSLIST_H
+
+
+#include <X11/cursorfont.h>
+#include <X11/Xresource.h>	/* for XrmDatabase */
 
 
 /*
@@ -81,7 +85,15 @@ extern DashList xgksDASHES[10];		/* defined in xpline.c */
 typedef struct Xwindow {
     struct ws_struct
 		   *ws;			/* (Enclosing) workstation entry */
+    XrmDatabase     rDB;                /* resource database */
     Display        *dpy;		/* the display ID */
+    Cursor          locateCursor;	/* LOCATOR cursor */
+    Cursor          strokeCursor;	/* STROKE cursor */
+    Cursor          valueCursor;	/* VALUATOR cursor */
+    Cursor          choiceCursor;	/* CHOICE cursor */
+    Cursor          pickCursor;		/* PICK cursor */
+    Cursor          stringCursor;	/* TEXT cursor */
+    Cursor          idleCursor;		/* default cursor */
     Window          win;		/* the window ID */
     unsigned long   event_mask;		/* the initial window event mask */
     GC              gc;			/* the window graphics context */
@@ -89,11 +101,14 @@ typedef struct Xwindow {
     GC              pmarkgc;		/* primitives */
     GC              fillareagc;
     GC              textgc;
-    Colormap        dclmp;		/* the screen default colour map ID */
-    Colormap        wclmp;		/* the window colourmap ID */
+    Colormap        clmp;		/* the window colourmap ID */
+    int		    hasColor;		/* workstation has color? */
+    Gint	    colorCount;		/* number of available colors */
+    Gint	    predefinedColorCount;
+					/* number of predefined colors */
+    XVisualInfo	    vinfo;		/* information on visual */
+    int		    screenNum;		/* X screen number */
     Gpoint          wbound;		/* Current x window bound */
-    Gint            wscolour;		/* Number of available colours on the
-					 * ws */
     Gcobundl       *set_colour_rep;	/* colours set by user */
     Gint            wsfg, wsbg;		/* foreground and background pixel
 					 * values */
@@ -110,6 +125,7 @@ typedef struct Xwindow {
     XcMap           XcMap;		/* GKS <-> X color-mapping */
     int             soft_clipping_on;   /* soft-clipping is enabled? */
     int		    backing_store_on;	/* backing-store is enabled? */
+    int		    beep_on;		/* beep on interactive input? */
 }               Xwindow;
 
 
@@ -248,7 +264,15 @@ typedef struct ws_struct {
      * X-specific stuff.  NB: this should be unioned (and, hopefully, will
      * eventually be) with the Metafile union defined above.
      */
+    XrmDatabase     rDB;                /* resource database */
     Display        *dpy;		/* the display ID */
+    Cursor          locateCursor;	/* LOCATOR cursor */
+    Cursor          strokeCursor;	/* STROKE cursor */
+    Cursor          valueCursor;	/* VALUATOR cursor */
+    Cursor          choiceCursor;	/* CHOICE cursor */
+    Cursor          pickCursor;		/* PICK cursor */
+    Cursor          stringCursor;	/* TEXT cursor */
+    Cursor          idleCursor;		/* default cursor */
     Window          win;		/* the window ID */
     unsigned long
                     event_mask;		/* the initial window event mask */
@@ -257,11 +281,14 @@ typedef struct ws_struct {
     GC              pmarkgc;		/* primitives */
     GC              fillareagc;
     GC              textgc;
-    Colormap        dclmp;		/* the screen default colour map ID */
-    Colormap        wclmp;		/* the window colourmap ID */
+    Colormap        clmp;		/* the window colourmap ID */
+    int		    hasColor;		/* workstation has color? */
+    Gint	    colorCount;		/* number of available colors */
+    Gint	    predefinedColorCount;
+					/* number of predefined colors */
+    XVisualInfo	    vinfo;		/* information on visual */
+    int		    screenNum;		/* X screen number */
     Gpoint          wbound;		/* Current x window bound */
-    Gint            wscolour;		/* Number of available colours on the
-					 * ws */
     Gcobundl       *set_colour_rep;	/* colours set by user */
     Gint            wsfg, wsbg;		/* foreground and background pixel
 					 * values */
@@ -278,6 +305,7 @@ typedef struct ws_struct {
     XcMap           XcMap;		/* GKS <-> X color-mapping */
     int             soft_clipping_on;	/* soft-clipping is enabled? */
     int		    backing_store_on;	/* backing-store is enabled? */
+    int		    beep_on;		/* beep on interactive input? */
 }              *WS_STATE_PTR, WS_STATE_ENTRY;
 
 
@@ -383,12 +411,11 @@ extern WS_STATE_PTR    XgksValidWsId		PROTO((Gint ws_id));
 /*
  * Procedural interface to the GKS <-> X color-mapping abstraction:
  */
-extern int	XcNew		PROTO((WS_STATE_PTR XcWs));
+extern void	XcNew		PROTO((WS_STATE_PTR XcWs));
 extern int	XcInit		PROTO((WS_STATE_PTR XcWs, XVisualInfo *vinfo));
 extern int	XcSetColour	PROTO((WS_STATE_PTR XcWs, Gint ColourIndex,
 				       Gcobundl *XcRep));
-extern unsigned long	
-	    	XcPixelValue    PROTO((WS_STATE_PTR XcWs, Gint ColourIndex));
+extern long	XcPixelValue    PROTO((WS_STATE_PTR XcWs, Gint ColourIndex));
 extern Gint	XcColourIndex	PROTO((WS_STATE_PTR XcWs,
 				       unsigned long PixelValue));
 extern int	XcEnd		PROTO((WS_STATE_PTR XcWs));

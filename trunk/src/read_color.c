@@ -13,6 +13,8 @@
 #include <ive_gks.h>
 #include <ive_macros.h>
 #include <ive_color.h>
+extern Widget Box;
+extern Colormap cmap; 
 
 /*
 -----------------------------------------------------------------------
@@ -134,7 +136,6 @@ void read_color_table(inname,min,max,iscontour)
     int r,g,b;
     Gcobundl bundle;
     char buf[80];
-    extern Widget Box;
     
     if((in = fopen(inname,"r")) == 0)
       {
@@ -318,3 +319,118 @@ void wttrajctab_ (error)
   }
 }
     
+void shiftctb_ (error)
+     int *error;
+{
+  char **argv, **get_args(), buff[MAXPATHLEN+1];
+  int argc;
+  *error = 0;
+  XColor bundle,extrab;
+  int i;
+  int minclr,maxclr;
+  int shifted, shifts;
+  argv = get_args(&argc);
+  if(argc < 3){
+    *error=1;
+    (void)make_help_widget_("SHIFTCTB requires a directoion [L/R] and an value");
+    return;
+  }
+  shifts=atoi(argv[2]);
+  if(argv[1] != NULL){
+    //   if(colortabletodo){
+    //minclr = user_colors_.min_traj_color;
+    //maxclr = user_colors_.max_traj_color;
+    //}
+    //else{
+    minclr = user_colors_.min_user_color;
+    maxclr = user_colors_.max_user_color;
+    //}
+    
+    if(IVE_TRUE_COLOR)
+      {
+	/* this should work for either true or direct color*/
+	unsigned long *pix;
+	int modval;
+	modval = maxclr - minclr +1;
+	pix = (unsigned long *)malloc(modval * sizeof(unsigned long));
+	if(pix == (unsigned long *)NULL){
+	  (void)make_help_widget_("Can't allocate memory - shift colors");
+	  return;
+	}
+	switch(*argv[1]){
+	case 'R':               /* Shift table to the right */
+	case 'r':               /* Shift table to the right */
+	  for(shifted=0; shifted<shifts; shifted++)
+	    for(i=modval; i>0; i--) /*i=modval is same as i = 0*/
+	      pix[i%modval] = IveGetPixel(minclr +
+					  ((i-1)%modval));
+	  break;
+	case 'L':               /* Shift table to the right */
+	case 'l':               /* Shift table to the right */
+	  for(shifted=0; shifted<shifts; shifted++)
+	    for(i=0; i< modval; i++)
+	      pix[i%modval] = IveGetPixel(minclr +
+					  ((i+1)%modval));
+	  break;
+	default:
+	  *error=1;
+	  (void)make_help_widget_("SHIFTCTB requires a directoion [L/R] and an value");
+	  return;
+	  break;
+	}
+	for(i=0; i< modval; i++)
+	  (void)IVE_TO_X((minclr + i), pix[i]);
+	(void)gredrawsegws(WS_X);
+      }
+    else{
+      bundle.flags=DoRed|DoGreen|DoBlue;
+      extrab.flags=DoRed|DoGreen|DoBlue;
+      switch(*argv[1]){
+      case 'R':         /* Shift table to the right */
+      case 'r':         /* Shift table to the right */
+	for(shifted=0; shifted<shifts; shifted++){
+	  i=maxclr;
+	  extrab.pixel=IveGetPixel(maxclr);
+	  XQueryColor(XtDisplay(Box), cmap, &extrab);
+	  while(i>minclr){
+	    bundle.pixel=IveGetPixel(i-1);
+	    XQueryColor(XtDisplay(Box), cmap, &bundle);
+	    bundle.pixel=IveGetPixel( i);
+	    XStoreColor(XtDisplay(Box), cmap, &bundle);
+	    i--;
+	  }
+	  extrab.pixel=IveGetPixel(minclr);
+	  XStoreColor(XtDisplay(Box), cmap, &extrab);
+	}
+	break;
+      case 'L':         /* Shift table to the left */
+      case 'l':         /* Shift table to the left */
+	for(shifted=0; shifted<shifts; shifted++){
+	  i=minclr;
+	  extrab.pixel=IveGetPixel(minclr);
+	  XQueryColor(XtDisplay(Box), cmap, &extrab);
+	  while(i<maxclr){
+	    bundle.pixel=IveGetPixel(i+1);
+	    XQueryColor(XtDisplay(Box), cmap, &bundle);
+	    bundle.pixel=IveGetPixel(i);
+	    XStoreColor(XtDisplay(Box), cmap, &bundle);
+	    i++;
+	  }
+	  extrab.pixel=IveGetPixel(maxclr);
+	  XStoreColor(XtDisplay(Box), cmap, &extrab);
+	}
+	break;
+	default:
+	  *error=1;
+	  (void)make_help_widget_("SHIFTCTB requires a directoion [L/R] and an value");
+	  return;
+	  break;
+      }
+    }
+  }
+  else{
+    *error=1;
+    (void)make_help_widget_("SHIFTCTB requires a directoion [L/R] and an value");
+  }
+}
+

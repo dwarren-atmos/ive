@@ -144,6 +144,9 @@ int *overlay, *flag;
     }
     for (i=0; i<NVCMND; i++) {
 	if (skip[i]) doit(i);
+	(void)gks_flush_();
+	(void)gks_flush_();
+	(void)gks_flush_();
     }
     (void)gks_flush_();
     (void)gks_flush_();

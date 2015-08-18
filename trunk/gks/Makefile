@@ -83,7 +83,7 @@ FFLAGS = ${FOPT} -u
 
 #
 OBJS = 	XgksWidget.o open_ws.o xopws.o xevent.o segments.o xfillarea.o \
-	xcolours.o fortran_wrap.o
+	xcolours.o fortran_wrap.o escape.o
 #
 #
 all: libIVEgks.a

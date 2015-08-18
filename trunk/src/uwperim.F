@@ -196,10 +196,11 @@ c     Local variable declarations.
 c
       integer    cindex, ierror, ixform, lock(4), numfree, i
       integer    xax, yax
-      logical    fixx, fixy
+      logical    fixx, fixy, error
       real       xcornr, ycornr, wdwbnd, vpbnd, up_rt, lo_lft
       real       wxmin, wxmax, wymin, wymax
-      real       TICLEN
+      real       TICLEN, xoff_unscaled, yoff_unscaled
+      double precision       dslope(4),dinter(4)
       parameter ( TICLEN = 0.015 )
       dimension xcornr(5), ycornr(5), wdwbnd(4), vpbnd(4),
      &          up_rt(2), lo_lft(2)
@@ -214,7 +215,9 @@ c
 c
 c
 c      
-c     
+c
+      call getdarr('domain_slope',dslope,4,error)
+      call getdarr('domain_intercept',dinter,4,error)
       xax = xaxis
       yax = yaxis
       xaxis = mod(xaxis, 10)
@@ -325,20 +328,32 @@ c
 c     Set tic line thickness
       call  gslwsc (tic_width_maj)
 c
+      xoff_unscaled=xoff
+      if(xoff .ne. 0) then
+         if(xaxis .gt.0 .and. xaxis .lt.5) then
+            call unscale (xoff_unscaled, 1, dslope(xaxis),
+     &           dinter(xaxis),0.0)
+         else
+            xoff=0.
+            xoff_unscaled=0.
+         endif
+      endif
       lo_lft(1) = cfuy (vpbnd(3))
       lo_lft(2) = cfuy (vpbnd(3) + TICLEN)
       up_rt(1)  = cfuy (vpbnd(4))
       up_rt(2)  = cfuy (vpbnd(4) - TICLEN) 
       if ( (ixform .eq. 1) .or. (ixform .eq. 2) ) then 
          if (tic_labels .lt. 2 ) then
-            call drxtic (xmajor, lo_lft, up_rt, wxmin, wxmax, .true., 0)
+            call drxtic (xmajor, lo_lft, up_rt, wxmin+xoff_unscaled, 
+     &           wxmax, .true., 0)
          else
-            call drxtic (xmajor, lo_lft, up_rt, wxmin, wxmax, .false.,0)
+            call drxtic (xmajor, lo_lft, up_rt, wxmin+xoff_unscaled,
+     &            wxmax,.false.,0)
          endif
       else
 c         if (type(1:1) .eq. 'S') then
-            call majxtic (nint(xmajor), lo_lft, up_rt, wxmin, wxmax,
-     &                    .true.)
+            call majxtic (nint(xmajor), lo_lft, up_rt, 
+     &        wxmin+xoff_unscaled, wxmax, .true.)
 c         else
 c            call majxtic (nint(xmajor), lo_lft, up_rt, wxmin, wxmax,
 c     &                    .false.)
@@ -352,11 +367,11 @@ c     Set tic line thickness
       lo_lft(2) = cfuy (vpbnd(3) + 0.5 * TICLEN)
       up_rt(2)  = cfuy (vpbnd(4) - 0.5 * TICLEN) 
       if ( (ixform .eq. 1) .or. (ixform .eq. 2) ) then 
-         call drxtic (xminor, lo_lft, up_rt, wxmin, wxmax, .false.,
-     &                xmajor)
+         call drxtic (xminor, lo_lft, up_rt, wxmin+xoff_unscaled, wxmax, 
+     &                .false., xmajor)
       else
-         call minxtic (nint(xminor), nint(xmajor), lo_lft, up_rt, 
-     &        wxmin, wxmax)
+         call minxtic (nint(xminor), nint(xmajor), lo_lft,
+     &        up_rt, wxmin+xoff_unscaled, wxmax)
       endif
 c     
 c     
@@ -365,22 +380,32 @@ c
 c     Set tic line thickness
       call  gslwsc (tic_width_maj)
 c
+            yoff_unscaled=yoff
+      if(yoff .ne. 0) then
+         if(yaxis .gt.0 .and. yaxis .lt.5) then
+            call unscale (yoff_unscaled, 1, dslope(yaxis),
+     &           dinter(yaxis),0.0)
+         else
+            yoff=0.
+            yoff_unscaled=0.
+         endif
+      endif
       lo_lft(1) = cfux (vpbnd(1))
       lo_lft(2) = cfux (vpbnd(1) + TICLEN)
       up_rt(1)  = cfux (vpbnd(2))
       up_rt(2)  = cfux (vpbnd(2) - TICLEN) 
       if ( (ixform .eq. 1) .or. (ixform .eq. 3) ) then
          if (tic_labels .lt. 2) then
-            call drytic (ymajor, lo_lft, up_rt, wymin, wymax, .true.,
-     &                    0)
+            call drytic (ymajor, lo_lft, up_rt, wymin+yoff_unscaled,
+     &            wymax, .true.,0)
          else
-            call drytic (ymajor, lo_lft, up_rt, wymin, wymax, .false.,
-     &                   0)
+            call drytic (ymajor, lo_lft, up_rt, wymin+yoff_unscaled,
+     &            wymax, .false.,0)
          endif
       else
 c         if (type(1:1) .eq. 'S') then
-            call majytic (nint(ymajor), lo_lft, up_rt, wymin, wymax, 
-     &                    .true.)
+            call majytic (nint(ymajor), lo_lft, up_rt, 
+     &        wymin+yoff_unscaled, wymax, .true.)
 c         else
 c            call majytic (nint(ymajor), lo_lft, up_rt, wymin, wymax, 
 c     &                    .false.)
@@ -395,11 +420,11 @@ c
       lo_lft(2) = cfux (vpbnd(1) + 0.5 * TICLEN)
       up_rt(2)  = cfux (vpbnd(2) - 0.5 * TICLEN) 
       if ( (ixform .eq. 1) .or. (ixform .eq. 3) ) then
-         call drytic(yminor, lo_lft, up_rt, wymin, wymax, .false.,
-     &               ymajor)
+         call drytic(yminor, lo_lft, up_rt, wymin+yoff_unscaled, wymax, 
+     &               .false., ymajor)
       else
-         call minytic (nint(yminor), nint(ymajor), lo_lft, up_rt, 
-     &        wymin, wymax)
+         call minytic (nint(yminor), nint(ymajor), lo_lft,
+     &         up_rt, wymin+yoff_unscaled, wymax)
       endif
 c     
 c
@@ -537,7 +562,7 @@ c
 c     
 c     Tic location lies between the bounding world coord values,
 c     so draw tics.
-c     
+c
             call line (point(1), tic1(1), point(1), tic1(2))
             call line (point(2), tic2(1), point(2), tic2(2))
             if (lab) then
@@ -928,7 +953,6 @@ c
       done = .false.
 c
 c
-      write(6,*)'lopt hipt tint',lopt,hipt,tint
       do while( .not. done )
 c
 c        Tics are drawn at ticint intervals, beginning with ive_minval_per.
@@ -937,7 +961,6 @@ c         point(1) = point(1) * 10.0**(tint)
 c     This doesn't make sense to users, 
 c     they think an interval is in height units.
          point(1) = point(1)+tint
-         write(6,*)'point',point
         if(point(1) .le. EPSLON .and. point(1) .ge. 
      &                 (-1 * EPSLON)) point(1) = 0.0
          point(2) = point(1)
@@ -1422,8 +1445,8 @@ c
 c
 c     Convert label to character string, and compute its position.
 c
-      if(axis .eq. 'x')tmp = tmp + xoff
-      if(axis .eq. 'y')tmp = tmp + yoff
+      if(axis .eq. 'x')tmp = tmp
+      if(axis .eq. 'y')tmp = tmp
       if(tic_decimals .lt. 0) then
          call cpnumb(tmp,4,-10000,4,0,'E',' ',' ',1,0,0,0,
      &               1,1,numlab,outnum,outsig,outpow)

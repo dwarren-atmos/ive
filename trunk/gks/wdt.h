@@ -37,7 +37,7 @@
  *
  * This header-file depends upon header-files "xgks.h" and "gks_defines.h".
  * 
- * $Id: wdt.h,v 1.1.1.1 1993/04/07 19:41:01 harry Exp $
+ * $Id: wdt.h,v 2.6 2000/08/01 16:38:05 steve Exp $
  * $__Header$
  */
 
@@ -63,9 +63,7 @@
 
 #define WS_FILL_IMPLEMENT	GHATCH
 
-#define WS_AVAIL_COLOUR(ws, colour) ((((colour)>=0) && \
-				      ((colour)<(ws)->wscolour)) || \
-				     ((ws)->ewstype==MO) || \
-				     ((ws)->ewstype==MI))
+#define WS_AVAIL_COLOUR(ws, colour) (((colour)>=0) && \
+				     ((colour)<(ws)->colorCount))
 
 #endif

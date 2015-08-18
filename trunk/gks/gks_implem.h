@@ -42,17 +42,13 @@
  * This header-file should be included before any "specialty" X header-files
  * that depend upon <X11/Xlib.h>.
  *
- * $Id: gks_implem.h,v 1.3 2002/08/09 19:57:38 warren Exp $
+ * $Id: gks_implem.h,v 2.5.4.1 1993/03/10 19:44:21 steve Exp $
  * $__Header$
  */
 
 #ifndef XGKS_GKS_IMPLEM_H
 #define XGKS_GKS_IMPLEM_H
 
-#include <udposix.h>
-#ifdef Linux
-#include <X11/Xos.h>
-#endif
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>

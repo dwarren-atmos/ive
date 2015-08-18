@@ -109,6 +109,7 @@ c
 c     Local variable declarations.
 c
       integer       ierror, line_index
+      integer       filltyp, freq
       EXTERNAL VVUDMV
 c
 c     Use special value feature.
@@ -134,7 +135,6 @@ c
       call getlvar("defmap",defmap,ierror)
       call getlvar("exact_fit",exact_fit,ierror)
       call getlvar ('mapflg', mapflg, ierror)
-
 c      if (imap.eq.1 .and. .not. (defmap .and. exact_fit)) then
 c         call vvseti('MAP', 4)
 c      else
@@ -207,13 +207,24 @@ c
             call cpnumb(vmx2*yxfactor,4,-10000,4,0,'E',' ',' ',1,0,0,0,
      &           1,1,numlab,outnum,outsig,outpow)
          endif
-         if(dmx .lt. .01) then
-            call vvdraw(vr-dmx, vb-dmx-0.04, vr, vb-dmx-0.04, dmx,
+!         if(dmx .lt. .01) then
+!            call vvdraw(vr-dmx, vb-dmx-0.04, vr, vb-dmx-0.04, dmx,
+!     &           numlab, strend(numlab), 0, 0, 0)
+!         else
+         call getivar('filtyp', filltyp, ierror)
+         write(6,*)ierror,filltyp
+         call getivar('fill_frequency', freq   , ierror)
+         write(6,*)ierror,freq
+!         if(filltyp .eq. 1 .and. freq > 1) then
+            call vvdraw(vr-dmx, vb-.055, vr, vb-.055, dmx,
      &           numlab, strend(numlab), 0, 0, 0)
-         else
-         call vvdraw(vr-dmx, vb-.02, vr, vb-.02, dmx,
-     &        numlab, strend(numlab), 0, 0, 0)
-      endif
+!         else
+!           call vvdraw(vr-dmx, vb-.055, vr, vb-.055, dmx,
+!     &           numlab, strend(numlab), 0, 0, 0)
+ !           call vvdraw(vr-dmx, vb-.02, vr, vb-.02, dmx,
+ !    &           numlab, strend(numlab), 0, 0, 0)
+!         endif
+!      endif
          if (yxfactor .gt. 1) then
             call cpnumb(vmx2/yxfactor,4,-10000,4,0,'E',' ',' ',1,0,0,0,
      &           1,1,numlab,outnum,outsig,outpow)
@@ -221,16 +232,16 @@ c
             call cpnumb(vmx2,4,-10000,4,0,'E',' ',' ',1,0,0,0,
      &           1,1,numlab,outnum,outsig,outpow)
          endif
-         if(dmx .lt. .01) then
-            call vvdraw(vr-dmx-0.01, vb-dmx-0.04, vr-dmx-0.01, vb-0.04,
-     &           dmx, numlab, strend(numlab), 0, 0, 0)
-         else
+!         if(dmx .lt. .01) then
+!            call vvdraw(vr-dmx-0.01, vb-dmx-0.04, vr-dmx-0.01, vb-0.04,
+!     &           dmx, numlab, strend(numlab), 0, 0, 0)
+!         else
             call vvdraw(vr+.02, vb, vr+.02, vb+dmx,
      &           dmx, numlab, strend(numlab), 0, 0, 0)
-         endif
+!         endif
          call gstxci(text_index)
          call gsplci(line_index)
-c         call gsclip(oldclp)
+         call gsclip(oldclp)
          call vvsetr ('LBS', lbs)
       endif
 

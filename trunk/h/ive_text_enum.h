@@ -110,6 +110,7 @@
 #define XMINOR  102
 #define YMAJOR  103
 #define YMINOR  104
+#define TICOFFSET 105
 
 #define PLAT  200
 #define PLON  201

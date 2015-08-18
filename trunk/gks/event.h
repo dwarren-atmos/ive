@@ -35,7 +35,7 @@
  * 
  *  Define file for : Xevent 
  * 
- * $Id: event.h,v 1.1.1.1 1993/04/07 19:40:56 harry Exp $:
+ * $Id: event.h,v 2.5.4.1 1993/03/10 19:44:18 steve Exp $:
  * $__Header$
  */
 

@@ -35,7 +35,7 @@
  * 
  * States
  * 
- * $Id: gks_errors.h,v 1.1.1.1 1993/04/07 19:40:57 harry Exp $
+ * $Id: gks_errors.h,v 2.5.4.1 1993/03/10 19:44:18 steve Exp $
  * $__Header$
  */
 

@@ -37,7 +37,7 @@
  *
  * This header-file depends upon header-files "xgks.h" and "gks_defines.h".
  *
- * $Id: primitive.h,v 1.1.1.1 1993/04/07 19:41:00 harry Exp $
+ * $Id: primitive.h,v 2.5.4.1 1993/03/10 19:44:21 steve Exp $
  * $__Header$
  */
 

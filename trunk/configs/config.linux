@@ -83,7 +83,7 @@ ALPHA = -DLinux
 EXTRA= -DDOPNG
 endif
 #NETCDF=/usr/local/netcdf-3.6.1
-FCPP =  
+FCPP = -cpp 
 #FDEC =   -w95 -cm -align -axiMK -ip -align -auto -C90
 #FDEC =   -w95 -cm -align -auto -u -ip -zero
 ifeq (${MACH}, x86_64)
@@ -110,7 +110,8 @@ BROWSER='-DBROWSER=\"firefox\"'
 #	-fbranch-count-reg -fmove-all-movables \
 #	-funroll-loops -DLinux 	-Wchar-subscripts
 
-UDUNITS := -ludunits -ludport	
+#UDUNITS := -ludunits -ludport	
+UDUNITS := -ludunits2 
 
 #Includes there to premempt float.h in udposix.
 
@@ -122,7 +123,7 @@ LIBS =	-threads -L/usr/local/lib -L/usr/lib  \
 	-lxgks  -lGLU  -lGL  -lnetcdf -lnetcdff\
 	-lXt -lXp -lXpm -lXext -lX11 \
 	-lSM -lICE  ${UDUNITS} -lpng -lz -lsvml -ldl -lc \
-	-lXm -lc -lz 
+	-lXm -lc -lz -openmp -Wl,--allow-multiple-definition
 
 
 #COPT = -O -w
