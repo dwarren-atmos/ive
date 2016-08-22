@@ -41,6 +41,7 @@ static char rcsid[] = "$Id: slicer1d2a.c,v 1.5 2001/02/13 00:26:01 harry Exp $";
 #include <ive_macros.h>
 #include <missing.h>
 #include <window.h>
+#define IVEFREE(x) free(x);x=NULL
 
 extern void make_help_widget_(),getavar_(),getrarr_(),getiarr_(),getlvar_(),
   setrvar_(),setlvar_(),phys_2_index_trans_(),index_2_phys_trans_(),
@@ -84,21 +85,21 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
     double data_slope, data_intercept;
     float tester, slope, intercept, pstart, pend;
     float dv[4];
-    float value, sum, dx, sum1, sum2, dx1, dx2;
+    float value, sum, dx, sum1, sum2, dx1, dx2, dxfree;
     float cmin, cmax, cmin1, cmin2, cmax1, cmax2;
     int tt, tnext, tprev, nda, nda1, nda2, ntda1, ntda2;
     int tt1, tt2, tprev1, tnext1, tprev2, tnext2;
     int cpmin[4], cpmax[4], coord_dep[4][4], indep[4];
-    int icounter, iflag[4], iflag1[4], iflag2[4], i, j, zeroes;
+    int icounter, iflag[4], iflag1[4], iflag2[4], i, j, k, zeroes;
     int error, is, ie, dfree, good, stepby, other, locked;
     int same_slice, dimavg1, dimavg2, same, ix, iy;
     static int one=1;
     struct point4{
 	float x,y,z,t;
-    } *cmpt, *phpt, *cmpt1, *cmpt2, *phpt1, *phpt2;
+    } *cmpt=NULL, *cmpt1=NULL, *cmpt2=NULL, *phpt=NULL, *phpt1=NULL, *phpt2=NULL;
     struct point4a{
 	float v[4];
-    } *cmpta, *phpta, *cmpta1, *cmpta2, *phpta1, *phpta2;
+    } *cmpta, *phpta=NULL, *cmpta1=NULL, *cmpta2=NULL, *phpta1=NULL, *phpta2=NULL;
 
     if( *dims != 4 ) {
 	(void)make_help_widget_("slicer: must be 4 dimensional field");
@@ -319,7 +320,7 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		{
 		    (void)make_help_widget_
 			("slicer: can't allocate memory - cmpt");
-		    free((char *)phpt);
+		    IVEFREE((char *)phpt);
 		    return((float *) 0);
 		}
 		cmpt1 = cmpt;
@@ -331,8 +332,8 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		{
 		    (void)make_help_widget_
 			("slicer: can't allocate memory - slab");
-		    free((char *)phpt);
-		    free((char *)cmpt);
+		    IVEFREE((char *)phpt);
+		    IVEFREE((char *)cmpt);
 		    return((float *) 0);
 		}
 		if ((slab_l.ploc = (float *)malloc(nis * sizeof(float)))
@@ -340,9 +341,9 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		{
 		    (void)make_help_widget_
 			("slicer: can't allocate memory - ploc");
-		    free((char *)slab_l.slab);
-		    free((char *)phpt);
-		    free((char *)cmpt);
+		    IVEFREE((char *)slab_l.slab);
+		    IVEFREE((char *)phpt);
+		    IVEFREE((char *)cmpt);
 		    return((float *) 0);
 		}
 		/*find line*/
@@ -370,20 +371,20 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    cmpta2[1] = cmpta2[0];
 		    phpta2[1].v[dimavg2] = max[dimavg2];
 		    convert(phpta2, cmpta2, iflag2, *dims, coord_dep, 2);
-		    if (cmpta[0].v[dimavg2] < cpmin[dimavg2]) {
-			cmpta[0].v[dimavg2] = cpmin[dimavg2];
-			phpta[0].v[dimavg2] = MISSING;
+		    if (cmpta2[0].v[dimavg2] < cpmin[dimavg2]) {
+			cmpta2[0].v[dimavg2] = cpmin[dimavg2];
+			phpta2[0].v[dimavg2] = MISSING;
 			convert(phpta2, cmpta2, iflag, *dims, coord_dep, 1);
 		    }
-		    cmin2 = cmpta[0].v[dimavg2];
-		    if (cmpta[1].v[dimavg2] < 0 ||
-			cmpta[1].v[dimavg2] > cpmax[dimavg2]) {
-			cmpta[1].v[dimavg2] = cpmax[dimavg2];
-			phpta[1].v[dimavg2] = MISSING;
+		    cmin2 = cmpta2[0].v[dimavg2];
+		    if (cmpta2[1].v[dimavg2] < 0 ||
+			cmpta2[1].v[dimavg2] > cpmax[dimavg2]) {
+			cmpta2[1].v[dimavg2] = cpmax[dimavg2];
+			phpta2[1].v[dimavg2] = MISSING;
 			convert(phpta2+1, cmpta2+1, iflag, *dims,
 				coord_dep, 1);
 		    }
-		    cmax2 = cmpta[1].v[dimavg2];
+		    cmax2 = cmpta2[1].v[dimavg2];
 		    if (cmin2 == cmax2) nda2 = 2;
 		    else {
 			nda2 = ceil(cmax2) - floor(cmin2) + 1;
@@ -419,21 +420,21 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 			phpta1[1].v[dimavg1] = max[dimavg1];
 			convert(phpta1, cmpta1, iflag1, *dims,
 				coord_dep,2);
-			if (cmpta[0].v[dimavg1] < cpmin[dimavg1]) {
-			    cmpta[0].v[dimavg1] = cpmin[dimavg1];
-			    phpta[0].v[dimavg1] = MISSING;
+			if (cmpta1[0].v[dimavg1] < cpmin[dimavg1]) {
+			    cmpta1[0].v[dimavg1] = cpmin[dimavg1];
+			    phpta1[0].v[dimavg1] = MISSING;
 			    convert(phpta1, cmpta1, iflag, *dims,
 				    coord_dep, 1);
 			}
-			cmin1 = cmpta[0].v[dimavg1];
-			if (cmpta[1].v[dimavg1] < 0 ||
-			    cmpta[1].v[dimavg1] > cpmax[dimavg1]) {
-			    cmpta[1].v[dimavg1] = cpmax[dimavg1];
-			    phpta[1].v[dimavg1] = MISSING;
+			cmin1 = cmpta1[0].v[dimavg1];
+			if (cmpta1[1].v[dimavg1] < 0 ||
+			    cmpta1[1].v[dimavg1] > cpmax[dimavg1]) {
+			    cmpta1[1].v[dimavg1] = cpmax[dimavg1];
+			    phpta1[1].v[dimavg1] = MISSING;
 			    convert(phpta1+1, cmpta1+1, iflag, *dims,
 				    coord_dep, 1);
 			}
-			cmax1 = cmpta[1].v[dimavg1];
+			cmax1 = cmpta1[1].v[dimavg1];
 			if (cmin1 == cmax1) {
 			    sum1 = (float) interp_(data,nx,ny,nz,nt,
 						   &cmpt1[0].x,&cmpt1[0].y,
@@ -526,125 +527,218 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		}
 		cmpt = data_slicer_1d_trans_(endpt, &nis, da, &nda);
 		if (cmpt == 0) return((float *)0);
-		nda1 = nda[0];
-		nda2 = nda[1];
-		if ((cmpt2=(struct point4 *)malloc(nda2
-						   *sizeof(struct point4)))
-		    == (struct point4 *)0)
+		if(cmpt[0].x > -1){
+		  nda1 = nda[0];
+		  nda2 = nda[1];
+		  if ((cmpt2=(struct point4 *)malloc(nda2
+						     *sizeof(struct point4)))
+		      == (struct point4 *)0)
 		    {
-			(void)make_help_widget_
-			    ("slicer2d2a: can't allocate memory - cmpt2");
-			free((char *)cmpt);
-			return((float *) 0);
+		      (void)make_help_widget_
+			("slicer2d2a: can't allocate memory - cmpt2");
+		      IVEFREE((char *)cmpt);
+		      return((float *) 0);
 		    }
-		if ((phpt=(struct point4 *)malloc((nda1+nda2)
-						  *sizeof(struct point4)))
-		    == (struct point4 *)0)
+		  if ((phpt=(struct point4 *)malloc((nda1+nda2)
+						    *sizeof(struct point4)))
+		      == (struct point4 *)0)
 		    {
-			(void)make_help_widget_
-			    ("slicer: can't allocate memory - phpt");
-			free((char *)cmpt);
-			free((char *)cmpt2);
-			return((float *) 0);
+		      (void)make_help_widget_
+			("slicer: can't allocate memory - phpt");
+		      IVEFREE((char *)cmpt);
+		      IVEFREE((char *)cmpt2);
+		      return((float *) 0);
 		    }
-		phpt1 = phpt;
-		phpt2 = phpt1 + nda1;
-		phpta1 = (struct point4a *) phpt1;
-		phpta2 = (struct point4a *) phpt2;
-		if ((slab_l.slab = (float *)malloc(nis * sizeof(float)))
-		    == (float *)0)
-		{
-		    (void)make_help_widget_
+		  phpt1 = phpt;
+		  phpt2 = phpt1 + nda1;
+		  phpta1 = (struct point4a *) phpt1;
+		  phpta2 = (struct point4a *) phpt2;
+		  if ((slab_l.slab = (float *)malloc(nis * sizeof(float)))
+		      == (float *)0)
+		    {
+		      (void)make_help_widget_
 			("slicer: can't allocate memory - slab");
-		    free((char *)phpt);
-		    free((char *)cmpt);
-		    free((char *)cmpt2);
-		    return((float *) 0);
-		}
-		if ((slab_l.ploc = (float *)malloc(nis * sizeof(float)))
-		    == (float *)0)
-		{
-		    (void)make_help_widget_
+		      IVEFREE((char *)phpt);
+		      IVEFREE((char *)cmpt);
+		      IVEFREE((char *)cmpt2);
+		      return((float *) 0);
+		    }
+		  if ((slab_l.ploc = (float *)malloc(nis * sizeof(float)))
+		      == (float *)0)
+		    {
+		      (void)make_help_widget_
 			("slicer: can't allocate memory - ploc");
-		    free((char *)slab_l.slab);
-		    free((char *)phpt);
-		    free((char *)cmpt);
-		    free((char *)cmpt2);
-		    return((float *) 0);
-		}
-		for ( i=0; i < 4; i++) {
+		      IVEFREE((char *)slab_l.slab);
+		      IVEFREE((char *)phpt);
+		      IVEFREE((char *)cmpt);
+		      IVEFREE((char *)cmpt2);
+		      return((float *) 0);
+		    }
+		  for ( i=0; i < 4; i++) {
 		    iflag1[i] = 1;
 		    iflag2[i] = (i != dimavg1);
-		}
-		for(icounter = 0 ; icounter < nis; icounter++){
+		  }
+		  for(icounter = 0 ; icounter < nis; icounter++){
 		    int nda2a = (nda2 == 1) ? 2: nda2;
-
+		    
 		    for (i=0; i < nda2; i++) {
-			cmpt2[i] = *(cmpt + (icounter*nda2 + i)*nda1);
+		      cmpt2[i] = *(cmpt + (icounter*nda2 + i)*nda1);
 		    }
 		    (void)index_2_phys_trans_(phpt2, cmpt2, iflag2,
 					      dims, &nda2);
 		    sum2 = dx2 = 0;
 		    for (tprev2=tt2=0; tprev2 < nda2a-1;
 			 tprev2=tt2, tt2=tnext2) {
-			tnext2 = MIN(tt2+1, nda2-1);
-			/*
-			  Calculate the dimavg1 average for this
-			  dimavg2 point.
-			*/
-			cmpt1 = cmpt + (icounter*nda2 + tt2)*nda1;
-			if (nda1 == 1) {
-			    sum1 = (float)interp_(data,nx,ny,nz,nt,
-						  &cmpt1[0].x,&cmpt1[0].y,
-						  &cmpt1[0].z,&cmpt1[0].t,
-						  special);
-			    dx1 = 0;
-			}
-			else {
-			    (void)index_2_phys_trans_(phpt1, cmpt1, iflag1,
-						      dims, &nda1);
-			    sum1 = dx1 = 0;
-			    for (tprev1 = tt1 = 0; tprev1 < nda1-1;
-				 tprev1=tt1,tt1=tnext1) {
-				tnext1 = MIN(tt1 + 1, nda1-1);
-				if ((value = (float)interp_(data,nx,ny,nz,nt,
-						&cmpt1[tt1].x,&cmpt1[tt1].y,
-						&cmpt1[tt1].z,&cmpt1[tt1].t,
-						special)) != *special) {
-				    sum1 +=value*(phpta1[tnext1].v[dimavg1]
+		      tnext2 = MIN(tt2+1, nda2-1);
+		      /*
+			Calculate the dimavg1 average for this
+			dimavg2 point.
+		      */
+		      cmpt1 = cmpt + (icounter*nda2 + tt2)*nda1;
+		      if (nda1 == 1) {
+			sum1 = (float)interp_(data,nx,ny,nz,nt,
+					      &cmpt1[0].x,&cmpt1[0].y,
+					      &cmpt1[0].z,&cmpt1[0].t,
+					      special);
+			dx1 = 0;
+		      }
+		      else {
+			(void)index_2_phys_trans_(phpt1, cmpt1, iflag1,
+						  dims, &nda1);
+			sum1 = dx1 = 0;
+			for (tprev1 = tt1 = 0; tprev1 < nda1-1;
+			     tprev1=tt1,tt1=tnext1) {
+			  tnext1 = MIN(tt1 + 1, nda1-1);
+			  if ((value = (float)interp_(data,nx,ny,nz,nt,
+						      &cmpt1[tt1].x,&cmpt1[tt1].y,
+						      &cmpt1[tt1].z,&cmpt1[tt1].t,
+						      special)) != *special) {
+			    sum1 +=value*(phpta1[tnext1].v[dimavg1]
 					  -phpta1[tprev1].v[dimavg1])*0.5;
-				    dx1 += (phpta1[tnext1].v[dimavg1]
-					    -phpta1[tprev1].v[dimavg1])*0.5;
-				}
-			    }
-			    if (dx1 == 0.) sum1 = MISSING;
+			    dx1 += (phpta1[tnext1].v[dimavg1]
+				    -phpta1[tprev1].v[dimavg1])*0.5;
+			  }
 			}
-			if (nda2 == 1) {
-			    if (dx1 != 0) sum2 = sum1/dx1;
-			    else sum2 = sum1;
-			    break;
-			}
-			else if (sum1 != MISSING) {
-			    sum2 += sum1*(phpta2[tnext2].v[dimavg2]
-					  -phpta2[tprev2].v[dimavg2])*0.5;
-			    dx2 += dx1*(phpta2[tnext2].v[dimavg2]
-					-phpta2[tprev2].v[dimavg2])*0.5;
-			}
+			if (dx1 == 0.) sum1 = MISSING;
+		      }
+		      if (nda2 == 1) {
+			if (dx1 != 0) sum2 = sum1/dx1;
+			else sum2 = sum1;
+			break;
+		      }
+		      else if (sum1 != MISSING) {
+			sum2 += sum1*(phpta2[tnext2].v[dimavg2]
+				      -phpta2[tprev2].v[dimavg2])*0.5;
+			dx2 += dx1*(phpta2[tnext2].v[dimavg2]
+				    -phpta2[tprev2].v[dimavg2])*0.5;
+		      }
 		    }
 		    if (nda2 == 1) {
-			if (dx2 == 0.)
-			    slab_l.slab[icounter] = *special;
-			else
-			    slab_l.slab[icounter] = sum2/dx2;
+		      if (dx2 == 0.)
+			slab_l.slab[icounter] = *special;
+		      else
+			slab_l.slab[icounter] = sum2/dx2;
 		    }
 		    else
-			slab_l.slab[icounter] = sum2;
+		      slab_l.slab[icounter] = sum2;
 		    slab_l.ploc[icounter] = phpta2[0].v[dfree];
+		  }
 		}
+		else{
+		  //need to do physical slices and avg them
+		  //got cmpt returned so we free it.
+		  IVEFREE(cmpt);
+		  nis = cpmax[dfree] - cpmin[dfree] + 1;
+		  if(nis <2) {
+                    (void)make_help_widget_("slicer1d: empty slice");
+                    return (float *)0;
+		  }
+		  ntda1 = cpmax[dimavg1] - cpmin[dimavg1] + 1;
+		  ntda2 = cpmax[dimavg2] - cpmin[dimavg2] + 1;
+		  /*get memory*/
+		  if ((phpt=(struct point4 *)malloc((ntda1*ntda2)*
+						    sizeof(struct point4)))
+		      == (struct point4 *)0)
+		    {
+		      (void)make_help_widget_
+                        ("slicer: can't allocate memory - phpt");
+		      return((float *) 0);
+		    }
+		  phpta1 = (struct point4a *)phpt;
+		  if ((cmpt=(struct point4 *)malloc((ntda1*ntda2)*
+						    sizeof(struct point4)))
+		      == (struct point4 *)0)
+		    {
+		      (void)make_help_widget_
+                        ("slicer: can't allocate memory - cmpt");
+		      IVEFREE((char *)phpt);
+		      return((float *) 0);
+		    }
+		  cmpta1 = (struct point4a *)cmpt;
+		  if ((slab_l.slab = (float *)malloc(nis * sizeof(float)))
+		      == (float *)0)
+		    {
+		      (void)make_help_widget_
+                        ("slicer: can't allocate memory - slab");
+		      IVEFREE((char *)phpt);
+		      IVEFREE((char *)cmpt);
+		      return((float *) 0);
+		    }
+		  if ((slab_l.ploc = (float *)malloc(nis * sizeof(float)))
+		      == (float *)0)
+		    {
+		      (void)make_help_widget_
+                        ("slicer: can't allocate memory - ploc");
+		      IVEFREE((char *)slab_l.slab);
+		      IVEFREE((char *)phpt);
+		      IVEFREE((char *)cmpt);
+		      return((float *) 0);
+		    }
+		  icounter = 0;
+		  iflag[0]=1;
+		  iflag[1]=1;
+		  iflag[2]=1;
+		  iflag[3]=1;
+		  nda1=ntda1*ntda2;
+		  dxfree=(max[dfree]-min[dfree])/nis;
+		  dx1=(max[dimavg1]-min[dimavg1])/ntda1;
+		  dx2=(max[dimavg2]-min[dimavg2])/ntda2;
+		  for(i=0; i<nis; i++){
+		    for(j=0; j<ntda1; j++){
+		      for(k=0; k<ntda2; k++){
+			phpta1[k+(j*ntda1)].v[dfree]=min[dfree]+(i*dxfree);
+			phpta1[k+(j*ntda1)].v[dimavg1]=min[dimavg1]+j*dx1;
+			phpta1[k+(j*ntda1)].v[dimavg2]=min[dimavg2]+k*dx2;
+			phpta1[k+(j*ntda1)].v[locked]=pt1[locked];
+			cmpta1[k+(j*ntda1)].v[dfree]=i+1;
+		      }
+		    }
+		    phys_2_index_trans_(phpt, cmpt, iflag, dims, &nda1);
+		    for(tt=0; tt<nda1; tt++){
+		      if((value = (float) interp_(data,nx,ny,nz,nt,
+						   &cmpt[tt].x,&cmpt[tt].y,
+						   &cmpt[tt].z,&cmpt[tt].t,
+						  special)) != *special){
+			  sum1 += value;
+			  icounter++;
+		      }
+		    }
+		    if(icounter){
+		      slab_l.slab[i]=sum1/(float)icounter;
+		      slab_l.ploc[i]=phpta1[i].v[dfree];
+		      //printf("%d %f %f\n",i,slab_l.ploc[i],slab_l.slab[i]);
+		    }
+		    else {
+		      slab_l.slab[i]=*special;
+		      slab_l.ploc[i]=phpta1[i].v[dfree];
+		      //printf("%f missing\n",slab_l.ploc[i]);
+		    }
+		  }
+		}//end phys avg fall back slicer
 	    }
-	    free(cmpt);
-	    free(phpt);
-	    free(cmpt2);
+	    if(cmpt)IVEFREE(cmpt);
+	    if(phpt)IVEFREE(phpt);
+	    //	    if(cmpt2)IVEFREE(cmpt2);
 	    slab_l.xaxis = dfree+1;
 	    slab_l.yaxis = 0;
 	    slab_l.dimavg1 = dimavg1;
@@ -871,7 +965,7 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		{
 		    (void)make_help_widget_
 			("slicer: can't allocate memory - cmpt");
-		    free((char *)phpt);
+		    IVEFREE((char *)phpt);
 		    return((float *) 0);
 		}
 		cmpt1 = cmpt;
@@ -883,8 +977,8 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    {
 			(void)make_help_widget_
 			    ("slicer: can't allocate memory - slab");
-			free((char *)phpt);
-			free((char *)cmpt);
+			IVEFREE((char *)phpt);
+			IVEFREE((char *)cmpt);
 			return((float *) 0);
 		    }
 		if ((slab_l.ploc = (float *)malloc(nis * sizeof(float)))
@@ -892,9 +986,9 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    {
 			(void)make_help_widget_
 			    ("slicer: can't allocate memory - ploc");
-			free((char *)slab_l.slab);
-			free((char *)phpt);
-			free((char *)cmpt);
+			IVEFREE((char *)slab_l.slab);
+			IVEFREE((char *)phpt);
+			IVEFREE((char *)cmpt);
 			return((float *) 0);
 		    }
 		iflag2[stepby] = 1;
@@ -933,18 +1027,18 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    phpta2[1].v[dimavg1] = max[dimavg1];
 		    convert(phpta2, cmpta2, iflag2, *dims, coord_dep, 2);
 
-		    if (cmpta[0].v[dimavg2] < cpmin[dimavg2]) {
-			cmpta[0].v[dimavg2] = cpmin[dimavg2];
-			phpta[0].v[dimavg2] = MISSING;
+		    if (cmpta2[0].v[dimavg2] < cpmin[dimavg2]) {
+			cmpta2[0].v[dimavg2] = cpmin[dimavg2];
+			phpta2[0].v[dimavg2] = MISSING;
 			convert(phpta2, cmpta2, iflag, *dims, coord_dep, 1);
 		    }
-		    cmin2 = cmpta[0].v[dimavg2];
-		    if (cmpta[1].v[dimavg2] < 0 || cmpta[1].v[dimavg2] > cpmax[dimavg2]) {
-			cmpta[1].v[dimavg2] = cpmax[dimavg2];
-			phpta[1].v[dimavg2] = MISSING;
+		    cmin2 = cmpta2[0].v[dimavg2];
+		    if (cmpta2[1].v[dimavg2] < 0 || cmpta2[1].v[dimavg2] > cpmax[dimavg2]) {
+			cmpta2[1].v[dimavg2] = cpmax[dimavg2];
+			phpta2[1].v[dimavg2] = MISSING;
 			convert(phpta2+1, cmpta2+1, iflag, *dims, coord_dep, 1);
 		    }
-		    cmax2 = cmpta[1].v[dimavg2];
+		    cmax2 = cmpta2[1].v[dimavg2];
 		    if (cmin2 == cmax2) nda2 = 2;
 		    else {
 			nda2 = ceil(cmax2) - floor(cmin2) + 1;
@@ -980,21 +1074,21 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 			phpta1[1].v[dimavg1] = max[dimavg1];
 			convert(phpta1, cmpta1, iflag1, *dims,
 				coord_dep,2);
-			if (cmpta[0].v[dimavg1] < cpmin[dimavg1]) {
-			    cmpta[0].v[dimavg1] = cpmin[dimavg1];
-			    phpta[0].v[dimavg1] = MISSING;
+			if (cmpta1[0].v[dimavg1] < cpmin[dimavg1]) {
+			    cmpta1[0].v[dimavg1] = cpmin[dimavg1];
+			    phpta1[0].v[dimavg1] = MISSING;
 			    convert(phpta1, cmpta1, iflag, *dims,
 				    coord_dep, 1);
 			}
-			cmin1 = cmpta[0].v[dimavg1];
-			if (cmpta[1].v[dimavg1] < 0 ||
-			    cmpta[1].v[dimavg1] > cpmax[dimavg1]) {
-			    cmpta[1].v[dimavg1] = cpmax[dimavg1];
-			    phpta[1].v[dimavg1] = MISSING;
+			cmin1 = cmpta1[0].v[dimavg1];
+			if (cmpta1[1].v[dimavg1] < 0 ||
+			    cmpta1[1].v[dimavg1] > cpmax[dimavg1]) {
+			    cmpta1[1].v[dimavg1] = cpmax[dimavg1];
+			    phpta1[1].v[dimavg1] = MISSING;
 			    convert(phpta1+1, cmpta1+1, iflag, *dims,
 				    coord_dep, 1);
 			}
-			cmax1 = cmpta[1].v[dimavg1];
+			cmax1 = cmpta1[1].v[dimavg1];
 			if (cmin1 == cmax1) {
 			    sum1 = (float) interp_(data,nx,ny,nz,nt,
 						   &cmpt1[0].x,&cmpt1[0].y,
@@ -1083,124 +1177,211 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 			endpt[1].v[i] = max[i];
 		}
 		cmpt = data_slicer_1d_trans_(endpt, &nis, da, &nda);
-		nda1 = nda[0];
-		nda2 = nda[1];
-		if ((cmpt2=(struct point4 *)malloc(nda2
-						   *sizeof(struct point4)))
-		    == (struct point4 *)0)
+		if(cmpt>0) {
+		  nda1 = nda[0];
+		  nda2 = nda[1];
+		  if ((cmpt2=(struct point4 *)malloc(nda2
+						     *sizeof(struct point4)))
+		      == (struct point4 *)0)
 		    {
-			(void)make_help_widget_
-			    ("slicer2d2a: can't allocate memory - cmpt2");
-			free((char *)cmpt);
-			return((float *) 0);
+		      (void)make_help_widget_
+			("slicer2d2a: can't allocate memory - cmpt2");
+		      IVEFREE((char *)cmpt);
+		      return((float *) 0);
 		    }
-		if ((phpt=(struct point4 *)malloc((nda1+nda2)
-						  *sizeof(struct point4)))
-		    == (struct point4 *)0)
+		  if ((phpt=(struct point4 *)malloc((nda1+nda2)
+						    *sizeof(struct point4)))
+		      == (struct point4 *)0)
 		    {
-			(void)make_help_widget_
-			    ("slicer: can't allocate memory - phpt");
-			free((char *)cmpt);
-			free((char *)cmpt2);
-			return((float *) 0);
+		      (void)make_help_widget_
+			("slicer: can't allocate memory - phpt");
+		      IVEFREE((char *)cmpt);
+		      IVEFREE((char *)cmpt2);
+		      return((float *) 0);
 		    }
-		phpt1 = phpt;
-		phpt2 = phpt1 + nda1;
-		phpta1 = (struct point4a *) phpt1;
-		phpta2 = (struct point4a *) phpt2;
-		if ((slab_l.slab = (float *)malloc(nis * sizeof(float)))
-		    == (float *)0)
-		{
-		    (void)make_help_widget_
+		  phpt1 = phpt;
+		  phpt2 = phpt1 + nda1;
+		  phpta1 = (struct point4a *) phpt1;
+		  phpta2 = (struct point4a *) phpt2;
+		  if ((slab_l.slab = (float *)malloc(nis * sizeof(float)))
+		      == (float *)0)
+		    {
+		      (void)make_help_widget_
 			("slicer: can't allocate memory - slab");
-		    free((char *)phpt);
-		    free((char *)cmpt);
-		    free((char *)cmpt2);
-		    return((float *) 0);
-		}
-		if ((slab_l.ploc = (float *)malloc(nis * sizeof(float)))
-		    == (float *)0)
-		{
-		    (void)make_help_widget_
+		      IVEFREE((char *)phpt);
+		      IVEFREE((char *)cmpt);
+		      IVEFREE((char *)cmpt2);
+		      return((float *) 0);
+		    }
+		  if ((slab_l.ploc = (float *)malloc(nis * sizeof(float)))
+		      == (float *)0)
+		    {
+		      (void)make_help_widget_
 			("slicer: can't allocate memory - ploc");
-		    free((char *)slab_l.slab);
-		    free((char *)phpt);
-		    free((char *)cmpt);
-		    free((char *)cmpt2);
-		    return((float *) 0);
-		}
-		for ( i=0; i < 4; i++) {
+		      IVEFREE((char *)slab_l.slab);
+		      IVEFREE((char *)phpt);
+		      IVEFREE((char *)cmpt);
+		      IVEFREE((char *)cmpt2);
+		      return((float *) 0);
+		    }
+		  for ( i=0; i < 4; i++) {
 		    iflag1[i] = 1;
 		    iflag2[i] = (i != dimavg1);
-		}
-		for(icounter = 0 ; icounter < nis; icounter++){
+		  }
+		  for(icounter = 0 ; icounter < nis; icounter++){
 		    int nda2a = (nda2 == 1) ? 2: nda2;
-
+		    
 		    for (i=0; i < nda2; i++) {
-			cmpt2[i] = *(cmpt + (icounter*nda2 + i)*nda1);
+		      cmpt2[i] = *(cmpt + (icounter*nda2 + i)*nda1);
 		    }
 		    (void)index_2_phys_trans_(phpt2, cmpt2, iflag2,
 					      dims, &nda2);
 		    sum2 = dx2 = 0;
 		    for (tprev2=tt2=0; tprev2 < nda2a-1;
 			 tprev2=tt2, tt2=tnext2) {
-			tnext2 = MIN(tt2+1, nda2-1);
-			/*
-			  Calculate the dimavg1 average for this
-			  dimavg2 point.
-			*/
-			cmpt1 = cmpt + (icounter*nda2 + tt2)*nda1;
-			if (nda1 == 1) {
-			    sum1 = (float)interp_(data,nx,ny,nz,nt,
-						  &cmpt1[0].x,&cmpt1[0].y,
-						  &cmpt1[0].z,&cmpt1[0].t,
-						  special);
-			    dx1 = 0;
-			}
-			else {
-			    (void)index_2_phys_trans_(phpt1, cmpt1, iflag1,
-						      dims, &nda1);
-			    sum1 = dx1 = 0;
-			    for (tprev1 = tt1 = 0; tprev1 < nda1-1;
-				 tprev1=tt1,tt1=tnext1) {
-				tnext1 = MIN(tt1 + 1, nda1-1);
-				if ((value = (float)interp_(data,nx,ny,nz,nt,
-						&cmpt1[tt1].x,&cmpt1[tt1].y,
-						&cmpt1[tt1].z,&cmpt1[tt1].t,
-						special)) != *special) {
-				    sum1 +=value*(phpta1[tnext1].v[dimavg1]
+		      tnext2 = MIN(tt2+1, nda2-1);
+		      /*
+			Calculate the dimavg1 average for this
+			dimavg2 point.
+		      */
+		      cmpt1 = cmpt + (icounter*nda2 + tt2)*nda1;
+		      if (nda1 == 1) {
+			sum1 = (float)interp_(data,nx,ny,nz,nt,
+					      &cmpt1[0].x,&cmpt1[0].y,
+					      &cmpt1[0].z,&cmpt1[0].t,
+					      special);
+			dx1 = 0;
+		      }
+		      else {
+			(void)index_2_phys_trans_(phpt1, cmpt1, iflag1,
+						  dims, &nda1);
+			sum1 = dx1 = 0;
+			for (tprev1 = tt1 = 0; tprev1 < nda1-1;
+			     tprev1=tt1,tt1=tnext1) {
+			  tnext1 = MIN(tt1 + 1, nda1-1);
+			  if ((value = (float)interp_(data,nx,ny,nz,nt,
+						      &cmpt1[tt1].x,&cmpt1[tt1].y,
+						      &cmpt1[tt1].z,&cmpt1[tt1].t,
+						      special)) != *special) {
+			    sum1 +=value*(phpta1[tnext1].v[dimavg1]
 					  -phpta1[tprev1].v[dimavg1])*0.5;
-				    dx1 += (phpta1[tnext1].v[dimavg1]
-					    -phpta1[tprev1].v[dimavg1])*0.5;
-				}
-			    }
-			    if (dx1 == 0.) sum1 = MISSING;
+			    dx1 += (phpta1[tnext1].v[dimavg1]
+				    -phpta1[tprev1].v[dimavg1])*0.5;
+			  }
 			}
-			if (cmin2 == cmax2) {
-			    if (dx1 != 0) sum2 = sum1/dx1;
-			    else sum2 = sum1;
-			    break;
-			}
-			else if (sum1 != MISSING) {
-			    sum2 += sum1*(phpta2[tnext2].v[dimavg2]
-					  -phpta2[tprev2].v[dimavg2])*0.5;
-			    dx2 += dx1*(phpta2[tnext2].v[dimavg2]
-					-phpta2[tprev2].v[dimavg2])*0.5;
-			}
+			if (dx1 == 0.) sum1 = MISSING;
+		      }
+		      if (cmin2 == cmax2) {
+			if (dx1 != 0) sum2 = sum1/dx1;
+			else sum2 = sum1;
+			break;
+		      }
+		      else if (sum1 != MISSING) {
+			sum2 += sum1*(phpta2[tnext2].v[dimavg2]
+				      -phpta2[tprev2].v[dimavg2])*0.5;
+			dx2 += dx1*(phpta2[tnext2].v[dimavg2]
+				    -phpta2[tprev2].v[dimavg2])*0.5;
+		      }
 		    }
 		    if (cmin2 != cmax2) {
-			if (dx2 == 0.)
-			    slab_l.slab[icounter] = *special;
-			else
-			    slab_l.slab[icounter] = sum2/dx2;
+		      if (dx2 == 0.)
+			slab_l.slab[icounter] = *special;
+		      else
+			slab_l.slab[icounter] = sum2/dx2;
 		    }
 		    else
-			slab_l.slab[icounter] = sum2;
+		      slab_l.slab[icounter] = sum2;
 		    slab_l.ploc[icounter] = phpta2[0].v[stepby];
+		  }
 		}
+		else{
+		  if(cmpt == 0){
+		    (void)make_help_widget_
+			("slicer: No data to plot");
+		    return((float *)0);
+		  }
+		  //need to do it in physical space
+		  nis = cpmax[dfree] - cpmin[dfree] + 1;
+		  if(nis <2) {
+		    (void)make_help_widget_("slicer1d: empty slice");
+		    return (float *)0;
+		  }
+		  ntda1 = cpmax[dimavg1] - cpmin[dimavg1];
+		  ntda2 = cpmax[dimavg2] - cpmin[dimavg2];
+		  dx1=(max[dimavg1] - min[dimavg1])/ntda1;
+		  dx2=(max[dimavg2] - min[dimavg2])/ntda1;
+		  dxfree=(max[dfree] - min[dfree])/nis;
+		/*get memory*/
+		if ((phpt=(struct point4 *)malloc((ntda1*ntda2)*
+						  sizeof(struct point4)))
+		    == (struct point4 *)0)
+		  {
+		    (void)make_help_widget_
+			("slicer: can't allocate memory - phpt");
+		    return((float *) 0);
+		}
+		if ((cmpt=(struct point4 *)malloc((ntda1*ntda2)*
+						  sizeof(struct point4)))
+		    == (struct point4 *)0)
+		{
+		  IVEFREE(phpt);
+		  (void)make_help_widget_
+		    ("slicer: can't allocate memory - phpt");
+		  return((float *) 0);
+		}
+		if ((slab_l.slab = (float *)malloc(nis * sizeof(float)))
+		    == (float *)0)
+		  {
+		    (void)make_help_widget_
+		      ("slicer: can't allocate memory - slab");
+		    IVEFREE((char *)phpt);
+		    IVEFREE((char *)cmpt);
+		    return((float *) 0);
+		  }
+		if ((slab_l.ploc = (float *)malloc(nis * sizeof(float)))
+		    == (float *)0)
+		  {
+		    (void)make_help_widget_
+		      ("slicer: can't allocate memory - ploc");
+		    IVEFREE((char *)slab_l.slab);
+		    IVEFREE((char *)phpt);
+		    IVEFREE((char *)cmpt);
+		    return((float *) 0);
+		  }
+		phpta= (struct point4a *)phpt;
+		cmpt1=cmpt;
+		iflag[0]=1;
+		iflag[1]=1;
+		iflag[2]=1;
+		iflag[3]=1;
+		for(i=0; i<nis; i++){
+		  for(j=0; j<ntda2; j++){
+		    for(k=0; k<ntda1; k++){
+		      phpta[j*k+k].v[locked]=pt1[locked];
+		      phpta[j*k+k].v[dfree]=min[dfree]+(i*dxfree);
+		      phpta[j*k+k].v[dimavg1]=min[dimavg1]+(k*dx1);
+		      phpta[j*k+k].v[locked]=min[dimavg2]*(i*dx2);
+		    }
+		  }
+		  sum=0;
+		  (void)index_2_phys_trans_(phpt, cmpt, iflag,
+					    dims, ntda1*ntda2);
+		  slab_l.slab[i]=0;
+		  for(icounter=0; icounter< ntda1*ntda2; icounter++)
+		    slab_l.slab[i] += (float) interp_(data,nx,ny,nz,nt,
+						      &cmpt1[0].x,&cmpt1[0].y,
+						      &cmpt1[0].z,&cmpt1[0].t,
+						      special);
+		  //printf("%f/%d=%f at %f\n",slab_l.slab[i],ntda1*ntda2,slab_l.slab[i]/(ntda1*ntda2),
+		  //	phpta[0].v[dfree]);
+		  slab_l.slab[i] = slab_l.slab[i]/(ntda1*ntda2);
+		  slab_l.ploc[i] = phpta[0].v[dfree];
+		}
+		      
 	    }
-	    free(cmpt);
-	    free(phpt);
+	}
+	    IVEFREE(cmpt);
+	    IVEFREE(phpt);
 	    slab_l.xaxis = stepby+1;
 	    slab_l.yaxis = 0;
 	    slab_l.slope = slope;
@@ -1279,7 +1460,7 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
     if ((*ploc = (float *)malloc(*ni * sizeof(float)))
 	== (float *)0)
     {
-	free(wslab);
+	IVEFREE(wslab);
 	(void)make_help_widget_
 	    ("slicer: can't allocate memory - loc");
 	return((float *) 0);
@@ -1351,6 +1532,7 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 	wp.y2 = wp.x2;
 	wp.x2 = tmp;
     }
+    //    printf("mins %f %f maxs %f %f\n",wp.x1,wp.y1,wp.x2,wp.y2);
     window_points_ = wp;
     return(wslab);
 }

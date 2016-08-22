@@ -402,7 +402,7 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 	    else {
 		struct point4a endpt[2];
 		struct point4 *data_slicer_1d_trans_();
-		int da1[2];
+		int da1[2], nda1[2];
 
 		da1[0]= dimavg+1;
 		da1[1] = 0;
@@ -417,8 +417,11 @@ int *dims, *nx, *ny, *nz, *nt, *da, *ni;
 		    }
 		    else endpt[0].v[i] = endpt[1].v[i] = pt1[i];
 		}
-		cmpt = data_slicer_1d_trans_(endpt, &nis, da1, &nda);
+		cmpt = data_slicer_1d_trans_(endpt, &nis, da1, nda1);
 		if (cmpt == 0) return((float *)0);
+		//dbw 2/3/2016 - data_slicer_1d needs 2D nda to also deal
+		//with slicer1d2a
+		nda=nda1[0];
 		for (i=0; i < *dims; i++) iflag[i] = 1;
 		if ((phpt=(struct point4 *)malloc(nda*sizeof(struct point4)))
 		    == (struct point4 *)0)

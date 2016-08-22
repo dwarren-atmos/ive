@@ -857,8 +857,9 @@ data_slicer_1d_trans_(endpt, ni, da, nda)
 float *endpt;
 int *ni, *da, *nda;
 {
-    if (EXISTS(data_slicer_1d)) {
-	return(DATA_SLICER_1D(endpt, ni, da, nda));
+    if (EXISTS(DATA_SLICER_1D)) {
+      //      printf("call data_slicer_1d\n");
+      return(DATA_SLICER_1D(endpt, ni, da, nda));
     }
 {
 #ifndef MAX
@@ -1729,6 +1730,7 @@ load_func_(progname, objfile)
 	phys_2_lonlat = NULL;
 	lonlat_2_phys = NULL;
 	default_map = NULL;
+	data_slicer_1d = NULL;
 	data_slicer_2d = NULL;
 	data_slicer_3d = NULL;
 	calc_field = NULL;
@@ -1797,6 +1799,11 @@ load_func_(progname, objfile)
     if ((default_map = (int (*)())dlsym(dlp, "default_map_")) == NULL) {
 /*        (void) fputs(progname,stderr);
         (void) fputs(": error finding  _default_map procedure\n",stderr);
+        (void) fputs(dlerror(),stderr);*/
+    }
+    if ((data_slicer_1d = (float * (*)())dlsym(dlp, "data_slicer_1d_")) == NULL) {
+/*        (void) fputs(progname,stderr);
+        (void) fputs(": error finding  _data_slicer_1d procedure\n",stderr);
         (void) fputs(dlerror(),stderr);*/
     }
     if ((data_slicer_2d = (float * (*)())dlsym(dlp, "data_slicer_2d_")) == NULL) {
