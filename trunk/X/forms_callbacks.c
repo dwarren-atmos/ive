@@ -400,7 +400,6 @@ void form_tcint_call(w, data, call)
     float rvar;
     int error;
     int ivar;
-    
     if(data==1){
 	(void)getrvar_("tcint",&rvar, &error,5);
 	strcpy(buff, float_nozero(rvar));
@@ -439,10 +438,13 @@ void form_tcint_call(w, data, call)
 	set = XmToggleButtonGetState(terrain_forms.cont_int);
 	str = XmTextFieldGetString(terrain_forms.cont_values);
 	if(str[0] == '\0')return;
-	if(set == TRUE)
+	if(set == TRUE){
+	  printf("tcint %s\n",str);
 	  sprintf(buff,"tcontour_interval=%s",str);
-	else
+	}
+	else {
 	  sprintf(buff,"tcontour_values=%s",str);
+	}
 	driver(buff);
 	free(str);
     }
@@ -1469,6 +1471,35 @@ void check_num(w, data, call)
     if(w == Properties.cont_values){
 	Bool set;
 	set = XmToggleButtonGetState(Properties.cont_int);
+	if((len = XmTextGetLastPosition(w))==256-16){
+	    call->doit = FALSE;
+	    return;
+	}
+	if(len + call->text->length >256-16){
+	    call->text->ptr[256-16-len] = 0;
+	    call->text->length = strlen(call->text->ptr);
+	}
+	if(set && (strchr(call->text->ptr, ',') != NULL || 
+		   strchr(call->text->ptr, ' ') != NULL)){
+	    call->doit = FALSE;
+	    return;
+	}
+	for (len = 0; len < call->text->length; len ++){
+	    if(!isdigit(call->text->ptr[len]) && call->text->ptr[len] 
+	       != '.'
+	       && call->text->ptr[len] != '-' && call->text->ptr[len] 
+	       != ',' && call->text->ptr[len] != 'e'){
+		int i;
+		for(i = len; i< (call->text->length -1); i++)
+		    call->text->ptr[i] = call->text->ptr[i+1];
+		call->text->length--;
+		len--;
+	    }
+	}
+    }
+    else if(w == terrain_forms.cont_values){
+	Bool set;
+	set = XmToggleButtonGetState(terrain_forms.cont_int);
 	if((len = XmTextGetLastPosition(w))==256-16){
 	    call->doit = FALSE;
 	    return;
