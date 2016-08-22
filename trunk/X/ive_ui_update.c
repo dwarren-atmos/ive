@@ -306,6 +306,11 @@ void ui_update_(window)
     void *chklock_(int *);
     char *float_nozero();
 
+    XSync(XtDisplay(Box), FALSE);	    
+    XSync(XtDisplay(Box), FALSE);	    
+    XSync(XtDisplay(Box), FALSE);	    
+    
+    if(!Properties.form)return; //Too early - things not built yet
     switch(*window){
       case DIR:  
 	getavar_("datfil",avar,&error,6,256);
