@@ -144,8 +144,9 @@ void make3d_(varpt, x, y, z, t)
   double domain_intercept[4], domain_slope[4];
   unsigned long pixel;  
   extern unsigned long IveGetPixel();
-  int fix[4], ni, nj, nk, nteri, nterk, i, j, k, l, m, imap,
+  int fix[4], ni, nj, nk, nteri, nterk, i, j, k, l, m, imap, numter,
     saveflag, buttons, error, phys, fd, lval, width, height, npts, linlog;
+  int same[4];
   int count = 0, allocated_norms, allocated_triangles;
   struct{float x,y,z;}bpt[8];
   struct TRIANGLES triangles,smalltri,tertris;
@@ -188,12 +189,7 @@ void make3d_(varpt, x, y, z, t)
     (void)make_help_widget_("You must lock exactly one dimension to generate a volume");
     return;
   }
-
-  /*Overlay?*/
-  (void)getlvar_("savflg", &saveflag, &error, 6);
-  if (!saveflag){
-    (void)reset_nobjects();
-  }
+    
   i=4;
   (void)getrarr_("plwmin_scaled",mins, &i, &error, 13);
   (void)getrarr_("plwmax_scaled",maxs, &i, &error, 13);
@@ -204,10 +200,26 @@ void make3d_(varpt, x, y, z, t)
   (void)getavar_("field",field,&error,5,80);
   i=4;
   getrarr_("stag",stag, &i, &error, 4);
+  for(j=0; j<4;j++){
+    if(mins[j]==maxs[j] || fix[j])same[j]=1;
+    else same[j]=0;
+  }
+  if(same[0] + same[1] + same[2] + same[3] != 1){
+    (void)make_help_widget_("You must have three free dimensions to create a volume");
+    (void)printf("You must have three free dimensions to create a volume %d %d %d %d\n",same[0],same[1],same[2],same[3]);
+    return;
+  }
+
   mindelta = delta[0];
   if(delta[1]<mindelta)mindelta=delta[1];
   if(delta[2]<mindelta)mindelta=delta[2];
   if(delta[3]<mindelta)mindelta=delta[3];
+
+  /*Overlay?*/
+  (void)getlvar_("savflg", &saveflag, &error, 6);
+  if (!saveflag){
+    (void)reset_nobjects();
+  }
 
   /*Get Volume*/
   (void)getivar_("num_dims", &dims, &error, 8);
@@ -238,7 +250,7 @@ void make3d_(varpt, x, y, z, t)
   allocated_triangles=3*ni*nj;
   //allocated_norms=ni;
   allocated_norms=3*ni*nj; //same as triangles now
-  if(!saveflag){
+  if(!saveflag && (ni>2 &&nj>2)){
     struct plainpoint *plpt;
     terrain=malloc(ni*nj*sizeof(float));
     terrainmesh.x=ni;
@@ -246,7 +258,11 @@ void make3d_(varpt, x, y, z, t)
     terrainmesh.points=(GLfloat *)malloc(ni*nj*3*sizeof(GLfloat));
     (void)horiz_ter_trans_(terrain,&ni,&nj,&stag[0],&stag[1],
 			   &mins[2],&error);
-    if(!error){
+    numter=0;
+    for(i=0; i<ni*nj; i++)
+      if(terrain[i] != mins[2])numter++;
+    
+    if(!error && numter){
       int one=1;
       float rone=1.;
       k=0;
@@ -493,6 +509,10 @@ void make3d_(varpt, x, y, z, t)
 	free(tertris.normals);
 	free(tertris.norm_points);
       }
+    }
+    else{
+      nObjects=1;
+      IVE_Object.objects = nObjects;
     }
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //Call to fortran -> gives array terrain[nj][ni] (YxX with value=height

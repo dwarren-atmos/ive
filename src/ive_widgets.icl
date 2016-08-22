@@ -129,11 +129,11 @@ c-----------------------------------------------------------------------
      &        TOPOSCALE_UI, VINT, STREAMLINE, MAPROJ_UI,
      &        MAPCLIP_UI, DEFAULT_MAP_UI, VLOCK_UI,
      &        LOC, LOOP_UI, COLORTAB_UI, UI_VECT_COMP, UI_VMAX,
-     &        TICLABELS, TICSCALE, TICDECIMALS, TICWIDTH, VPOS,
-     &	      FILLPATTERN, TERR_UI, TERR_NUNLAB_UI, SKEWT_COMP_UI,
+     &        TICLABELS, TICSCALE, TICDECIMALS, TICWIDTH, TICOFFSET, 
+     &	      VPOS,FILLPATTERN, TERR_UI, TERR_NUNLAB_UI, SKEWT_COMP_UI,
      &	      POINTS_UI, LANDSCAPE_UI, UI_TRAJ_COMP, UI_TRAJ_ENDS,
      &        TRAJ_IND_UI, VSCALE_UI, TRAJ_STEP_VAL_UI, 
-     &	      TRAJ_BACKGROUND_UI, TRAJ_2D_UI
+     &	      TRAJ_BACKGROUND_UI, TRAJ_2D_UI, THREED_CONTROL_FORM
 
 c
       parameter( DIR_UI       =   0,
@@ -181,20 +181,22 @@ c
      &            TICSCALE     = 39,
      &            TICDECIMALS  = 40,
      &            TICWIDTH     = 41,
-     &		  VPOS	       = 42,
-     &            FILLPATTERN  = 43,
-     &		  TERR_UI      = 44,
-     &		  TERR_NUNLAB_UI=45,
-     &		  SKEWT_COMP_UI =46,
-     &		  POINTS_UI 	=47,
-     &		  LANDSCAPE_UI  =48,
-     &		  UI_TRAJ_COMP 	=49,
-     &		  UI_TRAJ_ENDS 	=50)
+     &            TICOFFSET    = 42,
+     &		  VPOS	       = 43,
+     &            FILLPATTERN  = 44,
+     &		  TERR_UI      = 45,
+     &		  TERR_NUNLAB_UI=46,
+     &		  SKEWT_COMP_UI =47,
+     &		  POINTS_UI 	=48,
+     &		  LANDSCAPE_UI  =49,
+     &		  UI_TRAJ_COMP 	=50,
+     &		  UI_TRAJ_ENDS 	=51)
 
-      parameter(  TRAJ_IND_UI    =51,
-     &	          VSCALE_UI     =52,
-     &		  TRAJ_STEP_VAL_UI = 53,
-     &            TRAJ_BACKGROUND_UI =54,
-     &            TRAJ_2D_UI =55)
+      parameter(  TRAJ_IND_UI    =52,
+     &	          VSCALE_UI     =53,
+     &		  TRAJ_STEP_VAL_UI = 54,
+     &            TRAJ_BACKGROUND_UI =55,
+     &            TRAJ_2D_UI =56)
 
+      parameter(   THREED_CONTROL_FORM = 57)
 

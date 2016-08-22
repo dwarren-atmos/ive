@@ -85,6 +85,7 @@ extern double interp_();
 //#define wslab_dep(x,y,z) *(wslab + (x) + (y)*(*ni) + (z)*(*nj)*(*ni))
 //#define phpts3_dep(x,y,z) (phpts3.pt + (x) + (y)*nis + (z)*nis*njs)
 
+static float mymin=1E23,mymax=1E23;
 
 
 float 
@@ -331,8 +332,10 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 			    (float)interp_(data,nx,ny,nz,nt,		
 					   &cmpt[icounter].x,&cmpt[icounter].y,
 					   &cmpt[icounter].z,&cmpt[icounter].t,
-			    special);
-			//phpts3_dep(icounter, dcounter, kcounter)->x =
+			    special);	
+			mymin=MIN(slab_dep(icounter,dcounter, kcounter),mymin);
+			mymax=MAX(slab_dep(icounter,dcounter, kcounter),mymax);
+		//phpts3_dep(icounter, dcounter, kcounter)->x =
 			//phpts3_dep(icounter,dcounter, kcounter)->y = 
 			//phpts3_dep(icounter,dcounter, kcounter)->z = 
 			phpts3.pt[icounter][dcounter][kcounter].x =
@@ -456,6 +459,8 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 					   &cmpt[icounter].x,&cmpt[icounter].y,
 					   &cmpt[icounter].z,&cmpt[icounter].t,
 					   special);
+			mymin=MIN(slab_dep(icounter,dcounter, kcounter),mymin);
+			mymax=MAX(slab_dep(icounter,dcounter, kcounter),mymax);
 			phpts3.pt[icounter][dcounter][kcounter].x =
 			    phpta[icounter].v[ii];
 			phpts3.pt[icounter][dcounter][kcounter].y =
@@ -569,6 +574,7 @@ int *dims, *lock, *nx, *ny, *nz, *nt, *ni, *nj, *nk, *phys;
 	  for (i=0; i < *ni; i++){
 	    wslab_dep(i, j, k) = slab_dep(i+wp3.imin, j+wp3.jmin, k+wp3.kmin);
 	  }
+    printf("mid val %f\n",(mymin+mymax)/2.0);
     window_points3_ = wp3;
     wp.x1=wp3.x1;
     wp.x2=wp3.x2;
