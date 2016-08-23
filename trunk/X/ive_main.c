@@ -228,6 +228,11 @@ static char ident[] = "@(#)$Id: ive_main.c,v 1.34 2002/12/13 23:35:35 harryive E
 #include <malloc.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sys/types.h>
 #ifdef MEMDBG
 #include <mcheck.h>
 #endif
@@ -307,7 +312,12 @@ int not_window=0; /*flag passed to driver; means do update windows*/
 
 Widget Toplevel;
 Colormap cmap; 
-
+static Pixel colors[6]={(unsigned long)((0xd9 <<16)+(0xd9 <<8)+(0xd9)),
+			 (unsigned long)((0x00 <<16)+(0xbf <<8)+(0xff)),
+			 (unsigned long)((0xdd <<16)+(0xa0 <<8)+(0xdd)),
+			 (unsigned long)((0xff <<16)+(0x00 <<8)+(0x00)),
+			 (unsigned long)((0x00 <<16)+(0xee <<8)+(0x00)),
+			 (unsigned long)((0x55 <<16)+(0x1a <<8)+(0x8b))};
 Widget file_widget, ive_widget, xgks_widget;
 void first_loop(app_con)
      XtAppContext app_con;
@@ -325,6 +335,43 @@ void first_loop(app_con)
   }
 }
 
+int proc_find(const char* name) 
+{
+    DIR* dir;
+    struct dirent* ent;
+    char* endptr;
+    char buf[512];
+    char link[2048],*l;
+    int count=0;
+    
+    if (!(dir = opendir("/proc"))) {
+        perror("can't open /proc");
+        return -1;
+    }
+
+    while((ent = readdir(dir)) != NULL) {
+        /* if endptr is not a null character, the directory is not
+         * entirely numeric, so ignore it */
+        long lpid = strtol(ent->d_name, &endptr, 10);
+        if (lpid<0)
+	  continue;
+
+        /* try to open the cmdline file */
+        snprintf(buf, sizeof(buf), "/proc/%ld/exe", lpid);
+	bzero(link,2048);
+	readlink(buf,link,2048);
+	l=rindex(link,'/');
+	if(l){
+	  l++;
+	  if (!strncmp(l, name,strlen(name))) {
+	    count++;
+	  }
+	}
+    }
+    return(count);
+}
+
+
 main(argc,argv,envp)
 int argc;
 char **argv, **envp;
@@ -339,7 +386,7 @@ char **argv, **envp;
     char buff[256],*tmpbuf, **tmpbuf2;
     FILE *stream;
     long error ;
-    int i, status;
+    int i, status, ivecount, me;
     static int one=1, negone=-1;
     extern void quit_query();
     struct rlimit rlp;
@@ -392,6 +439,7 @@ char **argv, **envp;
 /*
    Call cpinrc to set up conpack for calls to cpnumb
    */
+    me=proc_find(progname);
     cpinrc_();
     setavar_("graphics_path", progname, &error, 13, strlen(progname));
     /*set up X toolkit and open display and shell etc*/
@@ -400,6 +448,8 @@ char **argv, **envp;
     Toplevel = XtVaAppInitialize(&app_con,appname,options,XtNumber(options),
 				 &argc,argv,NULL,NULL);
     */
+    if(me>0)
+      me--;
     Toplevel = XtVaOpenApplication(&app_con,appname,options,XtNumber(options),
 				   &argc,argv,NULL,applicationShellWidgetClass,
 				   XtNallowShellResize, True, NULL);
@@ -492,6 +542,10 @@ allocate new color map [y\\n]? ", i-10);
     first_loop(app_con);
     xgks_widget = init_xgks(Toplevel,appname,cmap);
     ive_widget = init_ive(Toplevel,file_widget);
+    XtVaSetValues(XtParent(xgks_widget),XmNshadowThickness,2,
+		  XmNbottomShadowColor,colors[me],NULL);
+    XtVaSetValues(XtParent(ive_widget),XmNshadowThickness,2,
+		  XmNbottomShadowColor,colors[me],NULL);
     attributes.backing_store = Always;
     attributes.save_under = TRUE;
     XChangeWindowAttributes(XtDisplay(Toplevel),XtWindow(xgks_widget),

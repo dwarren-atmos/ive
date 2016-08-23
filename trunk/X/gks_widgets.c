@@ -702,7 +702,7 @@ Widget init_xgks(parent,name, cmap)
     if(avail_colors > 2 && avail_colors <110){
 	printf("IVE: only using %d user colors\n", avail_colors-14);
     }
-
+				     
     gksshell = XtVaAppCreateShell(name,"IVE_OUT",
 				  applicationShellWidgetClass,
 				  dpy, XtNallowShellResize, TRUE,
@@ -759,9 +759,16 @@ Widget init_xgks(parent,name, cmap)
 	      (void)make_help_widget_
 		("Sorry, out of memory making color tables");
 	  }
-    }    
+    }
+    
+    gksbox = XtVaCreateManagedWidget("_IveGKSBox",xmFrameWidgetClass,gksshell,
+				     XmNwidth, 640,
+				     XmNheight, 480,
+				     XmNresize, XmRESIZE_ANY,
+				     NULL);
+
     xgks_widget = XtVaCreateManagedWidget("xgks_widget",
-					  xgksWidgetClass,gksshell,
+					  xgksWidgetClass,gksbox,
 					  XtNwsId, WS_X,
 					  XmNwidth, 640,
 					  XmNheight, 480,

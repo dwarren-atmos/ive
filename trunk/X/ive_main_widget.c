@@ -276,16 +276,22 @@ Widget init_ive(parent,file_widget)
     Pixmap twoper, fourper, sixper;
     Pixel fg,bg,redp,greenp,bluep,violetp,whitep,greyp,blackp,yellowp,brownp;
     XColor color_inout, color_dummy;
-    Widget wtemp;
+    Widget wtemp,Frame;
     int i;
     extern Pixel IveGetPixel();
     /*Box etc*/
 
+    Frame = XtVaCreateManagedWidget("_IVEFrame",xmFrameWidgetClass,
+				    parent,
+				    XmNheight, BOXHEIGHT,
+				    XmNwidth, BOXWIDTH,
+				    XmNresize, XmRESIZE_ANY,
+				    NULL);
+    
     Box = XtVaCreateManagedWidget("_IveBox",xmFormWidgetClass,
-				  parent, 
+				  Frame, 
 				  XmNheight, BOXHEIGHT,
 				  XmNwidth, BOXWIDTH,
-				  XmNmarginWidth,5,
 				  XmNresize, XmRESIZE_ANY,
 				  NULL);
 
