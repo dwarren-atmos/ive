@@ -602,24 +602,23 @@ c
          call cpgeti ('NCL - number of contour levels', ncl)
       else
          call cpseti ('NCL - number of contour levels', tnum_vals)
-         do 1000 ncl = 1, tnum_vals
+         do ncl = 1, tnum_vals
             call cpseti ('PAI - parameter array index', ncl)
             call cpsetr ('CLV - contour level value', tcont_values(ncl))
- 1000    continue
-         ncl = tnum_vals
+         enddo
+!         ncl = tnum_vals
       endif
 c
 c
 c     Get the number of contour levels.
 c     
       call cpgeti ('NCL - number of contour levels', ncl)
-
       if ( cff .eq. 0 .and. ncl .gt. 0) then
 c
 c
 c     Select contour levels.
 c
-         call cppkcl (dat, rwrk1, iwrk1)
+!         call cppkcl (dat, rwrk1, iwrk1)
 c
 c
 c     Get the number of contour levels.
