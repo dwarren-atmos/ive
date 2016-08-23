@@ -428,6 +428,7 @@ void ive_3dinput(w, data, event, dispatch)
      //XmDrawingAreaCallbackStruct *call;
 {
   extern Objects IVE_Object;
+  if(IVE_Object.objects==0)return;
   //  XEvent *event = call->event;
   XButtonEvent *xbutton = (XButtonEvent *)event;
   XKeyEvent *xkey = (XKeyEvent *)event;
