@@ -859,11 +859,11 @@ Boolean *continue_to_dispatch;
 		 */
 	    case Expose:
 	      if (((XExposeEvent *)xev)->count == 0) {
-	if (gks_mouse_menu_tracker && gksokbox)
-	  gks_line_cancel(gksokbox, 0, (XmAnyCallbackStruct *)NULL);
-	    (void) redraw(ws);
-		}
-		break;
+		if (gks_mouse_menu_tracker && gksokbox)
+		  gks_line_cancel(gksokbox, 0, (XmAnyCallbackStruct *)NULL);
+		(void) redraw(ws);
+	      }
+	      break;
 
 	    case KeyPress:
 		special_button_stuff(ws, xev);
@@ -1197,7 +1197,11 @@ xXgksUpdateTrans(ws)
                                          * transformation(DC->WIN) */
 
     float           flt1, flt2;
+    float xmajor;
+    int error;
 
+    (void)getrvar_("xmajor",&xmajor,&error,6);
+    if(error !=0)xmajor=0;
     D_DCX = ws->size.x;
     D_DCY = ws->size.y;
 
@@ -1211,15 +1215,14 @@ xXgksUpdateTrans(ws)
         scale_WT = flt1;
     else
         scale_WT = flt2;
-
     D_XWX = (float) (ws->wbound.x);
     D_XWY = (float) (ws->wbound.y);
 
     /* -1 is a fudge to fill window */
-    if ((flt1 = D_XWX / (D_DCX)) < (flt2 = (D_XWY - 1) / (D_DCY)))
-        scale_DT = flt1;
+    if ((flt1 = D_XWX / (D_DCX)) < (flt2 = (D_XWY - 1) / D_DCY))
+      scale_DT = flt1;
     else
-        scale_DT = flt2;
+      scale_DT = flt2;
 
 /*
   dbw 12-31-91
@@ -1229,17 +1232,20 @@ xXgksUpdateTrans(ws)
     ws->ndctodctrans.xScale = D_WVX / D_WWX /*scale_WT*/;
     ws->ndctodctrans.yScale = D_WVY / D_WWY /*scale_WT*/;
     ws->ndctodctrans.xTrans = ws->wsti.current.v.xmin -
-                              ws->wsti.current.w.xmin * scale_WT;
+      ws->wsti.current.w.xmin * scale_WT;
     ws->ndctodctrans.yTrans = ws->wsti.current.v.ymin -
-                              ws->wsti.current.w.ymin * scale_WT;
+      ws->wsti.current.w.ymin * scale_WT;
 
     /* DC to X transformation */
-    ws->dctoxtrans.xScale = D_XWX / (D_DCX)/*scale_DT*/;
-    ws->dctoxtrans.yScale = .95*(D_XWY) / (D_DCY)/*scale_DT*/;
-    ws->dctoxtrans.xTrans = 0.0;
+    if(xmajor > 0 )
+      ws->dctoxtrans.xScale = .85*(D_XWX / D_DCX)/*scale_DT*/;
+    else
+      ws->dctoxtrans.xScale = .95*(D_XWX / D_DCX)/*scale_DT*/;
+    ws->dctoxtrans.yScale = .90*(D_XWY / D_DCY)/*scale_DT*/;
+    ws->dctoxtrans.xTrans = 0.05*D_XWX;
 
     /* fudge to fill window */
-    ws->dctoxtrans.yTrans = .05*D_XWY;
+    ws->dctoxtrans.yTrans = .10*(D_XWY);
 
     /* NDC to X transformation */
     ws->ndctoxtrans.xScale = ws->ndctodctrans.xScale * ws->dctoxtrans.xScale;

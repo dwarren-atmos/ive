@@ -554,6 +554,7 @@ XgksDrawSegToWs(ws)
     int XgksReDrawSeg();
     XgksIDevDisable(ws);
     seglist = ws->seglist;
+    (void)xXgksUpdateTrans(ws);
     while (seglist != NULL) {
 	if (seglist->seg != INVALID) {
 	    seg = XgksFindSeg(seglist->seg);
