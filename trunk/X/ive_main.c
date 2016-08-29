@@ -312,12 +312,11 @@ int not_window=0; /*flag passed to driver; means do update windows*/
 
 Widget Toplevel;
 Colormap cmap; 
-static Pixel colors[6]={(unsigned long)((0xd9 <<16)+(0xd9 <<8)+(0xd9)),
-			 (unsigned long)((0x00 <<16)+(0xbf <<8)+(0xff)),
-			 (unsigned long)((0xdd <<16)+(0xa0 <<8)+(0xdd)),
+static Pixel colors[6]={(unsigned long)((0x00 <<16)+(0x00 <<8)+(0x00)),
 			 (unsigned long)((0xff <<16)+(0x00 <<8)+(0x00)),
-			 (unsigned long)((0x00 <<16)+(0xee <<8)+(0x00)),
-			 (unsigned long)((0x55 <<16)+(0x1a <<8)+(0x8b))};
+			 (unsigned long)((0x00 <<16)+(0xff <<8)+(0x00)),
+			 (unsigned long)((0x00 <<16)+(0x00 <<8)+(0xff)),
+			(unsigned long)((0xff <<16)+(0xff <<8)+(0xff))};
 Widget file_widget, ive_widget, xgks_widget;
 void first_loop(app_con)
      XtAppContext app_con;
@@ -368,7 +367,7 @@ int proc_find(const char* name)
 	  }
 	}
     }
-    return(count);
+    return(count%5);
 }
 
 
@@ -543,9 +542,11 @@ allocate new color map [y\\n]? ", i-10);
     xgks_widget = init_xgks(Toplevel,appname,cmap);
     ive_widget = init_ive(Toplevel,file_widget);
     XtVaSetValues(XtParent(xgks_widget),XmNshadowThickness,2,
-		  XmNbottomShadowColor,colors[me],NULL);
+		  XmNbottomShadowColor,colors[me],
+		  XmNtopShadowColor,colors[me],NULL);
     XtVaSetValues(XtParent(ive_widget),XmNshadowThickness,2,
-		  XmNbottomShadowColor,colors[me],NULL);
+		  XmNbottomShadowColor,colors[me],
+		  XmNtopShadowColor,colors[me],NULL);
     attributes.backing_store = Always;
     attributes.save_under = TRUE;
     XChangeWindowAttributes(XtDisplay(Toplevel),XtWindow(xgks_widget),
