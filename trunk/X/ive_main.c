@@ -541,6 +541,7 @@ allocate new color map [y\\n]? ", i-10);
     first_loop(app_con);
     xgks_widget = init_xgks(Toplevel,appname,cmap);
     ive_widget = init_ive(Toplevel,file_widget);
+    fprintf(stderr,"I am %d which is %ld\n",me,colors[me]);
     XtVaSetValues(XtParent(xgks_widget),XmNshadowThickness,2,
 		  XmNbottomShadowColor,colors[me],
 		  XmNtopShadowColor,colors[me],NULL);
@@ -583,12 +584,18 @@ allocate new color map [y\\n]? ", i-10);
 	}
     }
     if (app_data.log_file != NULL) {
+      if(me)
+	sprintf(buff, "LOG=%s-%d", app_data.log_file,me);
+      else
 	sprintf(buff, "LOG=%s", app_data.log_file);
 	driver_notwin(buff);
     }
     else{
+      if(me)
+	sprintf(buff,"LOG=~/ive.log-%d",me);
+      else
 	sprintf(buff,"LOG=~/ive.log");
-	driver_notwin(buff);
+      driver_notwin(buff);
     }
     signal(SIGFPE,SIG_DFL);
     /*

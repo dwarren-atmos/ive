@@ -938,8 +938,8 @@ c
       if(ncl .eq. 0 .and. cff .eq. 0) then
          write (message, 110 ) ncl
          call write_message
-         error = .true.
-         return
+!         error = .true.
+!         return
       endif
 
 c
