@@ -435,6 +435,7 @@ endif
 CFLAGS = ${COPT} -I${PWD}/h -I$/usr/include/FTGL ${DEC} ${DOBETA}\
 	-I${PWD}/h/haru ${UDPOSIX_INCLUDE} ${BROWSER}
 FFLAGS = ${FOPT} ${FDEC} ${ALPHA} ${FCPP} -I${PWD}/h
+HCFLAGS = ${COPT}
 #
 #
 
@@ -448,8 +449,10 @@ endif
 #
 all: IVE
 link: LINK_ONLY
-haru:
-	${MAKE} -C ./haru CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
+haru: 
+	${MAKE} -C ./haru CFLAGS="${HCFLAGS}" CC="${CC}" RANLIB="${RANLIB}"
+	mv haru/src/libhpdfs.a haru/libhpdf.a
+	cp haru/include/hpdf_config.h h/haru
 gks:
 	${MAKE} -C ./gks CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
 	${MAKE} LDFLAGS="${LDFLAGS}" link
@@ -487,14 +490,16 @@ clean:
 #
 #
 
-IVE:  
+IVE: 
 	${MAKE} -C ./h CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} -C ./Lib_VTK_IO "FC=${F77}"
 	/bin/rm -f ./h/ir_precision.mod .h/lib_base64.mod .h/lib_pack_data.mod .h/lib_vtk_io.mod
 	cp Lib_VTK_IO/ir_precision.mod Lib_VTK_IO/lib_base64.mod Lib_VTK_IO/lib_pack_data.mod Lib_VTK_IO/lib_vtk_io.mod ./h/
+	${MAKE} -C ./haru CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
+	mv haru/src/libhpdfs.a haru/libhpdf.a
+	cp haru/include/hpdf_config.h h/haru
 	${MAKE} -C ./src CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" KF77="${KF77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" machine="${machine}"
 	${MAKE} -C ./gks CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
-	${MAKE} -C ./haru CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
 	${MAKE} -C ./netcdf CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} -C ./trans CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${ACC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
 	${MAKE} -C ./X CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${ACC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
