@@ -137,7 +137,7 @@ static char ident[] = "$Id: Window_Dump.c,v 1.10 2003/07/02 20:23:02 warren Exp 
 #include <ive_gks.h>
 #include <malloc.h>
 #ifdef DOPNG
-#include "png.h"        /* libpng header; includes zlib.h and setjmp.h */
+#include <png.h>        /* libpng header; includes zlib.h and setjmp.h */
 #endif
 extern void update_all_(),GifEncode();
 extern unsigned long IveGetPixel();
@@ -147,7 +147,8 @@ extern Dimension loop_height, loop_width; /* Loop window dimensions */
 #define FEEP_VOLUME 0
 
 #ifdef DOPNG
-static void png_error_handler(png_structp png_ptr, png_const_charp msg)
+//static void png_error_handler(png_structp png_ptr, png_const_charp msg)
+static void PNGAPI error_function(png_structp png, png_const_charp msg)
 {
 
     /* This function, aside from the extra step of retrieving the "error
@@ -162,7 +163,8 @@ static void png_error_handler(png_structp png_ptr, png_const_charp msg)
     fprintf(stderr, "writepng error: %s\n", msg);
     fflush(stderr);
 
-    longjmp(png_ptr->jmpbuf, 1);
+    //    longjmp(png_ptr->jmpbuf, 1);
+    longjmp(png_jmpbuf(png), 1);
 }
 #endif
 
@@ -596,7 +598,7 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
       new = 
 	(unsigned char *)malloc(image->width*image->height);
       png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-					(void *)NULL, png_error_handler, 
+					(void *)NULL, error_function, 
 					(void *)NULL);
       if (png_ptr == NULL)
 	{
@@ -608,12 +610,12 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
 	  png_destroy_write_struct(&png_ptr,  (png_infopp)NULL);
 	  return(1);
 	}
-      if (setjmp(png_ptr->jmpbuf))
-	{
-	  /* If we get here, we had a problem reading the file */
-	  png_destroy_write_struct(&png_ptr,  (png_infopp)NULL);
-	  return(1);
-	}
+      //      if (    longjmp(png_jmpbuf(png_ptr), 1))
+      //	{
+      //	  /* If we get here, we had a problem reading the file */
+      //	  png_destroy_write_struct(&png_ptr,  (png_infopp)NULL);
+      //	  return(1);
+      //	}
       png_init_io(png_ptr, out);
       png_set_IHDR(png_ptr, info_ptr, image->width, image->height, 
 		   8, PNG_COLOR_TYPE_PALETTE,
@@ -710,7 +712,7 @@ int Window_Dump(dpy, window, pixmap, bell, type, out, buf, cmap)
 	png_write_rows(png_ptr,&row_pointer, 1);
       }
       png_write_end(png_ptr, info_ptr);
-      free(info_ptr->palette);
+      //      free(info_ptr->palette);
       png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 
 
