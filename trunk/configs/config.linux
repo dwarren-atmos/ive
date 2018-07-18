@@ -121,14 +121,14 @@ LIBS =	-threads -L/usr/local/lib -L/usr/lib  \
 	-L/usr/X11R6/lib  \
 	-lncarg -lngmath -lncarg_c -lXm \
 	-lxgks  -lGLU  -lGL  -lnetcdf -lnetcdff\
-	-lXt -lXp -lXpm -lXext -lX11 \
+	-lXt  -lXpm -lXext -lX11 \
 	-lSM -lICE  ${UDUNITS} -lpng -lz -lsvml -ldl -lc \
-	-lXm -lc -lz -openmp -Wl,--allow-multiple-definition
+	-lXm -lc -lz -qopenmp -Wl,--allow-multiple-definition
 
 
 #COPT = -O -w
-COPT = -g -O1 -fno-alias -axAVX,SSE4.2,SSE4.1,SSSE3,SSE3,SSE2
-FOPT = -g -O -fno-alias -axAVX,SSE4.2,SSE4.1,SSSE3,SSE3,SSE2
+COPT = -g -O1 -fno-alias -axAVX,SSE4.2,SSE4.1,SSSE3,SSE3,SSE2 -qopenmp
+FOPT = -g -O -fno-alias -axAVX,SSE4.2,SSE4.1,SSSE3,SSE3,SSE2 -qopenmp
 ifeq (${MACH}, x86_64)
 LDOPT =  -fPIE -Wl,--export-dynamic -nofor_main -ip
 else
