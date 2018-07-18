@@ -686,12 +686,13 @@ c
      &                 nlevs, sign, status, text_index, tictest, 
      &                 lock(4), plot_number, max_dim
       integer          xaxis, yaxis, oldclp, filltyp, fill_frequency
+      integer          nvals,ncl
       logical          error, movielabs
       real             offset, shift, value,szsc
       real             vpl, vpr, vpb, vpt, wdl, wdr, wdb, wdt,
      &                 linewdth, crec(4)
       real             center, cint, cmax, cmin, orient, size, szsf, 
-     &                 xpos, ypos, xpts, ypts, loc(4)
+     &                 xpos, ypos, xpts, ypts, loc(4),cvals(40)
       real*8           slope, intercept
       dimension xpts(2), ypts(2)
       data  size / 0.019 /
@@ -739,6 +740,12 @@ c
       else
          szsc = .70
       endif
+      call getivar('num_vals',nvals,error)
+      if(nvals .gt. 0) then
+          call getrarr('cont_values',cvals,40,error)
+       else
+          call getrvar('cont_int',cint,error)
+       endif
       if(.not. movielabs .and. (filltyp .eq. SOLID) .and.
      &     fill_frequency .ne. NEVER) then
          plot_number = curoverlay(curlist) - 1
@@ -1268,7 +1275,9 @@ c     Draw label indicating contour minimum, maximum, and interval
 c     used. Do this only if a constant field has not been detected.
 c
       call cpgeti ('CFF - constant field flag', cff)
-      if ( cff .eq. 0 ) then
+      call cpgeti ('NCL - number of contour levels', ncl)
+c      write(6,*)'CFF=',cff,' ncl=',ncl
+      if ( (cff .eq. 0) .and. (ncl .gt.0)) then
          call cpseti ('PAI - parameter array index', 1)
          call cpgetr ('CLV - contour level values', cmin)
          call cpsetr ('ZDV - z data value', cmin)
