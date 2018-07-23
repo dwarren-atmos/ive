@@ -63,7 +63,7 @@
 # Move NO_PROTO to config.sun.  Fix config.alpha to remove lm_sqrt.
 #
 #
-LSB := ${shell ls -d /usr/include/lsb*|sort -n|tail -1|cut -f2 -db}
+LSB := `/usr/bin/lsb_release -rs|cut -f1 -d.`
 ifndef LSB
 LSB := 0	
 endif
