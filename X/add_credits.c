@@ -362,7 +362,7 @@ static char ident[] = "$Id: add_credits.c,v 1.87 2007-07-30 22:28:42 warren Exp 
 #define DEFAULT_FONT "9x15"		/* Font to use if others not found */
 
 static char *title = "IVE";
-static char *version = "Version 4.11 - March 26 2017";
+static char *version = "Version 4.12 - July 18 2017";
 /*
    In credits strings, if a line starts with
 	"\b" => line in italics

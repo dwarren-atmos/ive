@@ -441,18 +441,24 @@ HCFLAGS = ${COPT}
 
 #
 ifdef MEMDBG 
-LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a Lib_VTK_IO/static/Lib_VTK_IO.a -lmcheck
+LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/lib/libhpdfs.a src/libIVE.a Lib_VTK_IO/static/Lib_VTK_IO.a -lmcheck
 else
-LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/libhpdf.a src/libIVE.a Lib_VTK_IO/static/Lib_VTK_IO.a
+LOCALLIB = src/libIVE.a gks/libIVEgks.a haru/lib/libhpdfs.a src/libIVE.a Lib_VTK_IO/static/Lib_VTK_IO.a
 endif
 #
 #
 all: IVE
 link: LINK_ONLY
-haru: 
-	${MAKE} -C ./haru CFLAGS="${HCFLAGS}" CC="${CC}" RANLIB="${RANLIB}"
-	mv haru/src/libhpdfs.a haru/libhpdf.a
-	cp haru/include/hpdf_config.h h/haru
+haru:
+ifeq ("","$(wildcard ./haru)")
+	mkdir haru
+endif
+ifeq ("","$(wildcard ./haru_build)")
+	mkdir haru_build
+	cd haru_build; cmake DCMAKE_C_COMPILER_LAUNCHER=icc DCMAKE_CXX_COMPILER_LAUNCHER=icpc ../libharu-RELEASE_2_3_0 -DCMAKE_INSTALL_PREFIX:PATH=../haru
+endif
+	${MAKE} -C ./haru_build 
+	${MAKE} -C ./haru_build install
 gks:
 	${MAKE} -C ./gks CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
 	${MAKE} LDFLAGS="${LDFLAGS}" link
@@ -486,6 +492,7 @@ clean:
 	cd trans; ${MAKE}  clean; cd ..
 	cd X; ${MAKE}  clean; cd ..
 	cd Lib_VTK_IO; ${MAKE}  clean; cd ..
+	/bin/rm -rf haru haru_build
 #
 #
 #
@@ -495,9 +502,16 @@ IVE:
 	${MAKE} -C ./Lib_VTK_IO "FC=${F77}"
 	/bin/rm -f ./h/ir_precision.mod .h/lib_base64.mod .h/lib_pack_data.mod .h/lib_vtk_io.mod
 	cp Lib_VTK_IO/ir_precision.mod Lib_VTK_IO/lib_base64.mod Lib_VTK_IO/lib_pack_data.mod Lib_VTK_IO/lib_vtk_io.mod ./h/
-	${MAKE} -C ./haru CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
-	mv haru/src/libhpdfs.a haru/libhpdf.a
-	cp haru/include/hpdf_config.h h/haru
+ifeq ("","$(wildcard ./haru)")
+	mkdir haru
+endif
+ifeq ("","$(wildcard ./haru_build)")
+	mkdir haru_build
+	cd haru_build; cmake DCMAKE_C_COMPILER_LAUNCHER=icc DCMAKE_CXX_COMPILER_LAUNCHER=icpc ../libharu-RELEASE_2_3_0 -DCMAKE_INSTALL_PREFIX:PATH=../haru
+endif
+	${MAKE} -C ./haru_build 
+	${MAKE} -C ./haru_build install
+
 	${MAKE} -C ./src CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" KF77="${KF77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" machine="${machine}"
 	${MAKE} -C ./gks CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}" RANLIB="${RANLIB}"
 	${MAKE} -C ./netcdf CFLAGS="${CFLAGS}" FFLAGS="${FFLAGS}" ACC="${ACC}" ALPHA="${ALPHA}" CC="${CC}" F77="${F77}" TRANSOBJ=${TRANSOBJ} FCPP="${FCPP}"
